@@ -1,0 +1,14 @@
+
+target/
+src/main/resources/static
+
+*.log
+
+.vscode/
+.idea/
+
+.DS_Store
+
+.env
+
+HELP.md
