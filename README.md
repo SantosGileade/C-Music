@@ -68,7 +68,7 @@ Tecnologias Utilizadas
 
 # Pré-requisitos para executar o projeto
 
-- Java 17+
+- Java 17
 - Maven (ou usar o wrapper do projeto)
 - MySQL
 
