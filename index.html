@@ -240,6 +240,16 @@
     .spinner{width:20px;height:20px;border-radius:50%;border:2px solid var(--border);border-top-color:var(--accent);animation:spin .7s linear infinite}
     @keyframes spin{to{transform:rotate(360deg)}}
 
+    /* ===== HOME CARDS ===== */
+    .home-card{width:100%;display:flex;align-items:center;gap:16px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 16px;text-align:left;transition:var(--transition);color:var(--text)}
+    .home-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:var(--shadow)}
+    .home-card:active{transform:scale(.98)}
+    .home-card-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0}
+    .home-card-body{flex:1;min-width:0}
+    .home-card-title{font-size:1rem;font-weight:700;margin-bottom:3px}
+    .home-card-desc{font-size:.8rem;color:var(--text3)}
+    .home-card-arrow{font-size:1.4rem;color:var(--text3);flex-shrink:0}
+
     /* ===== APRESENTAÇÃO PANEL ===== */
     .ap-layout{display:grid;grid-template-columns:1fr;gap:16px}
     @media(min-width:820px){.ap-layout{grid-template-columns:280px 1fr;align-items:start}}
@@ -284,15 +294,12 @@
 
 <!-- HEADER -->
 <header>
+  <button class="back-btn" id="headerBackBtn" onclick="switchPanel('home')" style="display:none" title="Voltar">←</button>
   <div class="logo">
     <div class="logo-icon">🎵</div>
     <div class="logo-text">C-<span>Music</span></div>
   </div>
-  <nav>
-    <button class="nav-btn active" onclick="switchPanel('musicas')">🎶 Músicas</button>
-    <button class="nav-btn" onclick="switchPanel('playlists')">📋 Playlists</button>
-    <button class="nav-btn" onclick="switchPanel('apresentacao')">🎬 Apresentação</button>
-  </nav>
+  <div id="headerPanelTitle" style="font-size:.9rem;font-weight:600;color:var(--text2);display:none"></div>
   <div class="header-right">
     <div class="conn-badge" id="connBadge">
       <div class="conn-dot offline" id="connDot"></div>
@@ -306,8 +313,45 @@
     ⚠️ <span><b>Sem conexão</b> — Verifique a conexão com o banco de dados.</span>
   </div>
 
+  <!-- PAINEL HOME -->
+  <div class="panel active" id="panel-home">
+    <div style="max-width:480px;margin:0 auto;padding-top:12px">
+      <div style="text-align:center;margin-bottom:28px">
+        <div style="font-size:2rem;margin-bottom:8px">🎵</div>
+        <div style="font-size:1.4rem;font-weight:700;letter-spacing:-.3px">C-Music</div>
+        <div style="font-size:.84rem;color:var(--text3);margin-top:4px">O que você vai fazer hoje?</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <button class="home-card" onclick="switchPanel('musicas')">
+          <div class="home-card-icon" style="background:linear-gradient(135deg,var(--accent),var(--accent2))">🎶</div>
+          <div class="home-card-body">
+            <div class="home-card-title">Músicas</div>
+            <div class="home-card-desc">Cadastre e gerencie seu acervo de músicas</div>
+          </div>
+          <div class="home-card-arrow">›</div>
+        </button>
+        <button class="home-card" onclick="switchPanel('playlists')">
+          <div class="home-card-icon" style="background:linear-gradient(135deg,var(--teal),#0ea5e9)">📋</div>
+          <div class="home-card-body">
+            <div class="home-card-title">Playlists</div>
+            <div class="home-card-desc">Organize músicas por culto ou evento</div>
+          </div>
+          <div class="home-card-arrow">›</div>
+        </button>
+        <button class="home-card" onclick="switchPanel('apresentacao')">
+          <div class="home-card-icon" style="background:linear-gradient(135deg,var(--pink),var(--yellow))">🎬</div>
+          <div class="home-card-body">
+            <div class="home-card-title">Apresentação</div>
+            <div class="home-card-desc">Painel do operador de datashow e telão</div>
+          </div>
+          <div class="home-card-arrow">›</div>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- PAINEL MÚSICAS -->
-  <div class="panel active" id="panel-musicas">
+  <div class="panel" id="panel-musicas">
     <div class="panel-header">
       <div>
         <div class="panel-title">Painel de <span>Músicas</span></div>
@@ -825,12 +869,19 @@ document.getElementById('confirmOkBtn').onclick=()=>{if(confirmCb)confirmCb();cl
 /* =====================================================================
    PANEL SWITCHING
    ===================================================================== */
+const PANEL_LABELS = {musicas:'🎶 Músicas', playlists:'📋 Playlists', apresentacao:'🎬 Apresentação'};
+
 function switchPanel(name) {
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('panel-'+name).classList.add('active');
-  const navIdx = {musicas:0, playlists:1, apresentacao:2};
-  document.querySelectorAll('.nav-btn')[navIdx[name]||0].classList.add('active');
+
+  const backBtn   = document.getElementById('headerBackBtn');
+  const titleEl   = document.getElementById('headerPanelTitle');
+  const isHome    = name === 'home';
+  backBtn.style.display  = isHome ? 'none' : 'flex';
+  titleEl.style.display  = isHome ? 'none' : 'block';
+  titleEl.textContent    = isHome ? '' : (PANEL_LABELS[name] || '');
+
   if(name==='musicas') loadMusicas();
   if(name==='playlists'){showPlaylistList();loadPlaylists();}
   if(name==='apresentacao') apLoadPlaylists();
@@ -1656,7 +1707,6 @@ function telaoClose() {
   }else{
     setDemo(true);
   }
-  loadMusicas();
   setInterval(checkConn,60000);
 })();
 </script>
