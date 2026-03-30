@@ -239,6 +239,45 @@
     .toast-info{border-left:3px solid var(--accent)}
     .spinner{width:20px;height:20px;border-radius:50%;border:2px solid var(--border);border-top-color:var(--accent);animation:spin .7s linear infinite}
     @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* ===== APRESENTAÇÃO PANEL ===== */
+    .ap-layout{display:grid;grid-template-columns:1fr;gap:16px}
+    @media(min-width:820px){.ap-layout{grid-template-columns:280px 1fr;align-items:start}}
+    .ap-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+    .ap-card-header{padding:11px 15px;background:var(--card2);border-bottom:1px solid var(--border);font-size:.73rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--text3)}
+    .ap-song-list{max-height:60dvh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+    @media(min-width:820px){.ap-song-list{max-height:calc(100dvh - 240px)}}
+    .ap-song-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:var(--transition)}
+    .ap-song-item:last-child{border-bottom:none}
+    .ap-song-item:hover{background:var(--card2)}
+    .ap-song-item.ap-active{background:rgba(124,58,237,.15);border-left:3px solid var(--accent)}
+    .ap-song-item.ap-proxima{background:rgba(20,184,166,.07)}
+    .ap-song-num{width:24px;height:24px;border-radius:6px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:.72rem;color:var(--text3);font-weight:700;flex-shrink:0}
+    .ap-song-info-wrap{flex:1;min-width:0}
+    .ap-song-title{font-size:.86rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .ap-song-sub{font-size:.73rem;color:var(--text3);margin-top:1px}
+    .ap-song-header{padding:13px 16px;border-bottom:1px solid var(--border)}
+    .ap-song-header-title{font-weight:700;font-size:1rem;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .ap-song-header-meta{font-size:.75rem;color:var(--text3)}
+    .ap-preview-wrap{padding:14px 16px}
+    .ap-preview{background:#000;border-radius:10px;min-height:200px;display:flex;align-items:center;justify-content:center;text-align:center;margin-bottom:12px;border:1px solid rgba(255,255,255,.07);cursor:pointer;position:relative;overflow:hidden;touch-action:pan-y}
+    .ap-preview-text{color:#fff;font-family:'Georgia',serif;font-size:1.05rem;line-height:1.85;white-space:pre-wrap;padding:20px}
+    .ap-preview-empty{color:rgba(255,255,255,.22);font-size:.88rem;padding:20px}
+    .ap-slide-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+    .ap-slide-counter{font-size:.8rem;color:var(--text3);font-weight:600;min-width:50px;text-align:center}
+    .ap-footer{display:flex;gap:8px;flex-wrap:wrap}
+    .ap-footer .btn{flex:1}
+
+    /* ===== TELÃO SCREEN ===== */
+    #telaoScreen{display:none;position:fixed;inset:0;z-index:500;background:#000;flex-direction:column;align-items:center;justify-content:center}
+    #telaoScreen.open{display:flex}
+    .telao-text{color:#fff;font-family:'Georgia','Times New Roman',serif;text-align:center;line-height:1.75;white-space:pre-wrap;padding:48px;max-width:94vw;word-break:break-word}
+    .telao-waiting{color:rgba(255,255,255,.18);font-size:1.4rem;font-family:'Georgia',serif;text-align:center}
+    .telao-meta{position:fixed;bottom:18px;left:0;right:0;text-align:center;color:rgba(255,255,255,.14);font-size:.77rem;font-family:system-ui,sans-serif;letter-spacing:.3px;pointer-events:none}
+    .telao-ctrl{position:fixed;top:14px;right:14px;display:flex;gap:6px;opacity:0;transition:opacity .25s}
+    #telaoScreen:hover .telao-ctrl{opacity:1}
+    .telao-btn{width:38px;height:38px;border-radius:9px;background:rgba(255,255,255,.1);color:rgba(255,255,255,.75);font-size:.9rem;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;border:1px solid rgba(255,255,255,.12);transition:background .2s}
+    .telao-btn:hover{background:rgba(255,255,255,.22)}
   </style>
 </head>
 <body>
@@ -252,6 +291,7 @@
   <nav>
     <button class="nav-btn active" onclick="switchPanel('musicas')">🎶 Músicas</button>
     <button class="nav-btn" onclick="switchPanel('playlists')">📋 Playlists</button>
+    <button class="nav-btn" onclick="switchPanel('apresentacao')">🎬 Apresentação</button>
   </nav>
   <div class="header-right">
     <div class="conn-badge" id="connBadge">
@@ -310,6 +350,74 @@
         <span id="musicaPagInfoMob"></span>
         <div class="pagination-btns" id="musicaPagBtnsMob"></div>
       </div>
+    </div>
+  </div>
+
+  <!-- PAINEL APRESENTAÇÃO -->
+  <div class="panel" id="panel-apresentacao">
+    <div class="panel-header">
+      <div>
+        <div class="panel-title">🎬 <span>Apresentação</span></div>
+        <div style="font-size:.79rem;color:var(--text3);margin-top:2px">Painel do operador de datashow</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <select class="form-input" id="apPlaylistSel" style="width:auto;min-width:160px" onchange="apLoadSongs()">
+          <option value="">— Selecione a Playlist —</option>
+        </select>
+        <button class="btn btn-primary btn-sm" onclick="apOpenTelao()" id="apTelaoBtn" title="Abrir janela do Telão">📺 Telão</button>
+      </div>
+    </div>
+
+    <div class="ap-layout">
+      <!-- Lista de músicas -->
+      <div class="ap-card">
+        <div class="ap-card-header">Músicas da Playlist</div>
+        <div class="ap-song-list" id="apSongList">
+          <div style="padding:28px;text-align:center;color:var(--text3);font-size:.84rem">Selecione uma playlist acima</div>
+        </div>
+      </div>
+
+      <!-- Painel de slides -->
+      <div class="ap-card" id="apSlideCard">
+        <div class="ap-song-header" id="apSongHeaderInfo">
+          <div class="ap-song-header-title" id="apSongHeaderTitle" style="color:var(--text3)">Nenhuma música selecionada</div>
+          <div class="ap-song-header-meta" id="apSongHeaderMeta"></div>
+        </div>
+        <div class="ap-preview-wrap">
+          <!-- Preview slide -->
+          <div class="ap-preview" id="apPreview">
+            <div class="ap-preview-empty" id="apPreviewEmpty">Selecione uma música para começar</div>
+            <div class="ap-preview-text" id="apPreviewText" style="display:none"></div>
+          </div>
+          <!-- Navegação de slides -->
+          <div class="ap-slide-nav">
+            <button class="btn btn-ghost btn-sm" onclick="apGoSlide(-1)" id="apPrevBtn" disabled>‹ Anterior</button>
+            <span class="ap-slide-counter" id="apSlideCounter">—</span>
+            <button class="btn btn-ghost btn-sm" onclick="apGoSlide(1)" id="apNextBtn" disabled>Próximo ›</button>
+          </div>
+          <!-- Ações -->
+          <div class="ap-footer">
+            <button class="btn btn-ghost btn-sm btn-icon" onclick="apChangeFont(-2)" title="Fonte menor">A−</button>
+            <button class="btn btn-ghost btn-sm btn-icon" onclick="apChangeFont(2)" title="Fonte maior">A+</button>
+            <button class="btn btn-teal btn-sm" onclick="apSendBlack()" id="apBlackBtn" title="Tela preta no telão">⬛ Tela Preta</button>
+            <button class="btn btn-primary btn-sm" onclick="apSendCurrent()" id="apSendBtn" disabled>📤 Enviar ao Telão</button>
+          </div>
+          <div style="margin-top:10px;font-size:.74rem;color:var(--text3);text-align:center">
+            ← → navegam slides &nbsp;·&nbsp; Space envia ao telão &nbsp;·&nbsp; B = tela preta
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Próxima música (aviso do líder) -->
+    <div id="apProximaBox" style="display:none;margin-top:16px;background:rgba(20,184,166,.08);border:1px solid rgba(20,184,166,.3);border-radius:var(--radius);padding:13px 16px;display:flex;align-items:center;gap:12px">
+      <span style="font-size:1.3rem">⭐</span>
+      <div>
+        <div style="font-size:.73rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--teal);margin-bottom:2px">Próxima música (líder indicou)</div>
+        <div style="font-weight:700;font-size:.95rem" id="apProximaTitle">—</div>
+        <div style="font-size:.78rem;color:var(--text3)" id="apProximaMeta"></div>
+      </div>
+      <button class="btn btn-teal btn-sm" style="margin-left:auto" onclick="apJumpToProxima()" id="apProximaBtn">Ir para ela ›</button>
     </div>
   </div>
 
@@ -496,6 +604,18 @@
   </div>
 </div>
 
+<!-- TELÃO SCREEN -->
+<div id="telaoScreen">
+  <div class="telao-ctrl">
+    <button class="telao-btn" onclick="telaoChangeFont(-4)" title="Fonte menor">A−</button>
+    <button class="telao-btn" onclick="telaoChangeFont(4)" title="Fonte maior">A+</button>
+    <button class="telao-btn" onclick="telaoClose()" title="Fechar">✕</button>
+  </div>
+  <div id="telaoWaiting" class="telao-waiting">C-Music · Aguardando apresentação…</div>
+  <pre id="telaoText" class="telao-text" style="display:none"></pre>
+  <div class="telao-meta" id="telaoMeta"></div>
+</div>
+
 <div class="toast-container" id="toastContainer"></div>
 
 <script>
@@ -513,22 +633,30 @@ let cachedMusicas = [];
 let currentPL     = null; // { id, title, publico }
 let allMusicasPicker = [];
 let currentPLItems   = [];
-let detailRefreshInterval = null;
+let realtimeChannel  = null;
 
 function startDetailRefresh() {
   stopDetailRefresh();
-  if (DEMO) return;
-  detailRefreshInterval = setInterval(async () => {
-    if (!currentPL) return;
-    try {
-      const items = await dbGetPlaylistMusicas(currentPL.id);
-      currentPLItems = (items || []).sort((a, b) => a.ordem - b.ordem);
-      renderPlaylistDetail(currentPLItems);
-    } catch(e) {}
-  }, 10000);
+  if (DEMO || !sb) return;
+  realtimeChannel = sb.channel(`pl-${currentPL.id}`)
+    .on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'musica_playlist',
+      filter: `playlist_id=eq.${currentPL.id}`
+    }, async () => {
+      if (!currentPL) return;
+      try {
+        const items = await dbGetPlaylistMusicas(currentPL.id);
+        currentPLItems = (items || []).sort((a, b) => a.ordem - b.ordem);
+        renderPlaylistDetail(currentPLItems);
+      } catch(e) {}
+    })
+    .subscribe();
 }
+
 function stopDetailRefresh() {
-  if (detailRefreshInterval) { clearInterval(detailRefreshInterval); detailRefreshInterval = null; }
+  if (realtimeChannel) { sb?.removeChannel(realtimeChannel); realtimeChannel = null; }
 }
 
 
@@ -701,15 +829,19 @@ function switchPanel(name) {
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('panel-'+name).classList.add('active');
-  document.querySelectorAll('.nav-btn')[name==='musicas'?0:1].classList.add('active');
+  const navIdx = {musicas:0, playlists:1, apresentacao:2};
+  document.querySelectorAll('.nav-btn')[navIdx[name]||0].classList.add('active');
   if(name==='musicas') loadMusicas();
   if(name==='playlists'){showPlaylistList();loadPlaylists();}
+  if(name==='apresentacao') apLoadPlaylists();
 }
 
 /* =====================================================================
    ESC & OVERLAY CLOSE
    ===================================================================== */
 document.addEventListener('keydown',e=>{
+  // Apresentação — atalhos de teclado
+  apHandleKey(e);
   if(e.key!=='Escape')return;
   if(document.getElementById('letraScreen').classList.contains('open')){closeLetra();return;}
   ['musicaModal','playlistModal','addSongModal','confirmModal'].forEach(id=>{
@@ -1097,20 +1229,20 @@ function getNextOrdem(){
 }
 
 function renderSongPicker(filter){
-  const inPL=new Set();
-  if(DEMO&&currentPL)(DDATA.mp[currentPL.id]||[]).forEach(mp=>inPL.add(mp.musica_id));
-  const f=allMusicasPicker.filter(m=>!filter||m.titulo.toLowerCase().includes(filter.toLowerCase())||(m.autor||'').toLowerCase().includes(filter.toLowerCase()));
-  if(!f.length){document.getElementById('songPickerList').innerHTML='<div style="text-align:center;padding:24px;color:var(--text3);font-style:italic">Nenhuma música encontrada.</div>';return;}
-  document.getElementById('songPickerList').innerHTML=f.map(m=>{
-    const already=inPL.has(m.id);
-    return `<label class="song-picker-item">
-      <input type="radio" name="songPick" value="${m.id}" ${already?'disabled':''}>
+  const inPL=new Set(currentPLItems.map(mp=>mp.musica_id));
+  const f=allMusicasPicker.filter(m=>
+    !inPL.has(m.id) &&
+    (!filter||m.titulo.toLowerCase().includes(filter.toLowerCase())||(m.autor||'').toLowerCase().includes(filter.toLowerCase()))
+  );
+  if(!f.length){document.getElementById('songPickerList').innerHTML='<div style="text-align:center;padding:24px;color:var(--text3);font-style:italic">Nenhuma música disponível para adicionar.</div>';return;}
+  document.getElementById('songPickerList').innerHTML=f.map(m=>`
+    <label class="song-picker-item">
+      <input type="radio" name="songPick" value="${m.id}">
       <div class="song-picker-body">
-        <div class="song-picker-title">${esc(m.titulo)} ${already?'<span style="color:var(--text3);font-weight:400;font-size:.72rem">(já na playlist)</span>':''}</div>
-        <div class="song-picker-sub">${m.autor||''}${m.tom?` · Tom ${m.tom}`:''}</div>
+        <div class="song-picker-title">${esc(m.titulo)}</div>
+        <div class="song-picker-sub">${m.autor?esc(m.autor):''}${m.tom?` · Tom ${m.tom}`:''}</div>
       </div>
-    </label>`;
-  }).join('');
+    </label>`).join('');
 }
 
 document.getElementById('songPickerSearch').addEventListener('input',e=>renderSongPicker(e.target.value));
@@ -1139,9 +1271,385 @@ async function confirmAddSong(){
 
 
 /* =====================================================================
+   APRESENTAÇÃO — STATE
+   ===================================================================== */
+let apSongs       = [];   // [{mp, musica}]
+let apSongIdx     = -1;
+let apSlides      = [];   // strings
+let apSlideIdx    = 0;
+let apFontSize    = 36;
+let apChannel     = null; // BroadcastChannel
+let apProximaId   = null;
+let apRealtimeCh  = null;
+
+// Inicia BroadcastChannel (operador)
+function apInitChannel() {
+  if (apChannel) return;
+  apChannel = new BroadcastChannel('cmusic-telao');
+}
+
+// Envia mensagem ao telão
+function apSend(msg) {
+  apInitChannel();
+  apChannel.postMessage(msg);
+}
+
+/* =====================================================================
+   APRESENTAÇÃO — LOAD
+   ===================================================================== */
+async function apLoadPlaylists() {
+  const sel = document.getElementById('apPlaylistSel');
+  const prev = sel.value;
+  let items;
+  if (DEMO) { await delay(100); items = DDATA.playlists; }
+  else {
+    try { items = await dbListPlaylists(); } catch(e) { return; }
+  }
+  sel.innerHTML = '<option value="">— Selecione a Playlist —</option>' +
+    (items||[]).map(p=>`<option value="${p.id}" data-title="${esc(p.title)}" data-pub="${p.publico}">${esc(p.title)}</option>`).join('');
+  if (prev) sel.value = prev;
+}
+
+async function apLoadSongs() {
+  const sel = document.getElementById('apPlaylistSel');
+  const id  = parseInt(sel.value);
+  const listEl = document.getElementById('apSongList');
+
+  // Cancela realtime anterior
+  apStopRealtime();
+  apSongs = []; apSongIdx = -1; apSlides = []; apSlideIdx = 0;
+  apResetPreview();
+  apUpdateProximaBox();
+
+  if (!id) {
+    listEl.innerHTML = '<div style="padding:28px;text-align:center;color:var(--text3);font-size:.84rem">Selecione uma playlist acima</div>';
+    return;
+  }
+  listEl.innerHTML = '<div style="padding:28px;text-align:center"><div class="spinner" style="margin:auto"></div></div>';
+
+  let items;
+  if (DEMO) { await delay(180); items = DDATA.mp[id] || []; }
+  else {
+    try {
+      items = await dbGetPlaylistMusicas(id);
+    } catch(e) {
+      listEl.innerHTML = '<div style="padding:28px;text-align:center;color:var(--red)">Erro ao carregar</div>';
+      return;
+    }
+  }
+  // Precisa da letra completa — buscar músicas
+  if (!DEMO) {
+    try {
+      const ids = items.map(mp => mp.musica_id);
+      const {data, error} = await sb.from('musica').select('*').in('id', ids);
+      if (!error && data) {
+        const map = {};
+        data.forEach(m => map[m.id] = m);
+        items = items.map(mp => ({ ...mp, musica: map[mp.musica_id] || mp.musica }));
+      }
+    } catch(e) {}
+  } else {
+    items = items.map(mp => ({
+      ...mp,
+      musica: DDATA.musicas.find(m => m.id === mp.musica_id) || mp.musica
+    }));
+  }
+
+  apSongs = (items || []).sort((a, b) => a.ordem - b.ordem);
+  apRenderSongList();
+  apUpdateProximaBox();
+  apStartRealtime(id);
+}
+
+function apRenderSongList() {
+  const listEl = document.getElementById('apSongList');
+  if (!apSongs.length) {
+    listEl.innerHTML = '<div style="padding:28px;text-align:center;color:var(--text3);font-style:italic;font-size:.84rem">Nenhuma música nesta playlist</div>';
+    return;
+  }
+  listEl.innerHTML = apSongs.map((mp, i) => {
+    const m = mp.musica || {};
+    const isProx = mp.tocando;
+    const isActive = i === apSongIdx;
+    return `<div class="ap-song-item ${isActive?'ap-active':''} ${isProx?'ap-proxima':''}" onclick="apSelectSong(${i})">
+      <div class="ap-song-num">${mp.ordem}</div>
+      <div class="ap-song-info-wrap">
+        <div class="ap-song-title">${esc(m.titulo||'—')}</div>
+        <div class="ap-song-sub">${m.autor?esc(m.autor):''}${m.tom?` · Tom ${esc(m.tom)}`:''}</div>
+      </div>
+      ${isProx ? '<span style="font-size:.85rem;flex-shrink:0">⭐</span>' : ''}
+    </div>`;
+  }).join('');
+}
+
+/* =====================================================================
+   APRESENTAÇÃO — SELECIONAR MÚSICA / SLIDES
+   ===================================================================== */
+function apSelectSong(idx) {
+  apSongIdx = idx;
+  const mp = apSongs[idx];
+  const m  = mp?.musica || {};
+
+  // Divide letra em slides por parágrafo (linha dupla)
+  const letra = (m.letra || '').trim();
+  if (letra) {
+    apSlides = letra.split(/\n{2,}/).map(s => s.trim()).filter(Boolean);
+  } else {
+    apSlides = [];
+  }
+  apSlideIdx = 0;
+
+  // Header
+  document.getElementById('apSongHeaderTitle').textContent = m.titulo || '—';
+  document.getElementById('apSongHeaderTitle').style.color = '';
+  document.getElementById('apSongHeaderMeta').textContent =
+    [m.autor, m.tom ? `Tom ${m.tom}` : ''].filter(Boolean).join(' · ');
+
+  apRenderSongList();
+  apRenderSlide();
+}
+
+function apRenderSlide() {
+  const previewText  = document.getElementById('apPreviewText');
+  const previewEmpty = document.getElementById('apPreviewEmpty');
+  const counter      = document.getElementById('apSlideCounter');
+  const prevBtn      = document.getElementById('apPrevBtn');
+  const nextBtn      = document.getElementById('apNextBtn');
+  const sendBtn      = document.getElementById('apSendBtn');
+
+  if (!apSlides.length) {
+    previewText.style.display  = 'none';
+    previewEmpty.style.display = 'block';
+    previewEmpty.textContent   = apSongIdx >= 0 ? 'Esta música não tem letra cadastrada' : 'Selecione uma música para começar';
+    counter.textContent = '—';
+    prevBtn.disabled = true; nextBtn.disabled = true; sendBtn.disabled = true;
+    return;
+  }
+
+  const text = apSlides[apSlideIdx];
+  previewEmpty.style.display  = 'none';
+  previewText.style.display   = 'block';
+  previewText.textContent     = text;
+  previewText.style.fontSize  = (apFontSize * 0.55) + 'px';
+  counter.textContent = `${apSlideIdx + 1} / ${apSlides.length}`;
+  prevBtn.disabled = apSlideIdx === 0;
+  nextBtn.disabled = apSlideIdx === apSlides.length - 1;
+  sendBtn.disabled = false;
+}
+
+function apResetPreview() {
+  document.getElementById('apSongHeaderTitle').textContent = 'Nenhuma música selecionada';
+  document.getElementById('apSongHeaderTitle').style.color = 'var(--text3)';
+  document.getElementById('apSongHeaderMeta').textContent = '';
+  document.getElementById('apPreviewText').style.display = 'none';
+  document.getElementById('apPreviewEmpty').style.display = 'block';
+  document.getElementById('apPreviewEmpty').textContent = 'Selecione uma música para começar';
+  document.getElementById('apSlideCounter').textContent = '—';
+  document.getElementById('apPrevBtn').disabled = true;
+  document.getElementById('apNextBtn').disabled = true;
+  document.getElementById('apSendBtn').disabled = true;
+}
+
+function apGoSlide(delta) {
+  const newIdx = apSlideIdx + delta;
+  if (newIdx < 0 || newIdx >= apSlides.length) return;
+  apSlideIdx = newIdx;
+  apRenderSlide();
+}
+
+function apChangeFont(delta) {
+  apFontSize = Math.max(18, Math.min(80, apFontSize + delta));
+  apRenderSlide();
+}
+
+/* =====================================================================
+   APRESENTAÇÃO — ENVIO AO TELÃO
+   ===================================================================== */
+function apSendCurrent() {
+  if (!apSlides.length || apSongIdx < 0) return;
+  const m = apSongs[apSongIdx]?.musica || {};
+  const text = apSlides[apSlideIdx];
+  apSend({
+    type: 'slide',
+    text,
+    titulo: m.titulo || '',
+    tom: m.tom || '',
+    slideNum: apSlideIdx + 1,
+    total: apSlides.length,
+    fontSize: apFontSize
+  });
+}
+
+function apSendBlack() {
+  apSend({ type: 'black' });
+}
+
+/* =====================================================================
+   APRESENTAÇÃO — TELÃO WINDOW
+   ===================================================================== */
+let apTelaoWin = null;
+
+function apOpenTelao() {
+  const url = location.href.split('?')[0] + '?telao=1';
+  apTelaoWin = window.open(url, 'cmusic-telao', 'width=1280,height=720');
+  if (!apTelaoWin) {
+    toast('Pop-up bloqueado. Permita pop-ups para este site.', 'error');
+  }
+}
+
+/* =====================================================================
+   APRESENTAÇÃO — PRÓXIMA (realtime)
+   ===================================================================== */
+function apUpdateProximaBox() {
+  const box      = document.getElementById('apProximaBox');
+  const titleEl  = document.getElementById('apProximaTitle');
+  const metaEl   = document.getElementById('apProximaMeta');
+  const prox     = apSongs.find(mp => mp.tocando);
+  if (!prox) {
+    box.style.display = 'none';
+    apProximaId = null;
+    return;
+  }
+  const m = prox.musica || {};
+  apProximaId = prox.id;
+  titleEl.textContent = m.titulo || '—';
+  metaEl.textContent  = [m.autor, m.tom ? `Tom ${m.tom}` : ''].filter(Boolean).join(' · ');
+  box.style.display   = 'flex';
+}
+
+function apJumpToProxima() {
+  if (!apProximaId) return;
+  const idx = apSongs.findIndex(mp => mp.id === apProximaId);
+  if (idx >= 0) apSelectSong(idx);
+}
+
+function apStartRealtime(plId) {
+  if (DEMO || !sb) return;
+  apRealtimeCh = sb.channel(`ap-pl-${plId}`)
+    .on('postgres_changes', {
+      event: '*', schema: 'public',
+      table: 'musica_playlist',
+      filter: `playlist_id=eq.${plId}`
+    }, async () => {
+      try {
+        const items = await dbGetPlaylistMusicas(plId);
+        const ids = items.map(mp => mp.musica_id);
+        const { data } = await sb.from('musica').select('*').in('id', ids);
+        const map = {};
+        if (data) data.forEach(m => map[m.id] = m);
+        const sorted = (items || []).sort((a, b) => a.ordem - b.ordem).map(mp => ({
+          ...mp, musica: map[mp.musica_id] || mp.musica
+        }));
+        // Preserva a letra já carregada para a música atual
+        sorted.forEach((mp, i) => {
+          const old = apSongs.find(s => s.id === mp.id);
+          if (old?.musica?.letra) mp.musica = { ...mp.musica, letra: old.musica.letra };
+        });
+        apSongs = sorted;
+        apRenderSongList();
+        apUpdateProximaBox();
+      } catch(e) {}
+    })
+    .subscribe();
+}
+
+function apStopRealtime() {
+  if (apRealtimeCh) { sb?.removeChannel(apRealtimeCh); apRealtimeCh = null; }
+}
+
+/* =====================================================================
+   APRESENTAÇÃO — TECLADO
+   ===================================================================== */
+function apHandleKey(e) {
+  if (!document.getElementById('panel-apresentacao').classList.contains('active')) return;
+  // Não interfere com inputs
+  if (['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) return;
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); apGoSlide(1); }
+  else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); apGoSlide(-1); }
+  else if (e.key === ' ') { e.preventDefault(); apSendCurrent(); }
+  else if (e.key === 'b' || e.key === 'B') { e.preventDefault(); apSendBlack(); }
+}
+
+/* =====================================================================
+   APRESENTAÇÃO — TOUCH SWIPE no preview
+   ===================================================================== */
+(() => {
+  let tx = 0;
+  const el = document.getElementById('apPreview');
+  if (!el) return;
+  el.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, {passive:true});
+  el.addEventListener('touchend',   e => {
+    const dx = e.changedTouches[0].clientX - tx;
+    if (Math.abs(dx) > 40) apGoSlide(dx < 0 ? 1 : -1);
+  }, {passive:true});
+})();
+
+/* =====================================================================
+   TELÃO — MODO RECEPTOR (?telao=1)
+   ===================================================================== */
+let telaoFontSize = 52;
+
+function telaoMode() {
+  document.querySelector('header').style.display = 'none';
+  document.querySelector('main').style.display   = 'none';
+  const screen = document.getElementById('telaoScreen');
+  screen.classList.add('open');
+  document.body.style.background = '#000';
+  document.body.style.overflow   = 'hidden';
+
+  const ch = new BroadcastChannel('cmusic-telao');
+  ch.onmessage = e => telaoReceive(e.data);
+
+  // Solicita fullscreen automático ao clicar
+  screen.addEventListener('click', () => {
+    if (!document.fullscreenElement) screen.requestFullscreen?.();
+  }, { once: true });
+}
+
+function telaoReceive(msg) {
+  const waiting = document.getElementById('telaoWaiting');
+  const text    = document.getElementById('telaoText');
+  const meta    = document.getElementById('telaoMeta');
+
+  if (msg.type === 'black') {
+    waiting.style.display = 'none';
+    text.style.display    = 'none';
+    meta.textContent      = '';
+    return;
+  }
+  if (msg.type === 'slide') {
+    if (msg.fontSize) {
+      telaoFontSize = msg.fontSize;
+      text.style.fontSize = telaoFontSize + 'px';
+    }
+    waiting.style.display = 'none';
+    text.style.display    = 'block';
+    text.textContent      = msg.text;
+    meta.textContent      = [msg.titulo, msg.tom ? `Tom ${msg.tom}` : '', `${msg.slideNum}/${msg.total}`].filter(Boolean).join('  ·  ');
+  }
+}
+
+function telaoChangeFont(delta) {
+  telaoFontSize = Math.max(20, Math.min(120, telaoFontSize + delta));
+  const text = document.getElementById('telaoText');
+  text.style.fontSize = telaoFontSize + 'px';
+}
+
+function telaoClose() {
+  if (document.fullscreenElement) document.exitFullscreen?.();
+  window.close();
+}
+
+/* =====================================================================
    INIT
    ===================================================================== */
 (async()=>{
+  // Modo Telão — página aberta com ?telao=1
+  if(new URLSearchParams(location.search).get('telao')==='1'){
+    telaoMode();
+    return;
+  }
+
   if(SB_URL&&SB_KEY){
     document.getElementById('connText').textContent='Conectando…';
     await checkConn();
