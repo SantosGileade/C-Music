@@ -26,7 +26,7 @@
     ::-webkit-scrollbar-thumb{background:var(--accent);border-radius:99px}
 
     /* ===== HEADER ===== */
-    header{position:sticky;top:0;z-index:100;background:rgba(13,13,26,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;padding:0 16px;height:60px;padding-top:var(--safe-top)}
+    header{position:sticky;top:0;z-index:100;background:rgba(13,13,26,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border);display:flex;align-items:flex-end;gap:10px;padding:0 16px 10px;padding-top:calc(var(--safe-top) + 10px);min-height:calc(60px + var(--safe-top))}
     .logo{display:flex;align-items:center;gap:9px;font-size:1.2rem;font-weight:700;letter-spacing:-.5px}
     .logo-icon{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--pink));display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
     .logo-text span{color:var(--accent3)}
@@ -229,6 +229,14 @@
     #letraText{white-space:pre-wrap;font-family:'Georgia','Times New Roman',serif;line-height:1.9;color:#fff}
     .letra-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:rgba(255,255,255,.3);gap:14px}
     .letra-empty-icon{font-size:3rem}
+
+    /* ===== BOTTOM NAV ===== */
+    .bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(13,13,26,.96);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);display:none;padding-bottom:var(--safe-bot)}
+    .bottom-nav.visible{display:flex}
+    .bottom-nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:9px 0;background:transparent;color:var(--text3);font-size:.68rem;font-weight:600;letter-spacing:.2px;transition:var(--transition);border-radius:0}
+    .bottom-nav-btn .bn-icon{font-size:1.35rem;line-height:1}
+    .bottom-nav-btn.active{color:var(--accent2)}
+    .bottom-nav-btn:active{background:rgba(124,58,237,.08)}
 
     /* ===== TOAST ===== */
     .toast-container{position:fixed;bottom:20px;right:14px;z-index:999;display:flex;flex-direction:column;gap:8px;pointer-events:none;max-width:calc(100vw - 28px)}
@@ -662,6 +670,18 @@
 
 <div class="toast-container" id="toastContainer"></div>
 
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav" id="bottomNav" role="navigation" aria-label="Navegação principal">
+  <button class="bottom-nav-btn" id="bnMusicas" onclick="switchPanel('musicas')" aria-label="Músicas">
+    <span class="bn-icon">🎶</span>
+    <span>Músicas</span>
+  </button>
+  <button class="bottom-nav-btn" id="bnPlaylists" onclick="switchPanel('playlists')" aria-label="Playlists">
+    <span class="bn-icon">📋</span>
+    <span>Playlists</span>
+  </button>
+</nav>
+
 <script>
 /* =====================================================================
    CONFIG & STATE
@@ -881,6 +901,18 @@ function switchPanel(name) {
   backBtn.style.display  = isHome ? 'none' : 'flex';
   titleEl.style.display  = isHome ? 'none' : 'block';
   titleEl.textContent    = isHome ? '' : (PANEL_LABELS[name] || '');
+
+  // Bottom nav — visível apenas em Músicas e Playlists
+  const showNav = name === 'musicas' || name === 'playlists';
+  const nav = document.getElementById('bottomNav');
+  nav.classList.toggle('visible', showNav);
+  document.querySelector('main').style.paddingBottom = showNav
+    ? 'calc(72px + var(--safe-bot))'
+    : 'calc(20px + var(--safe-bot))';
+  if (showNav) {
+    document.getElementById('bnMusicas').classList.toggle('active', name === 'musicas');
+    document.getElementById('bnPlaylists').classList.toggle('active', name === 'playlists');
+  }
 
   if(name==='musicas') loadMusicas();
   if(name==='playlists'){showPlaylistList();loadPlaylists();}
@@ -1164,6 +1196,8 @@ async function openPlaylistDetail(id,title,publico){
   currentPL={id,title,publico};
   document.getElementById('playlistListView').style.display='none';
   document.getElementById('playlistDetailView').style.display='block';
+  // Oculta o botão voltar do header pois o detail já tem o seu próprio
+  document.getElementById('headerBackBtn').style.display='none';
   document.getElementById('detailTitle').textContent=title;
   document.getElementById('detailMeta').textContent=publico?'🌐 Pública':'🔒 Privada';
   document.getElementById('plTomFilter').value='';
@@ -1254,6 +1288,8 @@ function showPlaylistList(){
   currentPLItems=[];
   document.getElementById('playlistDetailView').style.display='none';
   document.getElementById('playlistListView').style.display='block';
+  // Restaura o botão voltar do header ao retornar para a lista
+  document.getElementById('headerBackBtn').style.display='flex';
 }
 
 /* =====================================================================
