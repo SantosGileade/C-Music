@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "C-Music — App de músicas para culto",
   "scripts": {
-    "deploy": "gh-pages -d . -b gh-pages --dotfiles"
+    "predeploy": "node -e \"const fs=require('fs'),path=require('path');fs.mkdirSync('dist/img',{recursive:true});fs.copyFileSync('index.html','dist/index.html');fs.copyFileSync('manifest.json','dist/manifest.json');fs.readdirSync('img').forEach(f=>fs.copyFileSync('img/'+f,'dist/img/'+f));\"",
+    "deploy": "npx gh-pages -d dist -b gh-pages"
   },
   "devDependencies": {
     "gh-pages": "^6.1.1"
