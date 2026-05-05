@@ -6,7 +6,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="C-Music" />
-  <meta name="theme-color" content="#0d0d1a" />
+  <meta name="theme-color" content="#0d1a2a" />
   <title>C-Music</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" type="image/x-icon" href="img/favicon.ico" />
@@ -16,10 +16,10 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
-      --bg:#0d0d1a; --bg2:#151526; --card:#1e1e36; --card2:#252540; --border:#2e2e54;
-      --accent:#7c3aed; --accent2:#a855f7; --accent3:#c084fc;
-      --teal:#14b8a6; --pink:#ec4899; --green:#22c55e; --red:#ef4444; --yellow:#f59e0b;
-      --text:#f1f0fb; --text2:#a8a8c8; --text3:#6b6b90;
+      --bg:#0d1a2a; --bg2:#142030; --card:#2A3F59; --card2:#334d6e; --border:#3d5a7a;
+      --accent:#6699D9; --accent2:#7aaade; --accent3:#BBD3F2;
+      --teal:#4E75A6; --pink:#4E75A6; --green:#4caf82; --red:#e05252; --yellow:#d4a84c;
+      --text:#e8f2fc; --text2:#BBD3F2; --text3:#545F6C;
       --radius:12px; --radius2:8px; --shadow:0 4px 24px rgba(0,0,0,.4);
       --transition:.2s ease;
       --safe-top:env(safe-area-inset-top,0px); --safe-bot:env(safe-area-inset-bottom,0px);
@@ -790,7 +790,7 @@ function setDemo(demo) {
    ===================================================================== */
 async function dbListMusicas(titulo, page, tom) {
   let q = sb.from('musica').select('*', {count:'exact'});
-  if (titulo) q = q.ilike('titulo', `%${titulo}%`);
+  if (titulo) q = q.or(`titulo.ilike.%${titulo}%,letra.ilike.%${titulo}%`);
   if (tom) q = q.eq('tom', tom);
   const {data, count, error} = await q
     .range(page * PAGE_SIZE, (page+1)*PAGE_SIZE - 1)
@@ -956,7 +956,7 @@ async function loadMusicas() {
   if(DEMO){
     await delay(220);
     let f=DDATA.musicas.filter(m=>
-      (!titulo||m.titulo.toLowerCase().includes(titulo.toLowerCase()))&&(!tom||m.tom===tom)
+      (!titulo||(m.titulo.toLowerCase().includes(titulo.toLowerCase())||(m.letra||'').toLowerCase().includes(titulo.toLowerCase())))&&(!tom||m.tom===tom)
     );
     data={content:f.slice(0,PAGE_SIZE),totalElements:f.length,totalPages:Math.ceil(f.length/PAGE_SIZE),number:0};
   }else{
@@ -981,7 +981,7 @@ async function loadMoreMusicas(){
   if(DEMO){
     await delay(220);
     let f=DDATA.musicas.filter(m=>
-      (!titulo||m.titulo.toLowerCase().includes(titulo.toLowerCase()))&&(!tom||m.tom===tom)
+      (!titulo||(m.titulo.toLowerCase().includes(titulo.toLowerCase())||(m.letra||'').toLowerCase().includes(titulo.toLowerCase())))&&(!tom||m.tom===tom)
     );
     const s=musicaPage*PAGE_SIZE;
     data={content:f.slice(s,s+PAGE_SIZE),totalElements:f.length,totalPages:Math.ceil(f.length/PAGE_SIZE),number:musicaPage};

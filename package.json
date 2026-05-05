@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "C-Music — App de músicas para culto",
   "scripts": {
+    "dev": "npx live-server --port=3000 --open=index.html",
     "predeploy": "node -e \"const fs=require('fs'),path=require('path');fs.mkdirSync('dist/img',{recursive:true});fs.copyFileSync('index.html','dist/index.html');fs.copyFileSync('manifest.json','dist/manifest.json');fs.readdirSync('img').forEach(f=>fs.copyFileSync('img/'+f,'dist/img/'+f));\"",
     "deploy": "npx gh-pages -d dist -b gh-pages"
   },
