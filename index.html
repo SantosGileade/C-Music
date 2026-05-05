@@ -397,18 +397,14 @@
         <thead><tr><th style="width:38px">#</th><th>Título</th><th>Autor</th><th style="width:76px">Tom</th><th style="text-align:right">Ações</th></tr></thead>
         <tbody id="musicaTbody"><tr class="loading-row"><td colspan="5"><div class="spinner" style="margin:auto"></div></td></tr></tbody>
       </table>
-      <div class="pagination" id="musicaPag" style="display:none">
-        <span id="musicaPagInfo"></span>
-        <div class="pagination-btns" id="musicaPagBtns"></div>
-      </div>
     </div>
     <!-- Mobile -->
     <div class="card-list-wrap">
       <div id="musicaCardList"><div style="text-align:center;padding:40px"><div class="spinner" style="margin:auto"></div></div></div>
-      <div class="pagination" id="musicaPagMob" style="display:none">
-        <span id="musicaPagInfoMob"></span>
-        <div class="pagination-btns" id="musicaPagBtnsMob"></div>
-      </div>
+    </div>
+    <!-- Ver mais -->
+    <div id="musicaVerMais" style="display:none;justify-content:center;padding:18px 0">
+      <button id="musicaVerMaisBtn" class="btn btn-ghost" onclick="loadMoreMusicas()">Ver mais</button>
     </div>
   </div>
 
@@ -699,7 +695,8 @@ let sb      = null;
 let DEMO    = !SB_URL || !SB_KEY;
 let letraFontSize = 22;
 let musicaPage    = 0;
-const PAGE_SIZE   = 8;
+let musicaTotalEl = 0;
+const PAGE_SIZE   = 10;
 let cachedMusicas = [];
 let currentPL     = null; // { id, title, publico }
 let allMusicasPicker = [];
@@ -948,51 +945,76 @@ document.querySelectorAll('.modal-overlay').forEach(o=>{
    MÚSICAS — LOAD
    ===================================================================== */
 async function loadMusicas() {
-  const titulo = document.getElementById('musicaSearch').value.trim();
-  const tom = document.getElementById('musicaTomFilter').value;
-  const loadHtml='<tr class="loading-row"><td colspan="5"><div class="spinner" style="margin:auto"></div></td></tr>';
-  document.getElementById('musicaTbody').innerHTML=loadHtml;
+  musicaPage=0;
+  const titulo=document.getElementById('musicaSearch').value.trim();
+  const tom=document.getElementById('musicaTomFilter').value;
+  document.getElementById('musicaTbody').innerHTML='<tr class="loading-row"><td colspan="5"><div class="spinner" style="margin:auto"></div></td></tr>';
   document.getElementById('musicaCardList').innerHTML='<div style="text-align:center;padding:36px"><div class="spinner" style="margin:auto"></div></div>';
+  document.getElementById('musicaVerMais').style.display='none';
 
   let data;
-  if (DEMO) {
+  if(DEMO){
     await delay(220);
     let f=DDATA.musicas.filter(m=>
-      (!titulo||m.titulo.toLowerCase().includes(titulo.toLowerCase())) &&
-      (!tom||m.tom===tom)
+      (!titulo||m.titulo.toLowerCase().includes(titulo.toLowerCase()))&&(!tom||m.tom===tom)
     );
-    const s=musicaPage*PAGE_SIZE;
-    data={content:f.slice(s,s+PAGE_SIZE),totalElements:f.length,totalPages:Math.ceil(f.length/PAGE_SIZE),number:musicaPage};
-  } else {
-    try { data = await dbListMusicas(titulo, musicaPage, tom); }
-    catch(e) {
+    data={content:f.slice(0,PAGE_SIZE),totalElements:f.length,totalPages:Math.ceil(f.length/PAGE_SIZE),number:0};
+  }else{
+    try{data=await dbListMusicas(titulo,0,tom);}
+    catch(e){
       document.getElementById('musicaTbody').innerHTML='<tr class="empty-row"><td colspan="5">Erro ao carregar. Verifique a conexão.</td></tr>';
       document.getElementById('musicaCardList').innerHTML='<div style="text-align:center;padding:36px;color:var(--red)">Erro ao carregar.</div>';
       return;
     }
   }
-  renderMusicas(data);
+  renderMusicas(data,false);
 }
 
-function renderMusicas(data) {
+async function loadMoreMusicas(){
+  musicaPage++;
+  const titulo=document.getElementById('musicaSearch').value.trim();
+  const tom=document.getElementById('musicaTomFilter').value;
+  const btn=document.getElementById('musicaVerMaisBtn');
+  if(btn){btn.disabled=true;btn.innerHTML='<div class="spinner" style="width:16px;height:16px;margin:0 8px"></div>';}
+
+  let data;
+  if(DEMO){
+    await delay(220);
+    let f=DDATA.musicas.filter(m=>
+      (!titulo||m.titulo.toLowerCase().includes(titulo.toLowerCase()))&&(!tom||m.tom===tom)
+    );
+    const s=musicaPage*PAGE_SIZE;
+    data={content:f.slice(s,s+PAGE_SIZE),totalElements:f.length,totalPages:Math.ceil(f.length/PAGE_SIZE),number:musicaPage};
+  }else{
+    try{data=await dbListMusicas(titulo,musicaPage,tom);}
+    catch(e){
+      musicaPage--;
+      if(btn){btn.disabled=false;btn.textContent='Ver mais';}
+      return;
+    }
+  }
+  renderMusicas(data,true);
+}
+
+function renderMusicas(data,append=false){
   const items=Array.isArray(data)?data:(data.content||[]);
-  const totalPages=Array.isArray(data)?1:(data.totalPages||1);
   const totalEl=Array.isArray(data)?data.length:(data.totalElements||0);
   musicaPage=Array.isArray(data)?0:(data.number||0);
-  cachedMusicas=items;
+  musicaTotalEl=totalEl;
+  cachedMusicas=append?[...cachedMusicas,...items]:items;
 
-  if(!items.length){
+  const offset=musicaPage*PAGE_SIZE;
+
+  if(!append&&!items.length){
     document.getElementById('musicaTbody').innerHTML='<tr class="empty-row"><td colspan="5">Nenhuma música encontrada.</td></tr>';
     document.getElementById('musicaCardList').innerHTML='<div style="text-align:center;padding:36px;color:var(--text3);font-style:italic">Nenhuma música.</div>';
-    document.getElementById('musicaPag').style.display='none';
-    document.getElementById('musicaPagMob').style.display='none';
+    document.getElementById('musicaVerMais').style.display='none';
     return;
   }
 
-  // Desktop
-  document.getElementById('musicaTbody').innerHTML=items.map((m,i)=>`
+  const rowsHtml=items.map((m,i)=>`
     <tr>
-      <td style="color:var(--text3);font-size:.77rem">${musicaPage*PAGE_SIZE+i+1}</td>
+      <td style="color:var(--text3);font-size:.77rem">${offset+i+1}</td>
       <td class="td-title">${esc(m.titulo)}</td>
       <td>${esc(m.autor||'—')}</td>
       <td>${m.tom?`<span class="tom-badge">${esc(m.tom)}</span>`:'<span style="color:var(--text3)">—</span>'}</td>
@@ -1003,10 +1025,9 @@ function renderMusicas(data) {
       </div></td>
     </tr>`).join('');
 
-  // Mobile
-  document.getElementById('musicaCardList').innerHTML=items.map((m,i)=>`
+  const cardsHtml=items.map((m,i)=>`
     <div class="song-card">
-      <div class="song-num">${musicaPage*PAGE_SIZE+i+1}</div>
+      <div class="song-num">${offset+i+1}</div>
       <div class="song-card-body">
         <div class="song-card-title">${esc(m.titulo)}</div>
         <div class="song-card-sub">
@@ -1021,30 +1042,29 @@ function renderMusicas(data) {
       </div>
     </div>`).join('');
 
-  renderPag(totalPages,totalEl,'musicaPag','musicaPagInfo','musicaPagBtns');
-  renderPag(totalPages,totalEl,'musicaPagMob','musicaPagInfoMob','musicaPagBtnsMob');
-}
-
-function renderPag(totalPages,totalEl,wrapId,infoId,btnsId) {
-  const pag=document.getElementById(wrapId);
-  if(totalPages<=1){pag.style.display='none';return;}
-  pag.style.display='flex';
-  document.getElementById(infoId).textContent=`${totalEl} músicas · Pág ${musicaPage+1}/${totalPages}`;
-  let btns=`<button class="page-btn" ${musicaPage===0?'disabled':''} onclick="goPage(${musicaPage-1})">‹</button>`;
-  for(let p=0;p<totalPages;p++){
-    if(Math.abs(p-musicaPage)<=1||p===0||p===totalPages-1)
-      btns+=`<button class="page-btn ${p===musicaPage?'active':''}" onclick="goPage(${p})">${p+1}</button>`;
-    else if(Math.abs(p-musicaPage)===2)
-      btns+=`<span style="color:var(--text3);padding:0 2px;line-height:30px">…</span>`;
+  if(append){
+    document.getElementById('musicaTbody').innerHTML+=rowsHtml;
+    document.getElementById('musicaCardList').innerHTML+=cardsHtml;
+  }else{
+    document.getElementById('musicaTbody').innerHTML=rowsHtml;
+    document.getElementById('musicaCardList').innerHTML=cardsHtml;
   }
-  btns+=`<button class="page-btn" ${musicaPage===totalPages-1?'disabled':''} onclick="goPage(${musicaPage+1})">›</button>`;
-  document.getElementById(btnsId).innerHTML=btns;
+
+  const loaded=(musicaPage+1)*PAGE_SIZE;
+  const verMais=document.getElementById('musicaVerMais');
+  if(loaded<totalEl){
+    const remaining=Math.min(totalEl-loaded,PAGE_SIZE);
+    document.getElementById('musicaVerMaisBtn').disabled=false;
+    document.getElementById('musicaVerMaisBtn').textContent=`Ver mais ${remaining} música${remaining>1?'s':''}`;
+    verMais.style.display='flex';
+  }else{
+    verMais.style.display='none';
+  }
 }
-function goPage(p){musicaPage=p;loadMusicas();}
 
 let searchTimer;
 document.getElementById('musicaSearch').addEventListener('input',()=>{
-  clearTimeout(searchTimer);musicaPage=0;
+  clearTimeout(searchTimer);
   searchTimer=setTimeout(loadMusicas,380);
 });
 
