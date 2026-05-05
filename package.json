@@ -1,0 +1,11 @@
+{
+  "name": "c-music",
+  "version": "1.0.0",
+  "description": "C-Music — App de músicas para culto",
+  "scripts": {
+    "deploy": "gh-pages -d . -b gh-pages --dotfiles"
+  },
+  "devDependencies": {
+    "gh-pages": "^6.1.1"
+  }
+}

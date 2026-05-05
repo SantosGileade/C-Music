@@ -12,3 +12,6 @@ src/main/resources/static
 .env
 
 HELP.md
+
+node_modules/
+package-lock.json
