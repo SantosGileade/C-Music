@@ -1,0 +1,17 @@
+
+target/
+src/main/resources/static
+
+*.log
+
+.vscode/
+.idea/
+
+.DS_Store
+
+.env
+
+HELP.md
+
+node_modules/
+package-lock.json
