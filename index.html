@@ -101,6 +101,10 @@
     td{padding:11px 15px;font-size:.85rem;color:var(--text2);border-top:1px solid var(--border)}
     tr:hover td{background:rgba(124,58,237,.04)}
     .td-title{font-weight:600;color:var(--text)}
+    .td-title.clickable{cursor:pointer;transition:color var(--transition)}
+    .td-title.clickable:hover{color:var(--accent2)}
+    .song-card-body.clickable{cursor:pointer}
+    .song-card-body.clickable:hover .song-card-title{color:var(--accent2)}
     .td-actions{display:flex;gap:5px;justify-content:flex-end}
     .empty-row td{text-align:center;padding:44px 16px;color:var(--text3);font-style:italic}
     .loading-row td{text-align:center;padding:36px}
@@ -1015,7 +1019,7 @@ function renderMusicas(data,append=false){
   const rowsHtml=items.map((m,i)=>`
     <tr>
       <td style="color:var(--text3);font-size:.77rem">${offset+i+1}</td>
-      <td class="td-title">${esc(m.titulo)}</td>
+      <td class="td-title clickable" onclick="openLetra(${m.id})">${esc(m.titulo)}</td>
       <td>${esc(m.autor||'—')}</td>
       <td>${m.tom?`<span class="tom-badge">${esc(m.tom)}</span>`:'<span style="color:var(--text3)">—</span>'}</td>
       <td><div class="td-actions">
@@ -1028,7 +1032,7 @@ function renderMusicas(data,append=false){
   const cardsHtml=items.map((m,i)=>`
     <div class="song-card">
       <div class="song-num">${offset+i+1}</div>
-      <div class="song-card-body">
+      <div class="song-card-body clickable" onclick="openLetra(${m.id})">
         <div class="song-card-title">${esc(m.titulo)}</div>
         <div class="song-card-sub">
           ${m.autor?`<span>${esc(m.autor)}</span>`:''}
@@ -1250,7 +1254,7 @@ function renderPlaylistDetail(items){
     const proxima=mp.tocando;
     return `<tr>
       <td><div class="order-badge ${proxima?'playing-now':''}">${mp.ordem}</div></td>
-      <td class="td-title">${esc(m.titulo||`#${mp.musica_id}`)}
+      <td class="td-title clickable" onclick="openLetra(${m.id})">${esc(m.titulo||`#${mp.musica_id}`)}
         ${proxima?'<div style="margin-top:3px;font-size:.74rem;color:var(--teal);font-weight:600">⭐ Próxima</div>':''}
       </td>
       <td class="hide-mobile">${m.tom?`<span class="tom-badge">${esc(m.tom)}</span>`:'—'}</td>
