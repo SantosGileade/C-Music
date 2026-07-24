@@ -45,6 +45,8 @@ create table if not exists musica_playlist (
   playlist_id bigint references playlist(id) on delete cascade,
   ordem integer not null default 1,
   tocando boolean default false,
+  adicionado_em date not null default current_date,
+  concluida_em date,
   constraint uq_musica_playlist unique(musica_id, playlist_id)
 );
 
@@ -66,9 +68,15 @@ Se as tabelas já foram criadas anteriormente, execute uma vez no SQL Editor:
 ```sql
 alter table musica
 add column if not exists vezes_tocada integer not null default 0;
+
+alter table musica_playlist
+add column if not exists adicionado_em date not null default current_date;
+
+alter table musica_playlist
+add column if not exists concluida_em date;
 ```
 
-Esse campo registra quantas vezes cada música foi concluída pelo operador do Datashow.
+Esses campos registram quantas vezes cada música foi concluída e o dia em que entrou na playlist Hoje.
 
 ### Passo 3: Pegue as credenciais
 1. Ainda no Supabase, vá em **Settings** (ícone de engrenagem no menu) → **API**
