@@ -28,6 +28,7 @@ create table if not exists musica (
   autor text,
   tom text,
   letra text,
+  vezes_tocada integer not null default 0,
   created_at timestamptz default now()
 );
 
@@ -57,6 +58,17 @@ create policy "all" on musica_playlist for all using (true) with check (true);
 ```
 
 4. Clique em **Run** (▶)
+
+### Atualização para bancos já existentes
+
+Se as tabelas já foram criadas anteriormente, execute uma vez no SQL Editor:
+
+```sql
+alter table musica
+add column if not exists vezes_tocada integer not null default 0;
+```
+
+Esse campo registra quantas vezes cada música foi concluída pelo operador do Datashow.
 
 ### Passo 3: Pegue as credenciais
 1. Ainda no Supabase, vá em **Settings** (ícone de engrenagem no menu) → **API**
