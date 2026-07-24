@@ -817,7 +817,8 @@ async function dbListMusicas(titulo, page, tom) {
   if (tom) q = q.eq('tom', tom);
   const {data, count, error} = await q
     .range(page * PAGE_SIZE, (page+1)*PAGE_SIZE - 1)
-    .order('created_at', {ascending:true});
+    .order('titulo', {ascending:true})
+    .order('id', {ascending:true});
   if (error) throw error;
   return {content:data, totalElements:count, totalPages:Math.ceil(count/PAGE_SIZE), number:page};
 }
@@ -927,6 +928,9 @@ async function dbSavePlaylistOrder(items) {
    ===================================================================== */
 function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+function sortMusicasAlfabeticamente(items){
+  return [...items].sort((a,b)=>(a.titulo||'').localeCompare(b.titulo||'','pt-BR',{sensitivity:'base'}));
+}
 
 /* =====================================================================
    TOAST
@@ -1096,6 +1100,7 @@ async function loadMusicas() {
     let f=DDATA.musicas.filter(m=>
       (!titulo||(m.titulo.toLowerCase().includes(titulo.toLowerCase())||(m.letra||'').toLowerCase().includes(titulo.toLowerCase())))&&(!tom||m.tom===tom)
     );
+    f=sortMusicasAlfabeticamente(f);
     data={content:f.slice(0,PAGE_SIZE),totalElements:f.length,totalPages:Math.ceil(f.length/PAGE_SIZE),number:0};
   }else{
     try{data=await dbListMusicas(titulo,0,tom);}
@@ -1120,6 +1125,7 @@ async function loadMoreMusicas(){
     let f=DDATA.musicas.filter(m=>
       (!titulo||(m.titulo.toLowerCase().includes(titulo.toLowerCase())||(m.letra||'').toLowerCase().includes(titulo.toLowerCase())))&&(!tom||m.tom===tom)
     );
+    f=sortMusicasAlfabeticamente(f);
     const s=musicaPage*PAGE_SIZE;
     data={content:f.slice(s,s+PAGE_SIZE),totalElements:f.length,totalPages:Math.ceil(f.length/PAGE_SIZE),number:musicaPage};
   }else{
