@@ -326,6 +326,7 @@
     .ap-song-item:last-child{border-bottom:none}
     .ap-song-item.ap-proxima{background:rgba(20,184,166,.07)}
     .ap-song-item.ap-dragging{opacity:.35}
+    .ap-song-item.stale-song, tr.stale-song{opacity:.4;filter:grayscale(.7)}
     .ap-song-num{width:24px;height:24px;border-radius:6px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:.72rem;color:var(--text3);font-weight:700;flex-shrink:0}
     .ap-song-info-wrap{flex:1;min-width:0}
     .ap-song-title{font-size:.86rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -349,10 +350,12 @@
     .datashow-next{background:rgba(20,184,166,.08);border:1px solid rgba(20,184,166,.3);border-radius:var(--radius);padding:18px;display:flex;align-items:center;gap:14px}
     .datashow-next-icon{font-size:1.7rem}
     .datashow-next-info{flex:1;min-width:0}
-    .datashow-complete{margin-left:auto;flex-shrink:0}
+    .datashow-next-actions{margin-left:auto;display:flex;align-items:center;gap:7px;flex-shrink:0}
+    .datashow-cancel{width:34px;height:34px;padding:0;justify-content:center}
     @media(max-width:480px){
       .datashow-next{flex-wrap:wrap}
-      .datashow-complete{width:100%;margin-left:0;justify-content:center}
+      .datashow-next-actions{width:100%;margin-left:0}
+      .datashow-complete{flex:1;justify-content:center}
     }
   </style>
 </head>
@@ -501,7 +504,10 @@
         <div style="font-weight:700;font-size:1.05rem" id="apProximaTitle">Aguardando indicação do líder</div>
         <div style="font-size:.78rem;color:var(--text3)" id="apProximaMeta"></div>
       </div>
-      <button class="btn btn-teal btn-sm datashow-complete" id="apCompleteBtn" onclick="apCompleteProxima()" style="display:none">✓ Concluir</button>
+      <div class="datashow-next-actions" id="apNextActions" style="display:none">
+        <button class="btn btn-ghost btn-sm datashow-cancel" onclick="apCancelProxima()" title="Remover indicação sem concluir">✕</button>
+        <button class="btn btn-teal btn-sm datashow-complete" id="apCompleteBtn" onclick="apCompleteProxima()">✓ Concluir</button>
+      </div>
     </div>
   </div>
 
@@ -530,6 +536,7 @@
           <div style="font-size:.77rem;color:var(--text3);margin-top:2px" id="detailMeta"></div>
         </div>
         <div class="detail-header-actions">
+          <button class="btn btn-danger btn-sm" id="clearTodayPlaylistBtn" onclick="clearTodayPlaylist()" style="display:none">Limpar playlist</button>
           <select class="form-input" id="plTomFilter" style="width:auto;min-width:90px;padding:5px 28px 5px 9px;font-size:.8rem;flex-shrink:0" onchange="applyPlaylistFilter()">
             <option value="">— Tom —</option>
             <option value="C">C</option><option value="C#">C#</option><option value="D">D</option><option value="D#">D#</option>
@@ -889,11 +896,59 @@ async function dbGetPlaylistMusicas(plId) {
   if (error) throw error; return data;
 }
 async function dbAddSongToPL(body) {
-  const {data,error} = await sb.from('musica_playlist').insert({
+  const payload={
     musica_id:body.musicaId, playlist_id:body.playlistId,
     ordem:body.ordem, tocando:body.tocando
-  }).select().single();
+  };
+  if(body.adicionadoEm)payload.adicionado_em=body.adicionadoEm;
+  const {data,error} = await sb.from('musica_playlist').insert(payload).select().single();
   if (error) throw error; return data;
+}
+async function dbGetOrCreateHojePlaylist() {
+  const {data,error}=await sb.from('playlist').select('*').eq('title','Hoje').maybeSingle();
+  if(error)throw error;
+  if(data)return data;
+  return dbCreatePlaylist({title:'Hoje',publico:false});
+}
+async function dbAddOrRefreshTodaySong(musicaId) {
+  const playlist=await dbGetOrCreateHojePlaylist();
+  const items=await dbGetPlaylistMusicas(playlist.id);
+  const today=getLocalDateKey();
+  const nextOrder=Math.max(0,...items.map(mp=>mp.ordem))+1;
+  const existing=items.find(mp=>mp.musica_id===musicaId);
+  if(existing){
+    const {data,error}=await sb.from('musica_playlist')
+      .update({adicionado_em:today,concluida_em:null,ordem:nextOrder})
+      .eq('id',existing.id)
+      .select()
+      .single();
+    if(error)throw error;
+    return {playlist,item:data};
+  }
+  const item=await dbAddSongToPL({
+    musicaId,playlistId:playlist.id,ordem:nextOrder,tocando:false,adicionadoEm:today
+  });
+  return {playlist,item};
+}
+async function dbMarkTodaySongCompleted(musicaId) {
+  const {item}=await dbAddOrRefreshTodaySong(musicaId);
+  const today=getLocalDateKey();
+  const {error}=await sb.from('musica_playlist')
+    .update({concluida_em:today,adicionado_em:today})
+    .eq('id',item.id);
+  if(error)throw error;
+}
+async function dbRemoveTodaySong(musicaId) {
+  const playlist=await dbGetOrCreateHojePlaylist();
+  const {error}=await sb.from('musica_playlist')
+    .delete()
+    .eq('playlist_id',playlist.id)
+    .eq('musica_id',musicaId);
+  if(error)throw error;
+}
+async function dbClearPlaylistSongs(playlistId) {
+  const {error}=await sb.from('musica_playlist').delete().eq('playlist_id',playlistId);
+  if(error)throw error;
 }
 async function dbSetTocando(mpId) {
   const {error:clearError}=await sb.from('musica_playlist').update({tocando:false}).eq('tocando',true);
@@ -932,6 +987,11 @@ async function dbSavePlaylistOrder(items) {
    ===================================================================== */
 function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+function getLocalDateKey(){
+  const now=new Date();
+  const pad=value=>String(value).padStart(2,'0');
+  return `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+}
 function sortMusicasAlfabeticamente(items){
   return [...items].sort((a,b)=>(a.titulo||'').localeCompare(b.titulo||'','pt-BR',{sensitivity:'base'}));
 }
@@ -1277,34 +1337,48 @@ function deleteMusica(id,nome){
   });
 }
 
+function getOrCreateDemoHojePlaylist(){
+  let playlist=DDATA.playlists.find(p=>p.title==='Hoje');
+  if(!playlist){
+    const id=Math.max(0,...DDATA.playlists.map(p=>p.id))+1;
+    playlist={id,title:'Hoje',publico:false};
+    DDATA.playlists.push(playlist);
+    DDATA.mp[id]=[];
+  }
+  return playlist;
+}
+
+function addOrRefreshDemoTodaySong(musicaId){
+  const playlist=getOrCreateDemoHojePlaylist();
+  const lista=DDATA.mp[playlist.id]||[];
+  let item=lista.find(mp=>mp.musica_id===musicaId);
+  const nextOrder=Math.max(0,...lista.map(mp=>mp.ordem))+1;
+  if(item){
+    item.adicionado_em=getLocalDateKey();
+    item.concluida_em=null;
+    item.ordem=nextOrder;
+  }else{
+    const musica=DDATA.musicas.find(m=>m.id===musicaId);
+    const nextId=Math.max(0,...Object.values(DDATA.mp).flat().map(mp=>mp.id))+1;
+    item={
+      id:nextId,musica_id:musicaId,playlist_id:playlist.id,
+      ordem:nextOrder,tocando:false,adicionado_em:getLocalDateKey(),concluida_em:null,musica
+    };
+    lista.push(item);
+    DDATA.mp[playlist.id]=lista;
+  }
+  return {playlist,item};
+}
+
 async function markMusicaComoProxima(musicaId){
   try{
     if(DEMO){
       await delay(150);
-      const playlist=DDATA.playlists.find(p=>p.publico);
-      if(!playlist) throw new Error('Marque uma playlist como pública para definir o repertório de hoje');
-      const lista=DDATA.mp[playlist.id]||[];
-      let item=lista.find(mp=>mp.musica_id===musicaId);
-      if(!item){
-        const musica=DDATA.musicas.find(m=>m.id===musicaId);
-        const nextId=Math.max(0,...Object.values(DDATA.mp).flat().map(mp=>mp.id))+1;
-        const nextOrder=Math.max(0,...lista.map(mp=>mp.ordem))+1;
-        item={id:nextId,musica_id:musicaId,playlist_id:playlist.id,ordem:nextOrder,tocando:false,musica};
-        lista.push(item);
-        DDATA.mp[playlist.id]=lista;
-      }
+      const {item}=addOrRefreshDemoTodaySong(musicaId);
       Object.values(DDATA.mp).flat().forEach(mp=>mp.tocando=false);
       item.tocando=true;
     }else{
-      const playlists=await dbListPlaylists();
-      const playlist=playlists.find(p=>p.publico);
-      if(!playlist) throw new Error('Marque uma playlist como pública para definir o repertório de hoje');
-      const items=await dbGetPlaylistMusicas(playlist.id);
-      let item=items.find(mp=>mp.musica_id===musicaId);
-      if(!item){
-        const nextOrder=Math.max(0,...items.map(mp=>mp.ordem))+1;
-        item=await dbAddSongToPL({musicaId,playlistId:playlist.id,ordem:nextOrder,tocando:false});
-      }
+      const {item}=await dbAddOrRefreshTodaySong(musicaId);
       await dbSetTocando(item.id);
     }
     toast('Próxima música definida! ⭐','success');
@@ -1342,8 +1416,8 @@ function changeFont(d){letraFontSize=Math.max(14,Math.min(52,letraFontSize+d));d
 async function loadPlaylists() {
   document.getElementById('playlistGrid').innerHTML='<div style="text-align:center;padding:48px;color:var(--text3);grid-column:1/-1"><div class="spinner" style="margin:auto auto 12px"></div></div>';
   let items;
-  if(DEMO){await delay(220);items=DDATA.playlists;}
-  else{try{items=await dbListPlaylists();}catch(e){document.getElementById('playlistGrid').innerHTML='<div style="text-align:center;padding:48px;color:var(--text3);grid-column:1/-1">Erro ao carregar.</div>';return;}}
+  if(DEMO){await delay(220);getOrCreateDemoHojePlaylist();items=DDATA.playlists;}
+  else{try{await dbGetOrCreateHojePlaylist();items=await dbListPlaylists();}catch(e){document.getElementById('playlistGrid').innerHTML='<div style="text-align:center;padding:48px;color:var(--text3);grid-column:1/-1">Erro ao carregar.</div>';return;}}
   if(!items||!items.length){
     document.getElementById('playlistGrid').innerHTML='<div style="text-align:center;padding:48px;color:var(--text3);grid-column:1/-1;font-style:italic">Nenhuma playlist. Crie a primeira!</div>';return;
   }
@@ -1352,8 +1426,10 @@ async function loadPlaylists() {
       <div class="playlist-card-top">
         <div class="playlist-icon">🎶</div>
         <div class="playlist-card-actions" onclick="event.stopPropagation()">
-          <button class="btn btn-ghost btn-sm btn-icon" onclick="editPlaylist(${p.id})">✏️</button>
-          <button class="btn btn-danger btn-sm btn-icon" onclick="deletePlaylist(${p.id},'${esc(p.title)}')">🗑️</button>
+          ${p.title==='Hoje'
+            ?'<span class="badge badge-pub">Automática</span>'
+            :`<button class="btn btn-ghost btn-sm btn-icon" onclick="editPlaylist(${p.id})">✏️</button>
+             <button class="btn btn-danger btn-sm btn-icon" onclick="deletePlaylist(${p.id},'${esc(p.title)}')">🗑️</button>`}
         </div>
       </div>
       <h3>${esc(p.title)}</h3>
@@ -1415,7 +1491,9 @@ async function openPlaylistDetail(id,title,publico){
   // Oculta o botão voltar do header pois o detail já tem o seu próprio
   document.getElementById('headerBackBtn').style.display='none';
   document.getElementById('detailTitle').textContent=title;
-  document.getElementById('detailMeta').textContent=publico?'🌐 Pública':'🔒 Privada';
+  const isToday=title==='Hoje';
+  document.getElementById('detailMeta').textContent=isToday?'📅 Repertório diário':(publico?'🌐 Pública':'🔒 Privada');
+  document.getElementById('clearTodayPlaylistBtn').style.display=isToday?'inline-flex':'none';
   document.getElementById('plTomFilter').value='';
   document.getElementById('playlistMusicaTbody').innerHTML='<tr class="loading-row"><td colspan="5"><div class="spinner" style="margin:auto"></div></td></tr>';
   let items;
@@ -1437,10 +1515,12 @@ function renderPlaylistDetail(items){
   document.getElementById('playlistMusicaTbody').innerHTML=filtered.map(mp=>{
     const m=mp.musica||{};
     const proxima=mp.tocando;
-    return `<tr>
+    const stale=currentPL?.title==='Hoje'&&mp.adicionado_em&&mp.adicionado_em!==getLocalDateKey();
+    return `<tr class="${stale?'stale-song':''}">
       <td><div class="order-badge ${proxima?'playing-now':''}">${mp.ordem}</div></td>
       <td class="td-title clickable" onclick="openLetra(${m.id})">${esc(m.titulo||`#${mp.musica_id}`)}
         ${proxima?'<div style="margin-top:3px;font-size:.74rem;color:var(--teal);font-weight:600">⭐ Próxima</div>':''}
+        ${stale?'<div style="margin-top:3px;font-size:.7rem">De outro dia</div>':''}
       </td>
       <td class="hide-mobile">${m.tom?`<span class="tom-badge">${esc(m.tom)}</span>`:'—'}</td>
       <td class="hide-mobile">${esc(m.autor||'—')}</td>
@@ -1469,6 +1549,23 @@ async function clearProxima(){
     toast('Próxima música removida','info');
     await openPlaylistDetail(currentPL.id,currentPL.title,currentPL.publico);
   }catch(e){toast('Erro: '+e.message,'error');}
+}
+
+function clearTodayPlaylist(){
+  if(!currentPL||currentPL.title!=='Hoje')return;
+  openConfirm('Limpar todas as músicas da playlist Hoje?',async()=>{
+    try{
+      if(DEMO){
+        DDATA.mp[currentPL.id]=[];
+      }else{
+        await dbClearPlaylistSongs(currentPL.id);
+      }
+      toast('Playlist Hoje limpa','success');
+      await openPlaylistDetail(currentPL.id,currentPL.title,currentPL.publico);
+    }catch(e){
+      toast('Erro ao limpar: '+e.message,'error');
+    }
+  });
 }
 
 async function setProxima(mpId){
@@ -1591,14 +1688,17 @@ async function apLoadPlaylists() {
   const sel = document.getElementById('apPlaylistSel');
   const prev = sel.value || localStorage.getItem('cmusic_datashow_playlist') || '';
   let items;
-  if (DEMO) { await delay(100); items = DDATA.playlists; }
+  if (DEMO) { await delay(100); getOrCreateDemoHojePlaylist(); items = DDATA.playlists; }
   else {
-    try { items = await dbListPlaylists(); } catch(e) { return; }
+    try { await dbGetOrCreateHojePlaylist(); items = await dbListPlaylists(); } catch(e) { return; }
   }
   sel.innerHTML = '<option value="">— Selecione a Playlist —</option>' +
     (items||[]).map(p=>`<option value="${p.id}" data-title="${esc(p.title)}" data-pub="${p.publico}">${esc(p.title)}</option>`).join('');
   const prevExists=(items||[]).some(p=>String(p.id)===String(prev));
-  const preferred = prevExists ? prev : String((items||[]).find(p=>p.publico)?.id || '');
+  const todayPlaylist=(items||[]).find(p=>p.title==='Hoje');
+  const preferred = todayPlaylist
+    ?String(todayPlaylist.id)
+    :(prevExists ? prev : String((items||[]).find(p=>p.publico)?.id || ''));
   if (preferred) {
     sel.value = preferred;
     await apLoadSongs();
@@ -1662,7 +1762,8 @@ function apRenderSongList() {
   listEl.innerHTML = apSongs.map((mp, i) => {
     const m = mp.musica || {};
     const isProx = apProximaGlobal?.id===mp.id;
-    return `<div class="ap-song-item ${isProx?'ap-proxima':''}"
+    const stale=mp.adicionado_em&&mp.adicionado_em!==getLocalDateKey();
+    return `<div class="ap-song-item ${isProx?'ap-proxima':''} ${stale?'stale-song':''}"
       draggable="true"
       ondragstart="apDragStart(event,${mp.id})"
       ondragend="apDragEnd(event)"
@@ -1674,6 +1775,7 @@ function apRenderSongList() {
         <div class="ap-song-title">${esc(m.titulo||'—')}</div>
         <div class="ap-song-sub">${m.autor?esc(m.autor):''}${m.tom?` · Tom ${esc(m.tom)}`:''}</div>
         ${isProx?'<div class="ap-song-state next">⭐ PRÓXIMA</div>':''}
+        ${stale?'<div class="ap-song-state">De outro dia</div>':''}
       </div>
       <div class="ap-song-move" onclick="event.stopPropagation()">
         <button class="ap-move-btn" title="Mover para cima" ${i===0?'disabled':''} onclick="apMoveSong(${i},-1)">▲</button>
@@ -1755,13 +1857,13 @@ function apUpdateProximaBox() {
   const box      = document.getElementById('apProximaBox');
   const titleEl  = document.getElementById('apProximaTitle');
   const metaEl   = document.getElementById('apProximaMeta');
-  const completeBtn=document.getElementById('apCompleteBtn');
+  const nextActions=document.getElementById('apNextActions');
   const prox     = apProximaGlobal;
   if (!prox) {
     box.style.display = 'flex';
     titleEl.textContent = 'Aguardando indicação do líder';
     metaEl.textContent = '';
-    completeBtn.style.display='none';
+    nextActions.style.display='none';
     apProximaId = null;
     return;
   }
@@ -1769,8 +1871,38 @@ function apUpdateProximaBox() {
   apProximaId = prox.id;
   titleEl.textContent = m.titulo || '—';
   metaEl.textContent  = [m.autor, m.tom ? `Tom ${m.tom}` : ''].filter(Boolean).join(' · ');
-  completeBtn.style.display='inline-flex';
+  nextActions.style.display='flex';
   box.style.display   = 'flex';
+}
+
+async function apCancelProxima(){
+  if(!apProximaGlobal)return;
+  const musicaId=apProximaGlobal.musica_id;
+  const actions=document.getElementById('apNextActions');
+  actions.style.pointerEvents='none';
+  actions.style.opacity='.55';
+  try{
+    if(DEMO){
+      Object.values(DDATA.mp).flat().forEach(mp=>mp.tocando=false);
+      const hoje=getOrCreateDemoHojePlaylist();
+      const lista=DDATA.mp[hoje.id]||[];
+      const itemIndex=lista.findIndex(mp=>mp.musica_id===musicaId);
+      if(itemIndex>=0)lista.splice(itemIndex,1);
+    }else{
+      await dbClearProxima();
+      await dbRemoveTodaySong(musicaId);
+    }
+    apProximaGlobal=null;
+    apSongs=apSongs.filter(mp=>mp.musica_id!==musicaId);
+    apUpdateProximaBox();
+    apRenderSongList();
+    toast('Indicação de próxima música removida','info');
+  }catch(e){
+    toast('Erro ao remover indicação: '+e.message,'error');
+  }finally{
+    actions.style.pointerEvents='';
+    actions.style.opacity='';
+  }
 }
 
 async function apCompleteProxima(){
@@ -1781,9 +1913,12 @@ async function apCompleteProxima(){
     if(DEMO){
       const musica=DDATA.musicas.find(m=>m.id===apProximaGlobal.musica_id);
       if(musica)musica.vezes_tocada=(musica.vezes_tocada||0)+1;
+      const {item}=addOrRefreshDemoTodaySong(apProximaGlobal.musica_id);
+      item.concluida_em=getLocalDateKey();
       Object.values(DDATA.mp).flat().forEach(mp=>mp.tocando=false);
     }else{
       await dbIncrementPlayCount(apProximaGlobal.musica_id);
+      await dbMarkTodaySongCompleted(apProximaGlobal.musica_id);
       await dbClearProxima();
     }
     apProximaGlobal=null;
