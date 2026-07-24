@@ -843,22 +843,26 @@ async function dbListPlaylists() {
   if (error) throw error; return data;
 }
 async function dbGetHomeStats() {
-  const [musicResult,usageResult,lastUpdateResult]=await Promise.all([
+  const [musicResult,topResult,lastUpdateResult]=await Promise.all([
     sb.from('musica').select('id',{count:'exact',head:true}),
-    sb.from('musica_playlist').select('musica_id,musica:musica_id(titulo)'),
+    sb.from('musica').select('titulo,vezes_tocada').order('vezes_tocada',{ascending:false}).order('titulo',{ascending:true}).limit(1).maybeSingle(),
     sb.from('musica').select('created_at').order('created_at',{ascending:false}).limit(1).maybeSingle()
   ]);
   if(musicResult.error)throw musicResult.error;
-  if(usageResult.error)throw usageResult.error;
+  if(topResult.error)throw topResult.error;
   if(lastUpdateResult.error)throw lastUpdateResult.error;
-  const uses=new Map();
-  (usageResult.data||[]).forEach(item=>{
-    const current=uses.get(item.musica_id)||{title:item.musica?.titulo||'Música',count:0};
-    current.count++;
-    uses.set(item.musica_id,current);
-  });
-  const top=[...uses.values()].sort((a,b)=>b.count-a.count||a.title.localeCompare(b.title))[0]||null;
+  const top=topResult.data?.vezes_tocada>0
+    ?{title:topResult.data.titulo,count:topResult.data.vezes_tocada}
+    :null;
   return {count:musicResult.count||0,top,lastUpdate:lastUpdateResult.data?.created_at||null};
+}
+async function dbIncrementPlayCount(musicaId) {
+  const {data,error:readError}=await sb.from('musica').select('vezes_tocada').eq('id',musicaId).single();
+  if(readError)throw readError;
+  const {error:updateError}=await sb.from('musica')
+    .update({vezes_tocada:(data.vezes_tocada||0)+1})
+    .eq('id',musicaId);
+  if(updateError)throw updateError;
 }
 async function dbCreatePlaylist(b) {
   const {data,error} = await sb.from('playlist').insert(b).select().single();
@@ -971,16 +975,10 @@ async function loadHomeStats(){
   try{
     let stats;
     if(DEMO){
-      const uses=new Map();
-      Object.values(DDATA.mp).flat().forEach(item=>{
-        const musica=DDATA.musicas.find(m=>m.id===item.musica_id);
-        const current=uses.get(item.musica_id)||{title:musica?.titulo||'Música',count:0};
-        current.count++;
-        uses.set(item.musica_id,current);
-      });
+      const topMusic=[...DDATA.musicas].sort((a,b)=>(b.vezes_tocada||0)-(a.vezes_tocada||0))[0];
       stats={
         count:DDATA.musicas.length,
-        top:[...uses.values()].sort((a,b)=>b.count-a.count||a.title.localeCompare(b.title))[0]||null,
+        top:topMusic?.vezes_tocada>0?{title:topMusic.titulo,count:topMusic.vezes_tocada}:null,
         lastUpdate:demoMusicUpdatedAt
       };
     }else{
@@ -989,7 +987,7 @@ async function loadHomeStats(){
     countEl.textContent=stats.count;
     songEl.textContent=stats.top?`🎵 ${stats.top.title}`:'—';
     songEl.title=stats.top?.title||'';
-    usesEl.textContent=stats.top?`Usada ${stats.top.count} ${stats.top.count===1?'vez':'vezes'}`:'Ainda não utilizada';
+    usesEl.textContent=stats.top?`Concluída ${stats.top.count} ${stats.top.count===1?'vez':'vezes'}`:'Nenhuma concluída';
     homeStatsUpdatedAt=stats.lastUpdate?new Date(stats.lastUpdate).getTime():null;
     updateHomeRelativeTime();
   }catch(e){
@@ -1059,7 +1057,11 @@ function switchPanel(name) {
     document.getElementById('bnPlaylists').classList.toggle('active', name === 'playlists');
   }
 
-  if(name==='musicas') loadMusicas();
+  if(name==='musicas'){
+    document.getElementById('musicaSearch').value='';
+    document.getElementById('musicaTomFilter').value='';
+    loadMusicas();
+  }
   if(name==='playlists'){showPlaylistList();loadPlaylists();}
   if(name==='apresentacao') apLoadPlaylists();
   if(name==='home') loadHomeStats();
@@ -1777,8 +1779,11 @@ async function apCompleteProxima(){
   btn.disabled=true;
   try{
     if(DEMO){
+      const musica=DDATA.musicas.find(m=>m.id===apProximaGlobal.musica_id);
+      if(musica)musica.vezes_tocada=(musica.vezes_tocada||0)+1;
       Object.values(DDATA.mp).flat().forEach(mp=>mp.tocando=false);
     }else{
+      await dbIncrementPlayCount(apProximaGlobal.musica_id);
       await dbClearProxima();
     }
     apProximaGlobal=null;
@@ -1786,7 +1791,13 @@ async function apCompleteProxima(){
     apRenderSongList();
     toast('Música concluída','success');
   }catch(e){
-    toast('Erro ao concluir: '+e.message,'error');
+    const missingCounter=String(e.message||'').includes('vezes_tocada');
+    toast(
+      missingCounter
+        ?'Atualize o banco no Supabase para habilitar o contador de músicas concluídas.'
+        :'Erro ao concluir: '+e.message,
+      'error'
+    );
   }finally{
     btn.disabled=false;
   }
