@@ -268,7 +268,8 @@
     .home-card-title{font-size:1rem;font-weight:700;margin-bottom:3px}
     .home-card-desc{font-size:.8rem;color:var(--text3)}
     .home-card-arrow{font-size:1.4rem;color:var(--text3);flex-shrink:0}
-    .home-shell{max-width:720px;margin:0 auto;padding:18px;border:1px solid rgba(102,153,217,.14);border-radius:26px;background:radial-gradient(circle at 50% 22%,rgba(76,92,214,.12),transparent 36%),linear-gradient(180deg,rgba(18,31,52,.72),rgba(8,20,36,.45));box-shadow:0 18px 60px rgba(0,0,0,.18)}
+    #panel-home{height:calc(100dvh - 98px - var(--safe-top) - var(--safe-bot));min-height:0}
+    .home-shell{height:100%;max-width:720px;margin:0 auto;padding:18px;border:1px solid rgba(102,153,217,.14);border-radius:26px;background:radial-gradient(circle at 50% 22%,rgba(76,92,214,.12),transparent 36%),linear-gradient(180deg,rgba(18,31,52,.72),rgba(8,20,36,.45));box-shadow:0 18px 60px rgba(0,0,0,.18);display:flex;flex-direction:column;overflow:hidden}
     .home-hero{text-align:center;padding:28px 12px 30px}
     .home-hero-icon{font-size:3.6rem;line-height:1;margin-bottom:14px;filter:drop-shadow(0 10px 24px rgba(102,86,230,.38))}
     .home-hero-title{font-size:2.35rem;font-weight:800;letter-spacing:-1.5px}
@@ -280,7 +281,7 @@
     .home-actions .home-card-title{font-size:1.15rem}
     .home-actions .home-card-desc{font-size:.88rem;line-height:1.4}
     .home-actions .home-card-arrow{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(102,153,217,.12);color:var(--home-color,var(--accent));font-weight:700}
-    .home-stats{margin-top:16px;display:grid;grid-template-columns:1fr 1.25fr 1fr;background:rgba(25,42,69,.72);border:1px solid var(--border);border-radius:18px;padding:16px 8px}
+    .home-stats{margin-top:auto;display:grid;grid-template-columns:1fr 1.25fr 1fr;background:rgba(25,42,69,.72);border:1px solid var(--border);border-radius:18px;padding:16px 8px}
     .home-stat{min-width:0;text-align:center;padding:2px 10px}
     .home-stat+.home-stat{border-left:1px solid var(--border)}
     .home-stat-icon{font-size:1.25rem;margin-bottom:6px}
@@ -297,6 +298,22 @@
       .home-stat{padding:2px 5px}
       .home-stat-value{font-size:.82rem}
       .home-stat-label{font-size:.62rem}
+    }
+    @media(max-height:700px){
+      .home-hero{padding:12px 8px 16px}
+      .home-hero-icon{font-size:2.35rem;margin-bottom:8px}
+      .home-hero-title{font-size:1.65rem}
+      .home-hero-sub{font-size:.82rem;margin-top:4px}
+      .home-actions{gap:9px}
+      .home-actions .home-card{padding:11px 12px}
+      .home-actions .home-card-icon{width:44px;height:44px;font-size:1.35rem}
+      .home-actions .home-card-title{font-size:1rem}
+      .home-actions .home-card-desc{font-size:.75rem}
+      .home-stats{padding:10px 4px}
+      .home-stat-icon{margin-bottom:3px}
+    }
+    @media(min-width:640px){
+      #panel-home{height:calc(100dvh - 112px - var(--safe-top))}
     }
 
     /* ===== DATASHOW PANEL ===== */
@@ -331,6 +348,12 @@
     @media(min-width:700px){.ap-song-item{cursor:grab}.ap-song-item:active{cursor:grabbing}}
     .datashow-next{background:rgba(20,184,166,.08);border:1px solid rgba(20,184,166,.3);border-radius:var(--radius);padding:18px;display:flex;align-items:center;gap:14px}
     .datashow-next-icon{font-size:1.7rem}
+    .datashow-next-info{flex:1;min-width:0}
+    .datashow-complete{margin-left:auto;flex-shrink:0}
+    @media(max-width:480px){
+      .datashow-next{flex-wrap:wrap}
+      .datashow-complete{width:100%;margin-left:0;justify-content:center}
+    }
   </style>
 </head>
 <body>
@@ -473,11 +496,12 @@
 
     <div id="apProximaBox" class="datashow-next" style="margin-top:16px">
       <span class="datashow-next-icon">⭐</span>
-      <div>
+      <div class="datashow-next-info">
         <div style="font-size:.73rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--teal);margin-bottom:2px">Próxima música</div>
         <div style="font-weight:700;font-size:1.05rem" id="apProximaTitle">Aguardando indicação do líder</div>
         <div style="font-size:.78rem;color:var(--text3)" id="apProximaMeta"></div>
       </div>
+      <button class="btn btn-teal btn-sm datashow-complete" id="apCompleteBtn" onclick="apCompleteProxima()" style="display:none">✓ Concluir</button>
     </div>
   </div>
 
@@ -698,6 +722,8 @@ let allMusicasPicker = [];
 let currentPLItems   = [];
 let realtimeChannel  = null;
 let homeStatsUpdatedAt = null;
+let demoMusicUpdatedAt = null;
+let homeRealtimeCh = null;
 
 function startDetailRefresh() {
   stopDetailRefresh();
@@ -761,6 +787,7 @@ const DDATA = {
    ===================================================================== */
 function initSb() {
   if (!SB_URL || !SB_KEY) return false;
+  if (sb) return true;
   try { sb = window.supabase.createClient(SB_URL, SB_KEY); return true; }
   catch(e) { return false; }
 }
@@ -803,7 +830,7 @@ async function dbCreateMusica(b) {
   if (error) throw error; return data;
 }
 async function dbUpdateMusica(id,b) {
-  const {data,error} = await sb.from('musica').update(b).eq('id',id).select().single();
+  const {data,error} = await sb.from('musica').update({...b,created_at:new Date().toISOString()}).eq('id',id).select().single();
   if (error) throw error; return data;
 }
 async function dbDeleteMusica(id) {
@@ -815,12 +842,14 @@ async function dbListPlaylists() {
   if (error) throw error; return data;
 }
 async function dbGetHomeStats() {
-  const [musicResult,usageResult]=await Promise.all([
+  const [musicResult,usageResult,lastUpdateResult]=await Promise.all([
     sb.from('musica').select('id',{count:'exact',head:true}),
-    sb.from('musica_playlist').select('musica_id,musica:musica_id(titulo)')
+    sb.from('musica_playlist').select('musica_id,musica:musica_id(titulo)'),
+    sb.from('musica').select('created_at').order('created_at',{ascending:false}).limit(1).maybeSingle()
   ]);
   if(musicResult.error)throw musicResult.error;
   if(usageResult.error)throw usageResult.error;
+  if(lastUpdateResult.error)throw lastUpdateResult.error;
   const uses=new Map();
   (usageResult.data||[]).forEach(item=>{
     const current=uses.get(item.musica_id)||{title:item.musica?.titulo||'Música',count:0};
@@ -828,7 +857,7 @@ async function dbGetHomeStats() {
     uses.set(item.musica_id,current);
   });
   const top=[...uses.values()].sort((a,b)=>b.count-a.count||a.title.localeCompare(b.title))[0]||null;
-  return {count:musicResult.count||0,top};
+  return {count:musicResult.count||0,top,lastUpdate:lastUpdateResult.data?.created_at||null};
 }
 async function dbCreatePlaylist(b) {
   const {data,error} = await sb.from('playlist').insert(b).select().single();
@@ -947,7 +976,8 @@ async function loadHomeStats(){
       });
       stats={
         count:DDATA.musicas.length,
-        top:[...uses.values()].sort((a,b)=>b.count-a.count||a.title.localeCompare(b.title))[0]||null
+        top:[...uses.values()].sort((a,b)=>b.count-a.count||a.title.localeCompare(b.title))[0]||null,
+        lastUpdate:demoMusicUpdatedAt
       };
     }else{
       stats=await dbGetHomeStats();
@@ -956,7 +986,7 @@ async function loadHomeStats(){
     songEl.textContent=stats.top?`🎵 ${stats.top.title}`:'—';
     songEl.title=stats.top?.title||'';
     usesEl.textContent=stats.top?`Usada ${stats.top.count} ${stats.top.count===1?'vez':'vezes'}`:'Ainda não utilizada';
-    homeStatsUpdatedAt=Date.now();
+    homeStatsUpdatedAt=stats.lastUpdate?new Date(stats.lastUpdate).getTime():null;
     updateHomeRelativeTime();
   }catch(e){
     countEl.textContent='—';
@@ -967,13 +997,33 @@ async function loadHomeStats(){
 
 function updateHomeRelativeTime(){
   const el=document.getElementById('homeLastUpdate');
-  if(!el||!homeStatsUpdatedAt)return;
+  if(!el)return;
+  if(!homeStatsUpdatedAt){
+    el.textContent='Sem registro';
+    return;
+  }
   const elapsed=Date.now()-homeStatsUpdatedAt;
+  const minutes=Math.floor(elapsed/60000);
   const hours=Math.floor(elapsed/3600000);
   const days=Math.floor(elapsed/86400000);
   if(days>0)el.textContent=`Há ${days}d`;
   else if(hours>0)el.textContent=`Há ${hours}h`;
+  else if(minutes>0)el.textContent=`Há ${minutes}min`;
   else el.textContent='Agora';
+}
+
+function startHomeRealtime(){
+  if(DEMO||!sb||homeRealtimeCh)return;
+  homeRealtimeCh=sb.channel('home-musica-updates')
+    .on('postgres_changes',{event:'*',schema:'public',table:'musica'},loadHomeStats)
+    .subscribe();
+}
+
+function stopHomeRealtime(){
+  if(homeRealtimeCh){
+    sb?.removeChannel(homeRealtimeCh);
+    homeRealtimeCh=null;
+  }
 }
 
 /* =====================================================================
@@ -982,6 +1032,7 @@ function updateHomeRelativeTime(){
 const PANEL_LABELS = {musicas:'🎶 Músicas', playlists:'📋 Playlists', apresentacao:'🎬 Datashow'};
 
 function switchPanel(name) {
+  if(name==='home')startHomeRealtime();else stopHomeRealtime();
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.getElementById('panel-'+name).classList.add('active');
 
@@ -1198,6 +1249,7 @@ async function saveMusica() {
       await delay(350);
       if(id){const i=DDATA.musicas.findIndex(m=>m.id==id);if(i>=0)DDATA.musicas[i]={...DDATA.musicas[i],...body};}
       else{DDATA.musicas.push({id:Math.max(...DDATA.musicas.map(m=>m.id))+1,...body});}
+      demoMusicUpdatedAt=new Date().toISOString();
     }else{
       if(id)await dbUpdateMusica(id,body);else await dbCreateMusica(body);
     }
@@ -1695,11 +1747,13 @@ function apUpdateProximaBox() {
   const box      = document.getElementById('apProximaBox');
   const titleEl  = document.getElementById('apProximaTitle');
   const metaEl   = document.getElementById('apProximaMeta');
+  const completeBtn=document.getElementById('apCompleteBtn');
   const prox     = apProximaGlobal;
   if (!prox) {
     box.style.display = 'flex';
     titleEl.textContent = 'Aguardando indicação do líder';
     metaEl.textContent = '';
+    completeBtn.style.display='none';
     apProximaId = null;
     return;
   }
@@ -1707,7 +1761,29 @@ function apUpdateProximaBox() {
   apProximaId = prox.id;
   titleEl.textContent = m.titulo || '—';
   metaEl.textContent  = [m.autor, m.tom ? `Tom ${m.tom}` : ''].filter(Boolean).join(' · ');
+  completeBtn.style.display='inline-flex';
   box.style.display   = 'flex';
+}
+
+async function apCompleteProxima(){
+  if(!apProximaGlobal)return;
+  const btn=document.getElementById('apCompleteBtn');
+  btn.disabled=true;
+  try{
+    if(DEMO){
+      Object.values(DDATA.mp).flat().forEach(mp=>mp.tocando=false);
+    }else{
+      await dbClearProxima();
+    }
+    apProximaGlobal=null;
+    apUpdateProximaBox();
+    apRenderSongList();
+    toast('Música concluída','success');
+  }catch(e){
+    toast('Erro ao concluir: '+e.message,'error');
+  }finally{
+    btn.disabled=false;
+  }
 }
 
 async function apRefreshProximaGlobal() {
@@ -1776,6 +1852,7 @@ function apStopRealtime() {
     setDemo(true);
   }
   await loadHomeStats();
+  startHomeRealtime();
   setInterval(checkConn,60000);
   setInterval(updateHomeRelativeTime,60000);
 })();
