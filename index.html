@@ -268,13 +268,44 @@
     .home-card-title{font-size:1rem;font-weight:700;margin-bottom:3px}
     .home-card-desc{font-size:.8rem;color:var(--text3)}
     .home-card-arrow{font-size:1.4rem;color:var(--text3);flex-shrink:0}
+    .home-shell{max-width:720px;margin:0 auto;padding:18px;border:1px solid rgba(102,153,217,.14);border-radius:26px;background:radial-gradient(circle at 50% 22%,rgba(76,92,214,.12),transparent 36%),linear-gradient(180deg,rgba(18,31,52,.72),rgba(8,20,36,.45));box-shadow:0 18px 60px rgba(0,0,0,.18)}
+    .home-hero{text-align:center;padding:28px 12px 30px}
+    .home-hero-icon{font-size:3.6rem;line-height:1;margin-bottom:14px;filter:drop-shadow(0 10px 24px rgba(102,86,230,.38))}
+    .home-hero-title{font-size:2.35rem;font-weight:800;letter-spacing:-1.5px}
+    .home-hero-sub{font-size:1rem;color:var(--text3);margin-top:8px}
+    .home-actions{display:flex;flex-direction:column;gap:14px}
+    .home-actions .home-card{padding:20px 18px;border-radius:18px;background:linear-gradient(105deg,rgba(42,63,89,.9),rgba(27,43,70,.76));position:relative;overflow:hidden}
+    .home-actions .home-card::before{content:'';position:absolute;inset:0 auto 0 0;width:4px;background:var(--home-color,var(--accent))}
+    .home-actions .home-card-icon{width:58px;height:58px;font-size:1.7rem;background:linear-gradient(135deg,var(--home-color,var(--accent)),rgba(255,255,255,.18))!important}
+    .home-actions .home-card-title{font-size:1.15rem}
+    .home-actions .home-card-desc{font-size:.88rem;line-height:1.4}
+    .home-actions .home-card-arrow{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(102,153,217,.12);color:var(--home-color,var(--accent));font-weight:700}
+    .home-stats{margin-top:16px;display:grid;grid-template-columns:1fr 1.25fr 1fr;background:rgba(25,42,69,.72);border:1px solid var(--border);border-radius:18px;padding:16px 8px}
+    .home-stat{min-width:0;text-align:center;padding:2px 10px}
+    .home-stat+.home-stat{border-left:1px solid var(--border)}
+    .home-stat-icon{font-size:1.25rem;margin-bottom:6px}
+    .home-stat-value{font-size:1rem;font-weight:750;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .home-stat-label{font-size:.7rem;color:var(--text3);line-height:1.35;margin-top:4px}
+    @media(max-width:480px){
+      .home-shell{padding:12px;border-radius:20px}
+      .home-hero{padding:20px 8px 24px}
+      .home-hero-icon{font-size:2.9rem}
+      .home-hero-title{font-size:1.9rem}
+      .home-actions .home-card{padding:16px 13px;gap:12px}
+      .home-actions .home-card-icon{width:50px;height:50px}
+      .home-stats{padding:13px 4px}
+      .home-stat{padding:2px 5px}
+      .home-stat-value{font-size:.82rem}
+      .home-stat-label{font-size:.62rem}
+    }
 
     /* ===== DATASHOW PANEL ===== */
-    .ap-layout{display:grid;grid-template-columns:1fr;gap:16px}
-    .ap-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
-    .ap-card-header{padding:11px 15px;background:var(--card2);border-bottom:1px solid var(--border);font-size:.73rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--text3)}
-    .ap-song-list{max-height:calc(100dvh - 380px);min-height:180px;overflow-y:auto;-webkit-overflow-scrolling:touch}
-    .ap-song-item{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border);transition:var(--transition)}
+    .ap-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;width:100%;min-width:0}
+    .ap-card{width:100%;min-width:0;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+    .ap-card-header{padding:11px 15px;background:var(--card2);border-bottom:1px solid var(--border);font-size:.73rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .ap-card-hint{font-weight:500;text-transform:none;letter-spacing:0;text-align:right}
+    .ap-song-list{width:100%;min-width:0;max-height:calc(100dvh - 380px);min-height:180px;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch}
+    .ap-song-item{width:100%;min-width:0;display:grid;grid-template-columns:24px minmax(0,1fr) 22px;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border);transition:var(--transition)}
     .ap-song-item:last-child{border-bottom:none}
     .ap-song-item.ap-proxima{background:rgba(20,184,166,.07)}
     .ap-song-item.ap-dragging{opacity:.35}
@@ -288,6 +319,15 @@
     .ap-move-btn{width:22px;height:18px;border-radius:5px;background:transparent;border:1px solid var(--border);color:var(--text3);font-size:.55rem;line-height:1;padding:0;display:flex;align-items:center;justify-content:center}
     .ap-move-btn:hover{background:var(--card2);color:var(--text)}
     .ap-move-btn:disabled{opacity:.25;cursor:default}
+    @media(max-width:600px){
+      .ap-card-header{display:block;padding:10px 12px}
+      .ap-card-hint{display:block;text-align:left;margin-top:4px;font-size:.67rem;line-height:1.35}
+      .ap-song-list{max-height:calc(100dvh - 355px)}
+      .ap-song-item{grid-template-columns:24px minmax(0,1fr) 22px;gap:8px;padding:11px 10px}
+      .ap-song-title{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.3;overflow-wrap:anywhere}
+      .ap-song-sub{line-height:1.35;overflow-wrap:anywhere}
+      .datashow-next{padding:14px}
+    }
     @media(min-width:700px){.ap-song-item{cursor:grab}.ap-song-item:active{cursor:grabbing}}
     .datashow-next{background:rgba(20,184,166,.08);border:1px solid rgba(20,184,166,.3);border-radius:var(--radius);padding:18px;display:flex;align-items:center;gap:14px}
     .datashow-next-icon{font-size:1.7rem}
@@ -318,30 +358,22 @@
 
   <!-- PAINEL HOME -->
   <div class="panel active" id="panel-home">
-    <div style="max-width:480px;margin:0 auto;padding-top:12px">
-      <div style="text-align:center;margin-bottom:28px">
-        <div style="font-size:2rem;margin-bottom:8px">🎵</div>
-        <div style="font-size:1.4rem;font-weight:700;letter-spacing:-.3px">C-Music</div>
-        <div style="font-size:.84rem;color:var(--text3);margin-top:4px">O que você vai fazer hoje?</div>
+    <div class="home-shell">
+      <div class="home-hero">
+        <div class="home-hero-icon">🎵</div>
+        <div class="home-hero-title">C-Music</div>
+        <div class="home-hero-sub">O que você vai fazer hoje?</div>
       </div>
-      <div style="display:flex;flex-direction:column;gap:12px">
-        <button class="home-card" onclick="switchPanel('musicas')">
+      <div class="home-actions">
+        <button class="home-card" style="--home-color:#7c63e8" onclick="switchPanel('musicas')">
           <div class="home-card-icon" style="background:linear-gradient(135deg,var(--accent),var(--accent2))">🎶</div>
           <div class="home-card-body">
             <div class="home-card-title">Músicas</div>
-            <div class="home-card-desc">Cadastre e gerencie seu acervo de músicas</div>
+            <div class="home-card-desc">Cadastre, edite e gerencie seu acervo de músicas</div>
           </div>
           <div class="home-card-arrow">›</div>
         </button>
-        <button class="home-card" onclick="switchPanel('playlists')">
-          <div class="home-card-icon" style="background:linear-gradient(135deg,var(--teal),#0ea5e9)">📋</div>
-          <div class="home-card-body">
-            <div class="home-card-title">Playlists</div>
-            <div class="home-card-desc">Organize músicas por culto ou evento</div>
-          </div>
-          <div class="home-card-arrow">›</div>
-        </button>
-        <button class="home-card" onclick="switchPanel('apresentacao')">
+        <button class="home-card" style="--home-color:#e5a940" onclick="switchPanel('apresentacao')">
           <div class="home-card-icon" style="background:linear-gradient(135deg,var(--pink),var(--yellow))">🎬</div>
           <div class="home-card-body">
             <div class="home-card-title">Datashow</div>
@@ -349,6 +381,23 @@
           </div>
           <div class="home-card-arrow">›</div>
         </button>
+      </div>
+      <div class="home-stats">
+        <div class="home-stat">
+          <div class="home-stat-icon">🎵</div>
+          <div class="home-stat-value" id="homeMusicCount">—</div>
+          <div class="home-stat-label">Músicas</div>
+        </div>
+        <div class="home-stat">
+          <div class="home-stat-icon">🏆</div>
+          <div class="home-stat-value" id="homeTopSong">—</div>
+          <div class="home-stat-label" id="homeTopSongUses">Música mais tocada</div>
+        </div>
+        <div class="home-stat">
+          <div class="home-stat-icon">☁️</div>
+          <div class="home-stat-value" id="homeLastUpdate">—</div>
+          <div class="home-stat-label">Última atualização</div>
+        </div>
       </div>
     </div>
   </div>
@@ -414,7 +463,7 @@
       <div class="ap-card">
         <div class="ap-card-header">
           Repertório de hoje
-          <span style="float:right;font-weight:500;text-transform:none;letter-spacing:0">Arraste ou use ▲ ▼ para alterar a ordem</span>
+          <span class="ap-card-hint">Arraste ou use ▲ ▼ para alterar a ordem</span>
         </div>
         <div class="ap-song-list" id="apSongList">
           <div style="padding:28px;text-align:center;color:var(--text3);font-size:.84rem">Selecione uma playlist acima</div>
@@ -648,6 +697,7 @@ let currentPL     = null; // { id, title, publico }
 let allMusicasPicker = [];
 let currentPLItems   = [];
 let realtimeChannel  = null;
+let homeStatsUpdatedAt = null;
 
 function startDetailRefresh() {
   stopDetailRefresh();
@@ -764,6 +814,22 @@ async function dbListPlaylists() {
   const {data,error} = await sb.from('playlist').select('*').order('created_at');
   if (error) throw error; return data;
 }
+async function dbGetHomeStats() {
+  const [musicResult,usageResult]=await Promise.all([
+    sb.from('musica').select('id',{count:'exact',head:true}),
+    sb.from('musica_playlist').select('musica_id,musica:musica_id(titulo)')
+  ]);
+  if(musicResult.error)throw musicResult.error;
+  if(usageResult.error)throw usageResult.error;
+  const uses=new Map();
+  (usageResult.data||[]).forEach(item=>{
+    const current=uses.get(item.musica_id)||{title:item.musica?.titulo||'Música',count:0};
+    current.count++;
+    uses.set(item.musica_id,current);
+  });
+  const top=[...uses.values()].sort((a,b)=>b.count-a.count||a.title.localeCompare(b.title))[0]||null;
+  return {count:musicResult.count||0,top};
+}
 async function dbCreatePlaylist(b) {
   const {data,error} = await sb.from('playlist').insert(b).select().single();
   if (error) throw error; return data;
@@ -859,6 +925,58 @@ function closeConfirm(){confirmCb=null;document.getElementById('confirmModal').c
 document.getElementById('confirmOkBtn').onclick=()=>{if(confirmCb)confirmCb();closeConfirm();};
 
 /* =====================================================================
+   HOME — INDICADORES
+   ===================================================================== */
+async function loadHomeStats(){
+  const countEl=document.getElementById('homeMusicCount');
+  const songEl=document.getElementById('homeTopSong');
+  const usesEl=document.getElementById('homeTopSongUses');
+  if(!countEl||!songEl||!usesEl)return;
+  countEl.textContent='—';
+  songEl.textContent='Carregando…';
+  usesEl.textContent='Música mais tocada';
+  try{
+    let stats;
+    if(DEMO){
+      const uses=new Map();
+      Object.values(DDATA.mp).flat().forEach(item=>{
+        const musica=DDATA.musicas.find(m=>m.id===item.musica_id);
+        const current=uses.get(item.musica_id)||{title:musica?.titulo||'Música',count:0};
+        current.count++;
+        uses.set(item.musica_id,current);
+      });
+      stats={
+        count:DDATA.musicas.length,
+        top:[...uses.values()].sort((a,b)=>b.count-a.count||a.title.localeCompare(b.title))[0]||null
+      };
+    }else{
+      stats=await dbGetHomeStats();
+    }
+    countEl.textContent=stats.count;
+    songEl.textContent=stats.top?`🎵 ${stats.top.title}`:'—';
+    songEl.title=stats.top?.title||'';
+    usesEl.textContent=stats.top?`Usada ${stats.top.count} ${stats.top.count===1?'vez':'vezes'}`:'Ainda não utilizada';
+    homeStatsUpdatedAt=Date.now();
+    updateHomeRelativeTime();
+  }catch(e){
+    countEl.textContent='—';
+    songEl.textContent='Indisponível';
+    usesEl.textContent='Não foi possível atualizar';
+  }
+}
+
+function updateHomeRelativeTime(){
+  const el=document.getElementById('homeLastUpdate');
+  if(!el||!homeStatsUpdatedAt)return;
+  const elapsed=Date.now()-homeStatsUpdatedAt;
+  const hours=Math.floor(elapsed/3600000);
+  const days=Math.floor(elapsed/86400000);
+  if(days>0)el.textContent=`Há ${days}d`;
+  else if(hours>0)el.textContent=`Há ${hours}h`;
+  else el.textContent='Agora';
+}
+
+/* =====================================================================
    PANEL SWITCHING
    ===================================================================== */
 const PANEL_LABELS = {musicas:'🎶 Músicas', playlists:'📋 Playlists', apresentacao:'🎬 Datashow'};
@@ -889,6 +1007,7 @@ function switchPanel(name) {
   if(name==='musicas') loadMusicas();
   if(name==='playlists'){showPlaylistList();loadPlaylists();}
   if(name==='apresentacao') apLoadPlaylists();
+  if(name==='home') loadHomeStats();
 }
 
 /* =====================================================================
@@ -1656,7 +1775,9 @@ function apStopRealtime() {
   }else{
     setDemo(true);
   }
+  await loadHomeStats();
   setInterval(checkConn,60000);
+  setInterval(updateHomeRelativeTime,60000);
 })();
 </script>
 </body>
