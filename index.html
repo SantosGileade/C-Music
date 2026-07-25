@@ -112,7 +112,8 @@
     /* ===== CARD LIST (mobile) ===== */
     .card-list-wrap{display:block;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
     @media(min-width:640px){.card-list-wrap{display:none}}
-    .song-card{background:var(--card);border-bottom:1px solid var(--border);padding:13px 14px;display:flex;align-items:center;gap:11px}
+    .song-card{background:var(--card);border-bottom:1px solid var(--border);padding:13px 14px;display:flex;align-items:center;gap:11px;transition:transform .18s ease,background .18s ease;touch-action:pan-y}
+    .song-card.swiping{transition:none;background:rgba(102,153,217,.08)}
     .song-card:last-child{border-bottom:none}
     .song-card-body{flex:1;min-width:0}
     .song-card-title{font-weight:600;color:var(--text);font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -657,6 +658,26 @@
   </div>
 </div>
 
+<!-- MODAL: ADICIONAR MÚSICA A UMA PLAYLIST -->
+<div class="modal-overlay" id="addToPlaylistModal">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-header">
+      <h2>Adicionar à Playlist</h2>
+      <button class="modal-close" onclick="closeAddToPlaylistModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="addToPlaylistSongName" style="font-size:.82rem;color:var(--text2);margin-bottom:12px"></div>
+      <div class="song-picker-list" id="playlistPickerList">
+        <div style="text-align:center;padding:24px;color:var(--text3)"><div class="spinner" style="margin:auto"></div></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeAddToPlaylistModal()">Cancelar</button>
+      <button class="btn btn-primary" id="addToPlaylistConfirmBtn" onclick="confirmAddToPlaylist()">Adicionar</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: CONFIRM -->
 <div class="modal-overlay" id="confirmModal">
   <div class="modal" style="max-width:400px">
@@ -728,6 +749,13 @@ let currentPL     = null; // { id, title, publico }
 let allMusicasPicker = [];
 let currentPLItems   = [];
 let realtimeChannel  = null;
+let swipeStartX = 0;
+let swipeStartY = 0;
+let swipeCardEl = null;
+let swipeMusicId = null;
+let suppressSongClick = false;
+let addToPlaylistMusicId = null;
+let availablePlaylistsForSong = [];
 let homeStatsUpdatedAt = null;
 let demoMusicUpdatedAt = null;
 let homeRealtimeCh = null;
@@ -1133,7 +1161,7 @@ function switchPanel(name) {
 document.addEventListener('keydown',e=>{
   if(e.key!=='Escape')return;
   if(document.getElementById('letraScreen').classList.contains('open')){closeLetra();return;}
-  ['musicaModal','playlistModal','addSongModal','confirmModal'].forEach(id=>{
+  ['musicaModal','playlistModal','addSongModal','addToPlaylistModal','confirmModal'].forEach(id=>{
     document.getElementById(id).classList.remove('open');
   });
 });
@@ -1233,9 +1261,12 @@ function renderMusicas(data,append=false){
     </tr>`).join('');
 
   const cardsHtml=items.map((m,i)=>`
-    <div class="song-card">
+    <div class="song-card"
+      ontouchstart="songSwipeStart(event,${m.id})"
+      ontouchmove="songSwipeMove(event)"
+      ontouchend="songSwipeEnd(event)">
       <div class="song-num">${offset+i+1}</div>
-      <div class="song-card-body clickable" onclick="openLetra(${m.id})">
+      <div class="song-card-body clickable" onclick="openSongFromMusicList(${m.id})">
         <div class="song-card-title">${esc(m.titulo)}</div>
         <div class="song-card-sub">
           ${m.autor?`<span>${esc(m.autor)}</span>`:''}
@@ -1271,6 +1302,120 @@ const musicaScrollObserver = new IntersectionObserver(entries=>{
   if(entries.some(entry=>entry.isIntersecting)) loadMoreMusicas();
 },{rootMargin:'300px 0px'});
 musicaScrollObserver.observe(document.getElementById('musicaVerMais'));
+
+function openSongFromMusicList(musicaId){
+  if(suppressSongClick)return;
+  openLetra(musicaId);
+}
+
+function songSwipeStart(event,musicaId){
+  const touch=event.touches[0];
+  swipeStartX=touch.clientX;
+  swipeStartY=touch.clientY;
+  swipeMusicId=musicaId;
+  swipeCardEl=event.currentTarget;
+  swipeCardEl.classList.add('swiping');
+}
+
+function songSwipeMove(event){
+  if(!swipeCardEl)return;
+  const touch=event.touches[0];
+  const dx=touch.clientX-swipeStartX;
+  const dy=touch.clientY-swipeStartY;
+  if(Math.abs(dx)>Math.abs(dy)){
+    event.preventDefault();
+    const limited=Math.max(-85,Math.min(85,dx));
+    swipeCardEl.style.transform=`translateX(${limited}px)`;
+  }
+}
+
+function songSwipeEnd(event){
+  if(!swipeCardEl)return;
+  const touch=event.changedTouches[0];
+  const dx=touch.clientX-swipeStartX;
+  const dy=touch.clientY-swipeStartY;
+  const shouldOpen=Math.abs(dx)>=55&&Math.abs(dx)>Math.abs(dy)*1.25;
+  swipeCardEl.classList.remove('swiping');
+  swipeCardEl.style.transform='';
+  const musicaId=swipeMusicId;
+  swipeCardEl=null;
+  swipeMusicId=null;
+  if(shouldOpen){
+    event.preventDefault();
+    suppressSongClick=true;
+    openAddToPlaylistModal(musicaId);
+    setTimeout(()=>suppressSongClick=false,450);
+  }
+}
+
+async function openAddToPlaylistModal(musicaId){
+  addToPlaylistMusicId=musicaId;
+  const musica=cachedMusicas.find(m=>m.id===musicaId);
+  document.getElementById('addToPlaylistSongName').textContent=musica?`🎵 ${musica.titulo}`:'';
+  document.getElementById('playlistPickerList').innerHTML='<div style="text-align:center;padding:24px"><div class="spinner" style="margin:auto"></div></div>';
+  document.getElementById('addToPlaylistConfirmBtn').disabled=true;
+  document.getElementById('addToPlaylistModal').classList.add('open');
+  try{
+    const playlists=DEMO?DDATA.playlists:await dbListPlaylists();
+    availablePlaylistsForSong=(playlists||[]).filter(p=>p.title!=='Hoje');
+    if(!availablePlaylistsForSong.length){
+      document.getElementById('playlistPickerList').innerHTML='<div style="text-align:center;padding:24px;color:var(--text3)">Nenhuma playlist disponível. Crie uma playlist primeiro.</div>';
+      return;
+    }
+    document.getElementById('playlistPickerList').innerHTML=availablePlaylistsForSong.map(p=>`
+      <label class="song-picker-item">
+        <input type="radio" name="playlistPick" value="${p.id}" onchange="document.getElementById('addToPlaylistConfirmBtn').disabled=false">
+        <div class="song-picker-body">
+          <div class="song-picker-title">${esc(p.title)}</div>
+          <div class="song-picker-sub">${p.publico?'🌐 Pública':'🔒 Privada'}</div>
+        </div>
+      </label>
+    `).join('');
+  }catch(e){
+    document.getElementById('playlistPickerList').innerHTML='<div style="text-align:center;padding:24px;color:var(--red)">Erro ao carregar playlists.</div>';
+  }
+}
+
+function closeAddToPlaylistModal(){
+  document.getElementById('addToPlaylistModal').classList.remove('open');
+  addToPlaylistMusicId=null;
+  availablePlaylistsForSong=[];
+}
+
+async function confirmAddToPlaylist(){
+  const selected=document.querySelector('input[name="playlistPick"]:checked');
+  if(!selected||!addToPlaylistMusicId)return;
+  const playlistId=Number(selected.value);
+  const playlist=availablePlaylistsForSong.find(p=>p.id===playlistId);
+  const btn=document.getElementById('addToPlaylistConfirmBtn');
+  btn.disabled=true;
+  btn.textContent='Adicionando…';
+  try{
+    if(DEMO){
+      const lista=DDATA.mp[playlistId]||[];
+      if(lista.some(mp=>mp.musica_id===addToPlaylistMusicId))throw new Error('Essa música já está na playlist');
+      const musica=DDATA.musicas.find(m=>m.id===addToPlaylistMusicId);
+      const nextId=Math.max(0,...Object.values(DDATA.mp).flat().map(mp=>mp.id))+1;
+      const nextOrder=Math.max(0,...lista.map(mp=>mp.ordem))+1;
+      lista.push({id:nextId,musica_id:addToPlaylistMusicId,playlist_id:playlistId,ordem:nextOrder,tocando:false,musica});
+      DDATA.mp[playlistId]=lista;
+    }else{
+      const items=await dbGetPlaylistMusicas(playlistId);
+      if(items.some(mp=>mp.musica_id===addToPlaylistMusicId))throw new Error('Essa música já está na playlist');
+      const nextOrder=Math.max(0,...items.map(mp=>mp.ordem))+1;
+      await dbAddSongToPL({
+        musicaId:addToPlaylistMusicId,playlistId,ordem:nextOrder,tocando:false
+      });
+    }
+    closeAddToPlaylistModal();
+    toast(`Música adicionada à playlist ${playlist?.title||''}`,'success');
+  }catch(e){
+    toast(e.message||'Erro ao adicionar música','error');
+  }finally{
+    btn.disabled=false;
+    btn.textContent='Adicionar';
+  }
+}
 
 let searchTimer;
 document.getElementById('musicaSearch').addEventListener('input',()=>{
