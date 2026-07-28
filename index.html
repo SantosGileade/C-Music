@@ -289,8 +289,9 @@
     .conn-status-box.neutral{background:var(--card2);border:1px solid var(--border);color:var(--text2)}
 
     /* ===== LETRA FULLSCREEN ===== */
-    #letraScreen{display:none;position:fixed;inset:0;z-index:300;background:#000;flex-direction:column}
+    #letraScreen{display:none;position:fixed;inset:0;z-index:300;background:#000;flex-direction:column;transition:transform .18s ease}
     #letraScreen.open{display:flex}
+    #letraScreen.edge-swiping{transition:none}
     .letra-header{display:flex;align-items:center;gap:12px;padding:13px 18px;padding-top:calc(13px + var(--safe-top));background:rgba(0,0,0,.8);border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0}
     .letra-header-info{flex:1;min-width:0}
     .letra-header-title{font-size:1rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -799,7 +800,7 @@
 
 
 <!-- LETRA FULLSCREEN -->
-<div id="letraScreen">
+<div id="letraScreen" ontouchstart="letraSwipeStart(event)" ontouchmove="letraSwipeMove(event)" ontouchend="letraSwipeEnd(event)" ontouchcancel="letraSwipeCancel()">
   <div class="letra-header">
     <button class="letra-close" onclick="closeLetra()">←</button>
     <div class="letra-header-info">
@@ -860,7 +861,11 @@ let swipeStartX = 0;
 let swipeStartY = 0;
 let swipeCardEl = null;
 let swipeMusicId = null;
+let swipeGestureAxis = null;
 let suppressSongClick = false;
+let letraSwipeStartX = 0;
+let letraSwipeStartY = 0;
+let letraSwipeActive = false;
 let addToPlaylistMusicId = null;
 let availablePlaylistsForSong = [];
 let homeStatsUpdatedAt = null;
@@ -1408,7 +1413,8 @@ function renderMusicas(data,append=false){
     <div class="song-card"
       ontouchstart="songSwipeStart(event,${m.id})"
       ontouchmove="songSwipeMove(event)"
-      ontouchend="songSwipeEnd(event)">
+      ontouchend="songSwipeEnd(event)"
+      ontouchcancel="songSwipeCancel()">
       <div class="song-num">${offset+i+1}</div>
       <div class="song-card-body clickable" onclick="openSongFromMusicList(${m.id})">
         <div class="song-card-title" title="${esc(m.titulo)}">${esc(m.titulo)}</div>
@@ -1458,7 +1464,7 @@ function songSwipeStart(event,musicaId){
   swipeStartY=touch.clientY;
   swipeMusicId=musicaId;
   swipeCardEl=event.currentTarget;
-  swipeCardEl.classList.add('swiping');
+  swipeGestureAxis=null;
 }
 
 function songSwipeMove(event){
@@ -1466,9 +1472,19 @@ function songSwipeMove(event){
   const touch=event.touches[0];
   const dx=touch.clientX-swipeStartX;
   const dy=touch.clientY-swipeStartY;
-  if(Math.abs(dx)>Math.abs(dy)){
+  if(!swipeGestureAxis){
+    if(Math.abs(dy)>10&&Math.abs(dy)>Math.abs(dx)*.8){
+      swipeGestureAxis='vertical';
+      return;
+    }
+    if(Math.abs(dx)>14&&Math.abs(dx)>Math.abs(dy)*1.4){
+      swipeGestureAxis='horizontal';
+      swipeCardEl.classList.add('swiping');
+    }
+  }
+  if(swipeGestureAxis==='horizontal'&&dx<0){
     event.preventDefault();
-    const limited=Math.max(-85,Math.min(85,dx));
+    const limited=Math.max(-95,dx);
     swipeCardEl.style.transform=`translateX(${limited}px)`;
   }
 }
@@ -1478,18 +1494,29 @@ function songSwipeEnd(event){
   const touch=event.changedTouches[0];
   const dx=touch.clientX-swipeStartX;
   const dy=touch.clientY-swipeStartY;
-  const shouldOpen=Math.abs(dx)>=55&&Math.abs(dx)>Math.abs(dy)*1.25;
+  const shouldOpen=swipeGestureAxis==='horizontal'&&dx<=-90&&Math.abs(dx)>Math.abs(dy)*1.8;
   swipeCardEl.classList.remove('swiping');
   swipeCardEl.style.transform='';
   const musicaId=swipeMusicId;
   swipeCardEl=null;
   swipeMusicId=null;
+  swipeGestureAxis=null;
   if(shouldOpen){
     event.preventDefault();
     suppressSongClick=true;
     openAddToPlaylistModal(musicaId);
     setTimeout(()=>suppressSongClick=false,450);
   }
+}
+
+function songSwipeCancel(){
+  if(swipeCardEl){
+    swipeCardEl.classList.remove('swiping');
+    swipeCardEl.style.transform='';
+  }
+  swipeCardEl=null;
+  swipeMusicId=null;
+  swipeGestureAxis=null;
 }
 
 async function openAddToPlaylistModal(musicaId){
@@ -1698,6 +1725,45 @@ async function openLetra(id) {
 }
 function closeLetra(){document.getElementById('letraScreen').classList.remove('open');document.body.style.overflow='';}
 function changeFont(d){letraFontSize=Math.max(14,Math.min(52,letraFontSize+d));document.getElementById('letraText').style.fontSize=letraFontSize+'px';}
+
+function letraSwipeStart(event){
+  const touch=event.touches[0];
+  letraSwipeActive=touch.clientX<=36;
+  letraSwipeStartX=touch.clientX;
+  letraSwipeStartY=touch.clientY;
+  if(letraSwipeActive)document.getElementById('letraScreen').classList.add('edge-swiping');
+}
+
+function letraSwipeMove(event){
+  if(!letraSwipeActive)return;
+  const touch=event.touches[0];
+  const dx=touch.clientX-letraSwipeStartX;
+  const dy=touch.clientY-letraSwipeStartY;
+  if(dx>8&&dx>Math.abs(dy)*1.35){
+    event.preventDefault();
+    document.getElementById('letraScreen').style.transform=`translateX(${Math.min(dx,window.innerWidth)}px)`;
+  }
+}
+
+function letraSwipeEnd(event){
+  if(!letraSwipeActive)return;
+  const touch=event.changedTouches[0];
+  const dx=touch.clientX-letraSwipeStartX;
+  const dy=touch.clientY-letraSwipeStartY;
+  const shouldClose=dx>=75&&dx>Math.abs(dy)*1.5;
+  const screen=document.getElementById('letraScreen');
+  screen.classList.remove('edge-swiping');
+  screen.style.transform='';
+  letraSwipeActive=false;
+  if(shouldClose)closeLetra();
+}
+
+function letraSwipeCancel(){
+  const screen=document.getElementById('letraScreen');
+  screen.classList.remove('edge-swiping');
+  screen.style.transform='';
+  letraSwipeActive=false;
+}
 
 /* =====================================================================
    PLAYLISTS
