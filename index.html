@@ -16,7 +16,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
-      --bg:#0d1a2a; --bg2:#142030; --card:#2A3F59; --card2:#334d6e; --border:#3d5a7a;
+      --bg:#0d1a2a; --bg2:#142030; --card:#20354d; --card2:#29425f; --border:#355371;
       --accent:#6699D9; --accent2:#7aaade; --accent3:#BBD3F2;
       --teal:#4E75A6; --pink:#4E75A6; --green:#4caf82; --red:#e05252; --yellow:#d4a84c;
       --text:#e8f2fc; --text2:#BBD3F2; --text3:#545F6C;
@@ -120,6 +120,70 @@
     .song-card-sub{font-size:.77rem;color:var(--text3);margin-top:2px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
     .song-card-actions{display:flex;gap:5px;flex-shrink:0}
     .song-num{width:28px;height:28px;border-radius:7px;background:var(--card2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.74rem;color:var(--text3);font-weight:700;flex-shrink:0}
+
+    /* ===== MÚSICAS — VISUAL REFINADO ===== */
+    #panel-musicas{--music-border:rgba(102,153,217,.22)}
+    #panel-musicas .panel-header{margin-bottom:22px}
+    #panel-musicas .panel-title{font-size:1.65rem;letter-spacing:-.6px}
+    #panel-musicas .music-subtitle{font-size:.9rem;color:var(--text3);margin-top:4px}
+    #panel-musicas .music-add-btn{padding:11px 19px;box-shadow:0 8px 24px rgba(124,58,237,.18)}
+    #panel-musicas .search-row{gap:14px;margin-bottom:18px}
+    #panel-musicas .search-wrap svg{left:16px;width:18px;height:18px}
+    #panel-musicas .search-input,
+    #panel-musicas #musicaTomFilter{height:48px;background:rgba(23,42,67,.7);border-color:var(--music-border);border-radius:12px}
+    #panel-musicas .search-input{padding-left:46px;font-size:.92rem}
+    #panel-musicas #musicaTomFilter{min-width:112px!important;width:112px!important;padding:0 16px;display:flex;align-items:center;justify-content:center;color:var(--text);font-size:.9rem;cursor:pointer;white-space:nowrap}
+    #panel-musicas #musicaTomFilter.filtered{border-color:var(--accent);color:var(--accent3);background:rgba(102,153,217,.12)}
+    #panel-musicas #musicaTomFilter.filtered::after{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent2);margin-left:8px;box-shadow:0 0 8px rgba(122,170,222,.7)}
+    #panel-musicas .table-wrap,
+    #panel-musicas .card-list-wrap{background:linear-gradient(145deg,rgba(31,55,86,.88),rgba(22,42,67,.9));border-color:var(--music-border);box-shadow:0 14px 35px rgba(0,0,0,.1)}
+    #panel-musicas thead{display:none}
+    #panel-musicas td{height:72px;padding:12px 15px;border-color:var(--music-border)}
+    #panel-musicas tr:first-child td{border-top:none}
+    #panel-musicas tr:hover td{background:rgba(102,86,230,.055)}
+    #panel-musicas .song-card{min-height:73px;padding:12px 13px;background:transparent;border-color:var(--music-border)}
+    #panel-musicas .song-num{width:34px;height:34px;border-radius:9px;background:rgba(102,153,217,.1);border-color:rgba(102,153,217,.13);color:#91afe0}
+    #panel-musicas .song-card-title{font-size:.92rem}
+    #panel-musicas .song-card-sub{font-size:.73rem}
+    #panel-musicas .td-actions,
+    #panel-musicas .song-card-actions{gap:7px}
+    #panel-musicas .music-action{width:36px;height:36px;padding:0;justify-content:center;border-radius:10px;font-size:.92rem;background:rgba(22,42,67,.68);border-color:rgba(102,153,217,.22)}
+    #panel-musicas .music-action-next{color:#fbbf24}
+    #panel-musicas .music-action-edit{color:#a9c1ef}
+    #panel-musicas .music-action-delete{color:#fb5c67;border-color:rgba(239,68,68,.32);background:rgba(239,68,68,.045)}
+    #panel-musicas .tom-badge{min-width:31px;justify-content:center;padding:4px 8px;background:rgba(124,58,237,.2)}
+    #panel-musicas .song-card-tone{flex-shrink:0;margin-left:2px}
+    #toneFilterModal{align-items:center;padding:18px}
+    #toneFilterModal .tone-modal{max-width:390px;border-radius:18px;background:#172a40;border-color:rgba(102,153,217,.2);padding-bottom:0;overflow:hidden}
+    .tone-modal::before{display:none}
+    .tone-modal .modal-header{padding:18px 18px 0;margin-bottom:14px}
+    .tone-modal .modal-header h2{font-size:1rem}
+    .tone-modal .modal-body{padding:0 18px 18px}
+    .tone-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+    .tone-option{height:40px;border-radius:9px;background:rgba(41,66,95,.58);border:1px solid rgba(102,153,217,.14);color:var(--text2);font-size:.82rem;font-weight:700;transition:var(--transition)}
+    .tone-option:hover,.tone-option.selected{background:rgba(102,153,217,.18);border-color:var(--accent);color:#fff}
+    .tone-option.tone-all{grid-column:1/-1;height:38px}
+    @media(max-width:639px){
+      #panel-musicas .panel-header{margin-bottom:15px;align-items:flex-start}
+      #panel-musicas .panel-title{font-size:1.35rem}
+      #panel-musicas .music-subtitle{font-size:.78rem}
+      #panel-musicas .music-add-btn{padding:9px 13px}
+      #panel-musicas .search-row{gap:9px;margin-bottom:14px}
+      #panel-musicas .search-input,
+      #panel-musicas #musicaTomFilter{height:46px}
+      #panel-musicas #musicaTomFilter{min-width:92px!important;width:92px!important;padding:0 10px}
+      #panel-musicas .song-card{gap:9px}
+      #panel-musicas .song-card-actions{gap:5px}
+      #panel-musicas .music-action{width:34px;height:34px;border-radius:9px;font-size:.83rem}
+    }
+    @media(max-width:390px){
+      #panel-musicas .music-add-label{display:none}
+      #panel-musicas .music-add-btn{width:42px;height:40px;padding:0;justify-content:center}
+      #panel-musicas .song-card{padding:11px 9px;gap:7px}
+      #panel-musicas .song-num{width:28px;height:28px}
+      #panel-musicas .music-action{width:31px;height:32px}
+      #panel-musicas .song-card-actions{gap:3px}
+    }
 
     /* ===== BADGES ===== */
     .badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:99px;font-size:.72rem;font-weight:600}
@@ -342,7 +406,6 @@
     @media(max-width:600px){
       .ap-card-header{display:block;padding:10px 12px}
       .ap-card-hint{display:block;text-align:left;margin-top:4px;font-size:.67rem;line-height:1.35}
-      .ap-song-list{max-height:calc(100dvh - 355px)}
       .ap-song-item{grid-template-columns:24px minmax(0,1fr) 22px;gap:8px;padding:11px 10px}
       .ap-song-title{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.3;overflow-wrap:anywhere}
       .ap-song-sub{line-height:1.35;overflow-wrap:anywhere}
@@ -369,6 +432,19 @@
       .datashow-next-info{flex:0}
       .datashow-next-actions{margin:auto 0 0;width:100%}
       .datashow-complete{flex:1;justify-content:center}
+    }
+    @media(max-width:899px){
+      #panel-apresentacao.active{height:calc(100dvh - 98px - var(--safe-top));display:flex;flex-direction:column;overflow:hidden}
+      #panel-apresentacao .panel-header{flex:0 0 auto}
+      #panel-apresentacao .ap-layout{display:flex;flex:1 1 auto;min-height:0;flex-direction:column}
+      #panel-apresentacao .ap-main-column{flex:1 1 auto;min-height:0}
+      #panel-apresentacao .ap-main-column>.ap-card:first-child{display:flex;flex:1 1 auto;min-height:0;flex-direction:column}
+      #panel-apresentacao .ap-song-list{height:auto;max-height:none;min-height:120px;flex:1 1 auto}
+      #panel-apresentacao .ap-history-list{max-height:105px}
+      #panel-apresentacao .datashow-next{flex:0 0 auto}
+    }
+    @media(min-width:640px) and (max-width:899px){
+      #panel-apresentacao.active{height:calc(100dvh - 112px - var(--safe-top))}
     }
     @media(max-width:480px){
       .datashow-next{flex-wrap:wrap}
@@ -450,27 +526,22 @@
   <div class="panel" id="panel-musicas">
     <div class="panel-header">
       <div>
-        <div class="panel-title">Painel de <span>Músicas</span></div>
-        <div style="font-size:.79rem;color:var(--text3);margin-top:2px">Gerencie seu acervo</div>
+        <div class="panel-title">Músicas</div>
+        <div class="music-subtitle">Gerencie seu acervo</div>
       </div>
-      <button class="btn btn-primary" onclick="openMusicaModal()">
+      <button class="btn btn-primary music-add-btn" onclick="openMusicaModal()">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
-        Nova Música
+        <span class="music-add-label">Nova música</span>
       </button>
     </div>
     <div class="search-row">
       <div class="search-wrap">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <input class="search-input" type="search" id="musicaSearch" placeholder="Buscar por título..." autocomplete="off" />
+        <input class="search-input" type="search" id="musicaSearch" placeholder="Buscar por título, artista..." autocomplete="off" />
       </div>
-      <select class="form-input" id="musicaTomFilter" style="width:auto;min-width:100px;flex-shrink:0" onchange="musicaPage=0;loadMusicas()">
-        <option value="">— Tom —</option>
-        <option value="C">C</option><option value="C#">C#</option><option value="D">D</option><option value="D#">D#</option>
-        <option value="E">E</option><option value="F">F</option><option value="F#">F#</option><option value="G">G</option>
-        <option value="G#">G#</option><option value="A">A</option><option value="A#">A#</option><option value="B">B</option>
-        <option value="Cm">Cm</option><option value="Dm">Dm</option><option value="Em">Em</option><option value="Fm">Fm</option>
-        <option value="Gm">Gm</option><option value="Am">Am</option><option value="Bm">Bm</option>
-      </select>
+      <button class="form-input" id="musicaTomFilter" type="button" value="" onclick="openToneFilterModal()">
+        <span id="musicaTomFilterLabel">Tom</span>
+      </button>
     </div>
     <!-- Desktop -->
     <div class="table-wrap" id="musicaTableWrap">
@@ -633,6 +704,16 @@
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeMusicaModal()">Cancelar</button>
       <button class="btn btn-primary" id="musicaSaveBtn" onclick="saveMusica()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: FILTRO DE TOM -->
+<div class="modal-overlay" id="toneFilterModal">
+  <div class="modal tone-modal">
+    <div class="modal-header"><h2>Filtrar por tom</h2><button class="modal-close" onclick="closeToneFilterModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="tone-grid" id="toneFilterGrid"></div>
     </div>
   </div>
 </div>
@@ -874,7 +955,7 @@ function setDemo(demo) {
    ===================================================================== */
 async function dbListMusicas(titulo, page, tom) {
   let q = sb.from('musica').select('*', {count:'exact'});
-  if (titulo) q = q.or(`titulo.ilike.%${titulo}%,letra.ilike.%${titulo}%`);
+  if (titulo) q = q.or(`titulo.ilike.%${titulo}%,autor.ilike.%${titulo}%,letra.ilike.%${titulo}%`);
   if (tom) q = q.eq('tom', tom);
   const {data, count, error} = await q
     .range(page * PAGE_SIZE, (page+1)*PAGE_SIZE - 1)
@@ -1162,10 +1243,12 @@ function switchPanel(name) {
 
   const backBtn   = document.getElementById('headerBackBtn');
   const titleEl   = document.getElementById('headerPanelTitle');
+  const headerLogo=document.querySelector('header .logo');
   const isHome    = name === 'home';
   backBtn.style.display  = isHome ? 'none' : 'flex';
-  titleEl.style.display  = isHome ? 'none' : 'block';
-  titleEl.textContent    = isHome ? '' : (PANEL_LABELS[name] || '');
+  headerLogo.style.display='flex';
+  titleEl.style.display='none';
+  titleEl.textContent='';
 
   // Bottom nav — visível apenas em Músicas e Playlists
   const showNav = name === 'musicas' || name === 'playlists';
@@ -1181,7 +1264,7 @@ function switchPanel(name) {
 
   if(name==='musicas'){
     document.getElementById('musicaSearch').value='';
-    document.getElementById('musicaTomFilter').value='';
+    setMusicaTomFilter('',false);
     loadMusicas();
   }
   if(name==='playlists'){showPlaylistList();loadPlaylists();}
@@ -1195,7 +1278,7 @@ function switchPanel(name) {
 document.addEventListener('keydown',e=>{
   if(e.key!=='Escape')return;
   if(document.getElementById('letraScreen').classList.contains('open')){closeLetra();return;}
-  ['musicaModal','playlistModal','addSongModal','addToPlaylistModal','confirmModal'].forEach(id=>{
+  ['musicaModal','toneFilterModal','playlistModal','addSongModal','addToPlaylistModal','confirmModal'].forEach(id=>{
     document.getElementById(id).classList.remove('open');
   });
 });
@@ -1204,6 +1287,33 @@ document.querySelectorAll('.modal-overlay').forEach(o=>{
     if(e.target===o) o.classList.remove('open');
   });
 });
+
+const MUSIC_TONES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B','Cm','Dm','Em','Fm','Gm','Am','Bm'];
+
+function openToneFilterModal(){
+  const current=document.getElementById('musicaTomFilter').value||'';
+  document.getElementById('toneFilterGrid').innerHTML=
+    `<button class="tone-option tone-all ${current===''?'selected':''}" onclick="setMusicaTomFilter('')">Todos</button>`+
+    MUSIC_TONES.map(t=>`<button class="tone-option ${current===t?'selected':''}" onclick="setMusicaTomFilter('${t}')">${t}</button>`).join('');
+  document.getElementById('toneFilterModal').classList.add('open');
+}
+
+function closeToneFilterModal(){
+  document.getElementById('toneFilterModal').classList.remove('open');
+}
+
+function setMusicaTomFilter(tom,reload=true){
+  const filter=document.getElementById('musicaTomFilter');
+  filter.value=tom;
+  filter.classList.toggle('filtered',Boolean(tom));
+  filter.title=tom?`Filtro ativo: tom ${tom}`:'Filtrar por tom';
+  document.getElementById('musicaTomFilterLabel').textContent='Tom';
+  closeToneFilterModal();
+  if(reload){
+    musicaPage=0;
+    loadMusicas();
+  }
+}
 
 /* =====================================================================
    MÚSICAS — LOAD
@@ -1222,7 +1332,7 @@ async function loadMusicas() {
   if(DEMO){
     await delay(220);
     let f=DDATA.musicas.filter(m=>
-      (!titulo||(m.titulo.toLowerCase().includes(titulo.toLowerCase())||(m.letra||'').toLowerCase().includes(titulo.toLowerCase())))&&(!tom||m.tom===tom)
+      (!titulo||(m.titulo.toLowerCase().includes(titulo.toLowerCase())||(m.autor||'').toLowerCase().includes(titulo.toLowerCase())||(m.letra||'').toLowerCase().includes(titulo.toLowerCase())))&&(!tom||m.tom===tom)
     );
     f=sortMusicasAlfabeticamente(f);
     data={content:f.slice(0,PAGE_SIZE),totalElements:f.length,totalPages:Math.ceil(f.length/PAGE_SIZE),number:0};
@@ -1247,7 +1357,7 @@ async function loadMoreMusicas(){
   if(DEMO){
     await delay(220);
     let f=DDATA.musicas.filter(m=>
-      (!titulo||(m.titulo.toLowerCase().includes(titulo.toLowerCase())||(m.letra||'').toLowerCase().includes(titulo.toLowerCase())))&&(!tom||m.tom===tom)
+      (!titulo||(m.titulo.toLowerCase().includes(titulo.toLowerCase())||(m.autor||'').toLowerCase().includes(titulo.toLowerCase())||(m.letra||'').toLowerCase().includes(titulo.toLowerCase())))&&(!tom||m.tom===tom)
     );
     f=sortMusicasAlfabeticamente(f);
     const s=musicaPage*PAGE_SIZE;
@@ -1288,9 +1398,9 @@ function renderMusicas(data,append=false){
       <td>${esc(m.autor||'—')}</td>
       <td>${m.tom?`<span class="tom-badge">${esc(m.tom)}</span>`:'<span style="color:var(--text3)">—</span>'}</td>
       <td><div class="td-actions">
-        <button class="btn btn-ghost btn-sm btn-icon" title="Definir como próxima música" onclick="markMusicaComoProxima(${m.id})">⭐</button>
-        <button class="btn btn-ghost btn-sm btn-icon" title="Editar" onclick="editMusica(${m.id})">✏️</button>
-        <button class="btn btn-danger btn-sm btn-icon" title="Excluir" onclick="deleteMusica(${m.id},'${esc(m.titulo)}')">🗑️</button>
+        <button class="btn btn-ghost btn-sm btn-icon music-action music-action-next" title="Definir como próxima música" onclick="markMusicaComoProxima(${m.id})">⭐</button>
+        <button class="btn btn-ghost btn-sm btn-icon music-action music-action-edit" title="Editar" onclick="editMusica(${m.id})">✏️</button>
+        <button class="btn btn-danger btn-sm btn-icon music-action music-action-delete" title="Excluir" onclick="deleteMusica(${m.id},'${esc(m.titulo)}')">🗑️</button>
       </div></td>
     </tr>`).join('');
 
@@ -1301,16 +1411,16 @@ function renderMusicas(data,append=false){
       ontouchend="songSwipeEnd(event)">
       <div class="song-num">${offset+i+1}</div>
       <div class="song-card-body clickable" onclick="openSongFromMusicList(${m.id})">
-        <div class="song-card-title">${esc(m.titulo)}</div>
+        <div class="song-card-title" title="${esc(m.titulo)}">${esc(m.titulo)}</div>
         <div class="song-card-sub">
           ${m.autor?`<span>${esc(m.autor)}</span>`:''}
-          ${m.tom?`<span class="tom-badge">${esc(m.tom)}</span>`:''}
         </div>
       </div>
       <div class="song-card-actions">
-        <button class="btn btn-ghost btn-sm btn-icon" title="Definir como próxima música" onclick="markMusicaComoProxima(${m.id})">⭐</button>
-        <button class="btn btn-ghost btn-sm btn-icon" onclick="editMusica(${m.id})">✏️</button>
-        <button class="btn btn-danger btn-sm btn-icon" onclick="deleteMusica(${m.id},'${esc(m.titulo)}')">🗑️</button>
+        ${m.tom?`<span class="tom-badge song-card-tone">${esc(m.tom)}</span>`:''}
+        <button class="btn btn-ghost btn-sm btn-icon music-action music-action-next" title="Definir como próxima música" onclick="markMusicaComoProxima(${m.id})">⭐</button>
+        <button class="btn btn-ghost btn-sm btn-icon music-action music-action-edit" title="Editar" onclick="editMusica(${m.id})">✏️</button>
+        <button class="btn btn-danger btn-sm btn-icon music-action music-action-delete" title="Excluir" onclick="deleteMusica(${m.id},'${esc(m.titulo)}')">🗑️</button>
       </div>
     </div>`).join('');
 
