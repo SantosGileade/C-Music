@@ -319,6 +319,7 @@
 
     /* ===== DATASHOW PANEL ===== */
     .ap-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;width:100%;min-width:0}
+    .ap-main-column{display:flex;flex-direction:column;gap:14px;min-width:0}
     .ap-card{width:100%;min-width:0;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
     .ap-card-header{padding:11px 15px;background:var(--card2);border-bottom:1px solid var(--border);font-size:.73rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);display:flex;align-items:center;justify-content:space-between;gap:10px}
     .ap-card-hint{font-weight:500;text-transform:none;letter-spacing:0;text-align:right}
@@ -327,7 +328,7 @@
     .ap-song-item:last-child{border-bottom:none}
     .ap-song-item.ap-proxima{background:rgba(20,184,166,.07)}
     .ap-song-item.ap-dragging{opacity:.35}
-    .ap-song-item.stale-song, tr.stale-song{opacity:.4;filter:grayscale(.7)}
+    tr.stale-song{opacity:.4;filter:grayscale(.7)}
     .ap-song-num{width:24px;height:24px;border-radius:6px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:.72rem;color:var(--text3);font-weight:700;flex-shrink:0}
     .ap-song-info-wrap{flex:1;min-width:0}
     .ap-song-title{font-size:.86rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -348,11 +349,27 @@
       .datashow-next{padding:14px}
     }
     @media(min-width:700px){.ap-song-item{cursor:grab}.ap-song-item:active{cursor:grabbing}}
-    .datashow-next{background:rgba(20,184,166,.08);border:1px solid rgba(20,184,166,.3);border-radius:var(--radius);padding:18px;display:flex;align-items:center;gap:14px}
-    .datashow-next-icon{font-size:1.7rem}
-    .datashow-next-info{flex:1;min-width:0}
-    .datashow-next-actions{margin-left:auto;display:flex;align-items:center;gap:7px;flex-shrink:0}
+    .ap-history-list{max-height:190px;overflow-y:auto}
+    .ap-history-item{display:grid;grid-template-columns:28px minmax(0,1fr);gap:10px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border);opacity:.48;filter:grayscale(.65)}
+    .ap-history-item:last-child{border-bottom:none}
+    .ap-history-title{font-size:.82rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .ap-history-meta{font-size:.7rem;color:var(--text3);margin-top:2px}
+    .ap-history-clear{font-size:.67rem;padding:5px 8px;text-transform:none;letter-spacing:0;white-space:nowrap}
+    .datashow-next{position:relative;overflow:hidden;background:radial-gradient(circle at 90% 22%,rgba(139,92,246,.22),transparent 38%),linear-gradient(145deg,rgba(79,70,229,.14),rgba(15,23,42,.76));border:1px solid rgba(139,92,246,.55);border-radius:var(--radius);padding:22px;display:flex;align-items:flex-start;gap:14px;min-width:0}
+    .datashow-next::after{content:'☆';position:absolute;right:18px;bottom:8px;font-size:7rem;line-height:1;color:rgba(139,92,246,.2);pointer-events:none}
+    .datashow-next.has-next{border-color:rgba(167,139,250,.95);box-shadow:0 0 28px rgba(124,58,237,.24);animation:nextGlow 1.15s ease-in-out 2}
+    @keyframes nextGlow{0%,100%{box-shadow:0 0 18px rgba(124,58,237,.18)}50%{box-shadow:0 0 38px rgba(139,92,246,.48)}}
+    .datashow-next-icon{font-size:1.8rem;position:relative;z-index:1}
+    .datashow-next-info{flex:1;min-width:0;position:relative;z-index:1}
+    .datashow-next-actions{margin-left:auto;display:flex;align-items:center;gap:7px;flex-shrink:0;position:relative;z-index:1}
     .datashow-cancel{width:34px;height:34px;padding:0;justify-content:center}
+    @media(min-width:900px){
+      .ap-layout{grid-template-columns:minmax(0,1.65fr) minmax(280px,.85fr);align-items:stretch}
+      .datashow-next{min-height:330px;flex-direction:column}
+      .datashow-next-info{flex:0}
+      .datashow-next-actions{margin:auto 0 0;width:100%}
+      .datashow-complete{flex:1;justify-content:center}
+    }
     @media(max-width:480px){
       .datashow-next{flex-wrap:wrap}
       .datashow-next-actions{width:100%;margin-left:0}
@@ -487,27 +504,36 @@
     </div>
 
     <div class="ap-layout">
-      <div class="ap-card">
-        <div class="ap-card-header">
-          Repertório de hoje
-          <span class="ap-card-hint">Arraste ou use ▲ ▼ para alterar a ordem</span>
+      <div class="ap-main-column">
+        <div class="ap-card">
+          <div class="ap-card-header">
+            Repertório selecionado
+            <span class="ap-card-hint">Arraste ou use ▲ ▼ para alterar a ordem</span>
+          </div>
+          <div class="ap-song-list" id="apSongList">
+            <div style="padding:28px;text-align:center;color:var(--text3);font-size:.84rem">Selecione uma playlist acima</div>
+          </div>
         </div>
-        <div class="ap-song-list" id="apSongList">
-          <div style="padding:28px;text-align:center;color:var(--text3);font-size:.84rem">Selecione uma playlist acima</div>
+        <div class="ap-card" id="apHistoryCard" style="display:none">
+          <div class="ap-card-header">
+            Músicas de outro dia
+            <button class="btn btn-danger ap-history-clear" onclick="clearTodayHistory()">Limpar playlist</button>
+          </div>
+          <div class="ap-history-list" id="apHistoryList"></div>
         </div>
       </div>
-    </div>
 
-    <div id="apProximaBox" class="datashow-next" style="margin-top:16px">
-      <span class="datashow-next-icon">⭐</span>
-      <div class="datashow-next-info">
-        <div style="font-size:.73rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--teal);margin-bottom:2px">Próxima música</div>
-        <div style="font-weight:700;font-size:1.05rem" id="apProximaTitle">Aguardando indicação do líder</div>
-        <div style="font-size:.78rem;color:var(--text3)" id="apProximaMeta"></div>
-      </div>
-      <div class="datashow-next-actions" id="apNextActions" style="display:none">
-        <button class="btn btn-ghost btn-sm datashow-cancel" onclick="apCancelProxima()" title="Remover indicação sem concluir">✕</button>
-        <button class="btn btn-teal btn-sm datashow-complete" id="apCompleteBtn" onclick="apCompleteProxima()">✓ Concluir</button>
+      <div id="apProximaBox" class="datashow-next">
+        <span class="datashow-next-icon">⭐</span>
+        <div class="datashow-next-info">
+          <div style="font-size:.73rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#a78bfa;margin-bottom:10px">Próxima música</div>
+          <div style="font-weight:700;font-size:1.18rem;line-height:1.35" id="apProximaTitle">Aguardando indicação do líder</div>
+          <div style="font-size:.78rem;color:var(--text3);margin-top:5px" id="apProximaMeta"></div>
+        </div>
+        <div class="datashow-next-actions" id="apNextActions" style="display:none">
+          <button class="btn btn-ghost btn-sm datashow-cancel" onclick="apCancelProxima()" title="Remover indicação sem concluir">✕</button>
+          <button class="btn btn-teal btn-sm datashow-complete" id="apCompleteBtn" onclick="apCompleteProxima()">✓ Concluir</button>
+        </div>
       </div>
     </div>
   </div>
@@ -976,6 +1002,14 @@ async function dbRemoveTodaySong(musicaId) {
 }
 async function dbClearPlaylistSongs(playlistId) {
   const {error}=await sb.from('musica_playlist').delete().eq('playlist_id',playlistId);
+  if(error)throw error;
+}
+async function dbClearOldTodaySongs(playlistId) {
+  const items=await dbGetPlaylistMusicas(playlistId);
+  const today=getLocalDateKey();
+  const ids=items.filter(mp=>mp.adicionado_em!==today).map(mp=>mp.id);
+  if(!ids.length)return;
+  const {error}=await sb.from('musica_playlist').delete().in('id',ids);
   if(error)throw error;
 }
 async function dbSetTocando(mpId) {
@@ -1825,6 +1859,8 @@ let apRealtimeCh  = null;
 let apGlobalRefreshTimer = null;
 let apDraggedId   = null;
 let apJustDragged = false;
+let apVisibleSongs = [];
+let apLastAlertedProximaId = null;
 
 /* =====================================================================
    DATASHOW — LOAD
@@ -1900,15 +1936,39 @@ async function apLoadSongs() {
 
 function apRenderSongList() {
   const listEl = document.getElementById('apSongList');
-  if (!apSongs.length) {
+  const historyCard=document.getElementById('apHistoryCard');
+  const historyList=document.getElementById('apHistoryList');
+  const sel=document.getElementById('apPlaylistSel');
+  const selectedOption=sel.options[sel.selectedIndex];
+  const isHoje=selectedOption?.dataset.title==='Hoje';
+  const today=getLocalDateKey();
+  const history=isHoje
+    ?apSongs.filter(mp=>mp.adicionado_em!==today)
+    :[];
+  apVisibleSongs=isHoje
+    ?apSongs.filter(mp=>mp.adicionado_em===today)
+    :[...apSongs];
+
+  historyCard.style.display=history.length?'block':'none';
+  historyList.innerHTML=history.map((mp,i)=>{
+    const m=mp.musica||{};
+    return `<div class="ap-history-item">
+      <div class="ap-song-num">${i+1}</div>
+      <div>
+        <div class="ap-history-title">${esc(m.titulo||'—')}</div>
+        <div class="ap-history-meta">De outro dia${m.tom?` · Tom ${esc(m.tom)}`:''}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  if (!apVisibleSongs.length) {
     listEl.innerHTML = '<div style="padding:28px;text-align:center;color:var(--text3);font-style:italic;font-size:.84rem">Nenhuma música nesta playlist</div>';
     return;
   }
-  listEl.innerHTML = apSongs.map((mp, i) => {
+  listEl.innerHTML = apVisibleSongs.map((mp, i) => {
     const m = mp.musica || {};
     const isProx = apProximaGlobal?.id===mp.id;
-    const stale=mp.adicionado_em&&mp.adicionado_em!==getLocalDateKey();
-    return `<div class="ap-song-item ${isProx?'ap-proxima':''} ${stale?'stale-song':''}"
+    return `<div class="ap-song-item ${isProx?'ap-proxima':''}"
       draggable="true"
       ondragstart="apDragStart(event,${mp.id})"
       ondragend="apDragEnd(event)"
@@ -1920,11 +1980,10 @@ function apRenderSongList() {
         <div class="ap-song-title">${esc(m.titulo||'—')}</div>
         <div class="ap-song-sub">${m.autor?esc(m.autor):''}${m.tom?` · Tom ${esc(m.tom)}`:''}</div>
         ${isProx?'<div class="ap-song-state next">⭐ PRÓXIMA</div>':''}
-        ${stale?'<div class="ap-song-state">De outro dia</div>':''}
       </div>
       <div class="ap-song-move" onclick="event.stopPropagation()">
         <button class="ap-move-btn" title="Mover para cima" ${i===0?'disabled':''} onclick="apMoveSong(${i},-1)">▲</button>
-        <button class="ap-move-btn" title="Mover para baixo" ${i===apSongs.length-1?'disabled':''} onclick="apMoveSong(${i},1)">▼</button>
+        <button class="ap-move-btn" title="Mover para baixo" ${i===apVisibleSongs.length-1?'disabled':''} onclick="apMoveSong(${i},1)">▼</button>
       </div>
     </div>`;
   }).join('');
@@ -1956,21 +2015,49 @@ function apDropSong(event,targetId){
   const sourceId=apDraggedId||Number(event.dataTransfer.getData('text/plain'));
   apDraggedId=null;
   if(!sourceId||sourceId===targetId)return;
-  const from=apSongs.findIndex(mp=>mp.id===sourceId);
-  const to=apSongs.findIndex(mp=>mp.id===targetId);
+  const from=apVisibleSongs.findIndex(mp=>mp.id===sourceId);
+  const to=apVisibleSongs.findIndex(mp=>mp.id===targetId);
   if(from<0||to<0)return;
-  const reordered=[...apSongs];
-  const [moved]=reordered.splice(from,1);
-  reordered.splice(to,0,moved);
+  const visibleReordered=[...apVisibleSongs];
+  const [moved]=visibleReordered.splice(from,1);
+  visibleReordered.splice(to,0,moved);
+  let visibleIndex=0;
+  const visibleIds=new Set(apVisibleSongs.map(mp=>mp.id));
+  const reordered=apSongs.map(mp=>visibleIds.has(mp.id)?visibleReordered[visibleIndex++]:mp);
   apPersistOrder(reordered);
 }
 
 function apMoveSong(index,delta){
   const target=index+delta;
-  if(target<0||target>=apSongs.length)return;
+  if(target<0||target>=apVisibleSongs.length)return;
   const reordered=[...apSongs];
-  [reordered[index],reordered[target]]=[reordered[target],reordered[index]];
+  const sourceIndex=reordered.findIndex(mp=>mp.id===apVisibleSongs[index].id);
+  const targetIndex=reordered.findIndex(mp=>mp.id===apVisibleSongs[target].id);
+  if(sourceIndex<0||targetIndex<0)return;
+  [reordered[sourceIndex],reordered[targetIndex]]=[reordered[targetIndex],reordered[sourceIndex]];
   apPersistOrder(reordered);
+}
+
+function clearTodayHistory(){
+  const sel=document.getElementById('apPlaylistSel');
+  const playlistId=parseInt(sel.value);
+  const selectedOption=sel.options[sel.selectedIndex];
+  if(!playlistId||selectedOption?.dataset.title!=='Hoje')return;
+  openConfirm(
+    'Limpar as músicas de outro dia? As músicas adicionadas hoje continuarão na playlist.',
+    async()=>{
+      try{
+        if(DEMO){
+          const today=getLocalDateKey();
+          DDATA.mp[playlistId]=(DDATA.mp[playlistId]||[]).filter(mp=>mp.adicionado_em===today);
+        }else{
+          await dbClearOldTodaySongs(playlistId);
+        }
+        await apLoadSongs();
+        toast('Músicas de outro dia removidas','success');
+      }catch(e){toast('Erro ao limpar playlist: '+e.message,'error');}
+    }
+  );
 }
 
 async function apPersistOrder(items){
@@ -2005,6 +2092,8 @@ function apUpdateProximaBox() {
   const nextActions=document.getElementById('apNextActions');
   const prox     = apProximaGlobal;
   if (!prox) {
+    box.classList.remove('has-next');
+    apLastAlertedProximaId=null;
     box.style.display = 'flex';
     titleEl.textContent = 'Aguardando indicação do líder';
     metaEl.textContent = '';
@@ -2013,6 +2102,12 @@ function apUpdateProximaBox() {
     return;
   }
   const m = prox.musica || {};
+  if(apLastAlertedProximaId!==prox.id){
+    box.classList.remove('has-next');
+    void box.offsetWidth;
+    box.classList.add('has-next');
+    apLastAlertedProximaId=prox.id;
+  }
   apProximaId = prox.id;
   titleEl.textContent = m.titulo || '—';
   metaEl.textContent  = [m.autor, m.tom ? `Tom ${m.tom}` : ''].filter(Boolean).join(' · ');
