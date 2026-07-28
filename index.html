@@ -83,6 +83,11 @@
     .btn-teal:hover{background:var(--teal);color:#fff}
     .btn-sm{padding:5px 11px;font-size:.78rem}
     .btn-icon{padding:7px;border-radius:8px}
+    .standard-edit-icon svg,.standard-delete-icon svg{width:17px;height:17px;display:block}
+    .standard-edit-icon{color:#a9c4f3!important}
+    .standard-delete-icon{color:#ff5362!important;background:rgba(239,68,68,.035)!important;border-color:rgba(239,68,68,.38)!important}
+    .standard-edit-icon:hover{background:rgba(99,102,241,.16)!important;border-color:#596fb1!important;color:#c5d5ff!important}
+    .standard-delete-icon:hover{background:rgba(239,68,68,.12)!important;border-color:#b43d4a!important;color:#ff6975!important}
 
     /* ===== SEARCH ===== */
     .search-row{display:flex;gap:10px;margin-bottom:14px;align-items:center}
@@ -201,18 +206,53 @@
     .page-btn:disabled{opacity:.35;cursor:not-allowed}
 
     /* ===== PLAYLIST GRID ===== */
-    .playlist-grid{display:grid;grid-template-columns:1fr;gap:13px}
-    @media(min-width:480px){.playlist-grid{grid-template-columns:repeat(2,1fr)}}
-    @media(min-width:900px){.playlist-grid{grid-template-columns:repeat(3,1fr)}}
-    .playlist-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:17px;transition:var(--transition);cursor:pointer;position:relative;overflow:hidden}
-    .playlist-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--pink))}
-    .playlist-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:var(--shadow)}
-    .playlist-card:active{transform:scale(.98)}
-    .playlist-card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:11px}
-    .playlist-icon{width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--pink));display:flex;align-items:center;justify-content:center;font-size:1.2rem}
-    .playlist-card-actions{display:flex;gap:4px}
-    .playlist-card h3{font-size:.95rem;font-weight:700;margin-bottom:6px}
-    .playlist-card-meta{display:flex;align-items:center;gap:8px;font-size:.78rem;color:var(--text3)}
+    #playlistListView .panel-header{margin-bottom:22px}
+    #playlistListView .panel-title{font-size:1.65rem;letter-spacing:-.6px}
+    .playlist-list-subtitle{font-size:.9rem;color:var(--text3);margin-top:4px}
+    .playlist-add-btn{padding:11px 19px;box-shadow:0 8px 24px rgba(124,58,237,.18)}
+    .playlist-search{margin-bottom:18px;max-width:680px}
+    .playlist-search .search-input{height:48px;background:rgba(23,42,67,.7);border-color:rgba(102,153,217,.22);border-radius:12px;padding-left:46px;font-size:.92rem}
+    .playlist-search.search-wrap svg{left:16px;width:18px;height:18px}
+    .playlist-grid{display:grid;grid-template-columns:1fr;gap:12px}
+    .playlist-card{min-width:0;background:linear-gradient(105deg,#13253b 0%,#101f34 100%);border:1px solid #29415f;border-radius:15px;padding:15px 17px;display:grid;grid-template-columns:56px minmax(0,1fr) auto 18px;align-items:center;gap:16px;transition:var(--transition);cursor:pointer}
+    .playlist-card:hover{border-color:#405f88;transform:translateY(-1px);box-shadow:0 10px 30px rgba(0,0,0,.14)}
+    .playlist-card:active{transform:scale(.99)}
+    .playlist-icon{width:56px;height:56px;border-radius:13px;background:linear-gradient(145deg,#465fa4,#263b68);border:1px solid rgba(132,121,255,.34);display:flex;align-items:center;justify-content:center;color:#8b5cf6;box-shadow:inset 0 0 18px rgba(139,92,246,.12)}
+    .playlist-icon svg{width:31px;height:31px;filter:drop-shadow(0 3px 5px rgba(91,33,182,.35))}
+    .playlist-card-content{min-width:0}
+    .playlist-card h3{font-size:1rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:6px;color:#f1f5fb}
+    .playlist-card-meta{display:flex;align-items:flex-start;flex-direction:column;gap:5px;font-size:.76rem;color:var(--text3)}
+    .playlist-card-count{color:#9cb2d2;font-size:.78rem}
+    .playlist-card .badge-pub{background:rgba(6,182,176,.13);color:#55d8d2;border-color:rgba(20,184,166,.38)}
+    .playlist-card .badge-priv{background:rgba(122,148,181,.1);color:#9cb2d2;border-color:#354d6b}
+    .playlist-card-actions{display:flex;align-items:center;gap:8px}
+    .playlist-card-action{width:38px;height:38px;padding:0;justify-content:center;border-radius:10px;background:rgba(17,34,55,.8);border:1px solid #2b4363}
+    .playlist-card-action svg{width:17px;height:17px}
+    .playlist-card-arrow{display:flex;align-items:center;color:#9db7e7;opacity:.9}
+    .playlist-card-arrow svg{width:18px;height:18px}
+    .playlist-auto-badge{font-size:.7rem;white-space:nowrap}
+    @media(max-width:639px){
+      #playlistListView .panel-header{margin-bottom:15px;align-items:flex-start}
+      #playlistListView .panel-title{font-size:1.35rem}
+      .playlist-list-subtitle{font-size:.78rem}
+      .playlist-add-btn{padding:9px 13px}
+      .playlist-search{margin-bottom:14px}
+      .playlist-search .search-input{height:46px}
+      .playlist-card{grid-template-columns:44px minmax(0,1fr) auto 12px;gap:10px;padding:13px 12px;border-radius:13px}
+      .playlist-icon{width:44px;height:44px;border-radius:11px}
+      .playlist-icon svg{width:25px;height:25px}
+      .playlist-card h3{font-size:.9rem;margin-bottom:5px}
+      .playlist-card-actions{gap:5px}
+      .playlist-card-action{width:34px;height:34px;border-radius:9px}
+      .playlist-card-arrow{font-size:1.1rem}
+    }
+    @media(max-width:390px){
+      .playlist-add-label{display:none}
+      .playlist-add-btn{width:42px;height:40px;padding:0;justify-content:center}
+      .playlist-card{grid-template-columns:40px minmax(0,1fr) auto 10px;gap:8px;padding:12px 9px}
+      .playlist-icon{width:40px;height:40px}
+      .playlist-card-action{width:31px;height:32px}
+    }
 
     /* ===== MODAL ===== */
     .modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:none;align-items:flex-end;justify-content:center;padding:0}
@@ -615,13 +655,17 @@
     <div id="playlistListView">
       <div class="panel-header">
         <div>
-          <div class="panel-title">Painel de <span>Playlists</span></div>
-          <div style="font-size:.79rem;color:var(--text3);margin-top:2px">Organize por evento</div>
+          <div class="panel-title">Playlists</div>
+          <div class="playlist-list-subtitle">Organize por evento</div>
         </div>
-        <button class="btn btn-primary" onclick="openPlaylistModal()">
+        <button class="btn btn-primary playlist-add-btn" onclick="openPlaylistModal()">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
-          Nova Playlist
+          <span class="playlist-add-label">Nova playlist</span>
         </button>
+      </div>
+      <div class="search-wrap playlist-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input class="search-input" type="search" id="playlistSearch" placeholder="Buscar playlists..." autocomplete="off" />
       </div>
       <div class="playlist-grid" id="playlistGrid">
         <div style="text-align:center;padding:48px;color:var(--text3);grid-column:1/-1"><div class="spinner" style="margin:auto auto 12px"></div></div>
@@ -868,9 +912,12 @@ let letraSwipeStartY = 0;
 let letraSwipeActive = false;
 let addToPlaylistMusicId = null;
 let availablePlaylistsForSong = [];
+let playlistItems = [];
 let homeStatsUpdatedAt = null;
 let demoMusicUpdatedAt = null;
 let homeRealtimeCh = null;
+const ICON_EDIT='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m4 16.8-.8 4 4-.8L18.7 8.5l-3.2-3.2L4 16.8Zm16.7-11.1a1 1 0 0 0 0-1.4l-1-1a1 1 0 0 0-1.4 0l-1.5 1.5L20 8l.7-.7Z"/></svg>';
+const ICON_DELETE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7h14M9 7V4.5h6V7M7.5 7l.7 12h7.6l.7-12M10.5 10.5v5M13.5 10.5v5"/></svg>';
 
 function startDetailRefresh() {
   stopDetailRefresh();
@@ -986,8 +1033,17 @@ async function dbDeleteMusica(id) {
   if (error) throw error;
 }
 async function dbListPlaylists() {
-  const {data,error} = await sb.from('playlist').select('*').order('created_at');
-  if (error) throw error; return data;
+  const [playlistResult,musicResult]=await Promise.all([
+    sb.from('playlist').select('*').order('created_at'),
+    sb.from('musica_playlist').select('playlist_id')
+  ]);
+  if(playlistResult.error)throw playlistResult.error;
+  if(musicResult.error)throw musicResult.error;
+  const counts=(musicResult.data||[]).reduce((map,item)=>{
+    map[item.playlist_id]=(map[item.playlist_id]||0)+1;
+    return map;
+  },{});
+  return (playlistResult.data||[]).map(p=>({...p,musicas_count:counts[p.id]||0}));
 }
 async function dbGetHomeStats() {
   const [musicResult,topResult,lastUpdateResult]=await Promise.all([
@@ -1272,7 +1328,11 @@ function switchPanel(name) {
     setMusicaTomFilter('',false);
     loadMusicas();
   }
-  if(name==='playlists'){showPlaylistList();loadPlaylists();}
+  if(name==='playlists'){
+    showPlaylistList(false);
+    document.getElementById('playlistSearch').value='';
+    loadPlaylists();
+  }
   if(name==='apresentacao') apLoadPlaylists();
   if(name==='home') loadHomeStats();
 }
@@ -1404,8 +1464,8 @@ function renderMusicas(data,append=false){
       <td>${m.tom?`<span class="tom-badge">${esc(m.tom)}</span>`:'<span style="color:var(--text3)">—</span>'}</td>
       <td><div class="td-actions">
         <button class="btn btn-ghost btn-sm btn-icon music-action music-action-next" title="Definir como próxima música" onclick="markMusicaComoProxima(${m.id})">⭐</button>
-        <button class="btn btn-ghost btn-sm btn-icon music-action music-action-edit" title="Editar" onclick="editMusica(${m.id})">✏️</button>
-        <button class="btn btn-danger btn-sm btn-icon music-action music-action-delete" title="Excluir" onclick="deleteMusica(${m.id},'${esc(m.titulo)}')">🗑️</button>
+        <button class="btn btn-ghost btn-sm btn-icon music-action music-action-edit standard-edit-icon" title="Editar" onclick="editMusica(${m.id})">${ICON_EDIT}</button>
+        <button class="btn btn-danger btn-sm btn-icon music-action music-action-delete standard-delete-icon" title="Excluir" onclick="deleteMusica(${m.id},'${esc(m.titulo)}')">${ICON_DELETE}</button>
       </div></td>
     </tr>`).join('');
 
@@ -1425,8 +1485,8 @@ function renderMusicas(data,append=false){
       <div class="song-card-actions">
         ${m.tom?`<span class="tom-badge song-card-tone">${esc(m.tom)}</span>`:''}
         <button class="btn btn-ghost btn-sm btn-icon music-action music-action-next" title="Definir como próxima música" onclick="markMusicaComoProxima(${m.id})">⭐</button>
-        <button class="btn btn-ghost btn-sm btn-icon music-action music-action-edit" title="Editar" onclick="editMusica(${m.id})">✏️</button>
-        <button class="btn btn-danger btn-sm btn-icon music-action music-action-delete" title="Excluir" onclick="deleteMusica(${m.id},'${esc(m.titulo)}')">🗑️</button>
+        <button class="btn btn-ghost btn-sm btn-icon music-action music-action-edit standard-edit-icon" title="Editar" onclick="editMusica(${m.id})">${ICON_EDIT}</button>
+        <button class="btn btn-danger btn-sm btn-icon music-action music-action-delete standard-delete-icon" title="Excluir" onclick="deleteMusica(${m.id},'${esc(m.titulo)}')">${ICON_DELETE}</button>
       </div>
     </div>`).join('');
 
@@ -1771,26 +1831,58 @@ function letraSwipeCancel(){
 async function loadPlaylists() {
   document.getElementById('playlistGrid').innerHTML='<div style="text-align:center;padding:48px;color:var(--text3);grid-column:1/-1"><div class="spinner" style="margin:auto auto 12px"></div></div>';
   let items;
-  if(DEMO){await delay(220);getOrCreateDemoHojePlaylist();items=DDATA.playlists;}
+  if(DEMO){
+    await delay(220);
+    getOrCreateDemoHojePlaylist();
+    items=DDATA.playlists.map(p=>({...p,musicas_count:(DDATA.mp[p.id]||[]).length}));
+  }
   else{try{await dbGetOrCreateHojePlaylist();items=await dbListPlaylists();}catch(e){document.getElementById('playlistGrid').innerHTML='<div style="text-align:center;padding:48px;color:var(--text3);grid-column:1/-1">Erro ao carregar.</div>';return;}}
-  if(!items||!items.length){
+  playlistItems=items||[];
+  renderPlaylistCards();
+}
+
+function renderPlaylistCards(){
+  const term=(document.getElementById('playlistSearch')?.value||'').trim().toLocaleLowerCase('pt-BR');
+  const items=playlistItems.filter(p=>!term||p.title.toLocaleLowerCase('pt-BR').includes(term));
+  if(!items.length){
     document.getElementById('playlistGrid').innerHTML='<div style="text-align:center;padding:48px;color:var(--text3);grid-column:1/-1;font-style:italic">Nenhuma playlist. Crie a primeira!</div>';return;
   }
   document.getElementById('playlistGrid').innerHTML=items.map(p=>`
-    <div class="playlist-card" onclick="openPlaylistDetail(${p.id},'${esc(p.title)}',${p.publico})">
-      <div class="playlist-card-top">
-        <div class="playlist-icon">🎶</div>
-        <div class="playlist-card-actions" onclick="event.stopPropagation()">
-          ${p.title==='Hoje'
-            ?'<span class="badge badge-pub">Automática</span>'
-            :`<button class="btn btn-ghost btn-sm btn-icon" onclick="editPlaylist(${p.id})">✏️</button>
-             <button class="btn btn-danger btn-sm btn-icon" onclick="deletePlaylist(${p.id},'${esc(p.title)}')">🗑️</button>`}
+    <div class="playlist-card" onclick="openPlaylistFromList(${p.id})">
+      <div class="playlist-icon" aria-hidden="true">
+        <svg viewBox="0 0 48 48" fill="none">
+          <path d="M20 9v23.2a6.8 6.8 0 1 1-4-6.2V13l23-5v19.2a6.8 6.8 0 1 1-4-6.2V4L20 9Z" fill="currentColor"/>
+          <path d="M25 15.2 35 13v4.3l-10 2.2v-4.3Z" fill="#b79cff"/>
+        </svg>
+      </div>
+      <div class="playlist-card-content">
+        <h3 title="${esc(p.title)}">${esc(p.title)}</h3>
+        <div class="playlist-card-meta">
+          <span class="badge ${p.publico?'badge-pub':'badge-priv'}">${p.publico?'◎ Pública':'▣ Privada'}</span>
+          <span class="playlist-card-count">${p.musicas_count||0} ${(p.musicas_count||0)===1?'música':'músicas'}</span>
         </div>
       </div>
-      <h3>${esc(p.title)}</h3>
-      <div class="playlist-card-meta"><span class="badge ${p.publico?'badge-pub':'badge-priv'}">${p.publico?'🌐 Pública':'🔒 Privada'}</span></div>
+      <div class="playlist-card-actions" onclick="event.stopPropagation()">
+        ${p.title==='Hoje'
+          ?'<span class="badge badge-pub playlist-auto-badge">Automática</span>'
+          :`<button class="btn btn-ghost btn-sm btn-icon playlist-card-action standard-edit-icon" title="Editar" onclick="editPlaylist(${p.id})" aria-label="Editar playlist">${ICON_EDIT}</button>
+             <button class="btn btn-danger btn-sm btn-icon playlist-card-action standard-delete-icon" title="Excluir" onclick="deletePlaylistFromList(${p.id})" aria-label="Excluir playlist">${ICON_DELETE}</button>`}
+      </div>
+      <span class="playlist-card-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 5 7 7-7 7"/></svg></span>
     </div>`).join('');
 }
+
+function openPlaylistFromList(id){
+  const p=playlistItems.find(item=>item.id===id);
+  if(p)openPlaylistDetail(p.id,p.title,p.publico);
+}
+
+function deletePlaylistFromList(id){
+  const p=playlistItems.find(item=>item.id===id);
+  if(p)deletePlaylist(p.id,p.title);
+}
+
+document.getElementById('playlistSearch').addEventListener('input',renderPlaylistCards);
 
 function openPlaylistModal(id=null){
   document.getElementById('playlistId').value=id||'';
@@ -1883,7 +1975,7 @@ function renderPlaylistDetail(items){
         ${proxima
           ? `<button class="btn btn-teal btn-sm" title="Remover próxima" onclick="clearProxima()">✕⭐</button>`
           : `<button class="btn btn-ghost btn-sm" title="Definir como próxima" onclick="setProxima(${mp.id})">⭐</button>`}
-        <button class="btn btn-danger btn-sm btn-icon" onclick="removeFromPL(${mp.id},'${esc(m.titulo||'')}')">🗑️</button>
+        <button class="btn btn-danger btn-sm btn-icon standard-delete-icon" title="Remover da playlist" onclick="removeFromPL(${mp.id},'${esc(m.titulo||'')}')">${ICON_DELETE}</button>
       </div></td>
     </tr>`;
   }).join('');
@@ -1950,7 +2042,7 @@ function removeFromPL(mpId,titulo){
   });
 }
 
-function showPlaylistList(){
+function showPlaylistList(refresh=true){
   stopDetailRefresh();
   currentPL=null;
   currentPLItems=[];
@@ -1958,6 +2050,7 @@ function showPlaylistList(){
   document.getElementById('playlistListView').style.display='block';
   // Restaura o botão voltar do header ao retornar para a lista
   document.getElementById('headerBackBtn').style.display='flex';
+  if(refresh)loadPlaylists();
 }
 
 /* =====================================================================
