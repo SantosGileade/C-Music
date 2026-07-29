@@ -138,8 +138,10 @@
     #panel-musicas #musicaTomFilter{height:48px;background:rgba(23,42,67,.7);border-color:var(--music-border);border-radius:12px}
     #panel-musicas .search-input{padding-left:46px;font-size:.92rem}
     #panel-musicas #musicaTomFilter{min-width:112px!important;width:112px!important;padding:0 16px;display:flex;align-items:center;justify-content:center;color:var(--text);font-size:.9rem;cursor:pointer;white-space:nowrap}
-    #panel-musicas #musicaTomFilter.filtered{border-color:var(--accent);color:var(--accent3);background:rgba(102,153,217,.12)}
-    #panel-musicas #musicaTomFilter.filtered::after{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent2);margin-left:8px;box-shadow:0 0 8px rgba(122,170,222,.7)}
+    .tone-filter-button{display:flex;align-items:center;justify-content:center;white-space:nowrap;cursor:pointer}
+    .tone-filter-button.filtered{border-color:var(--accent)!important;color:var(--accent3)!important;background:rgba(102,153,217,.12)!important}
+    .tone-filter-button.filtered::after{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent2);margin-left:8px;box-shadow:0 0 8px rgba(122,170,222,.7)}
+    .playlist-tone-filter{width:92px!important;height:36px;padding:0 12px!important;font-size:.8rem!important;flex-shrink:0}
     #panel-musicas .table-wrap,
     #panel-musicas .card-list-wrap{background:linear-gradient(145deg,rgba(31,55,86,.88),rgba(22,42,67,.9));border-color:var(--music-border);box-shadow:0 14px 35px rgba(0,0,0,.1)}
     #panel-musicas thead{display:none}
@@ -580,7 +582,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         <input class="search-input" type="search" id="musicaSearch" placeholder="Buscar por título, artista..." autocomplete="off" />
       </div>
-      <button class="form-input" id="musicaTomFilter" type="button" value="" onclick="openToneFilterModal()">
+      <button class="form-input tone-filter-button" id="musicaTomFilter" type="button" value="" onclick="openToneFilterModal('musicas')">
         <span id="musicaTomFilterLabel">Tom</span>
       </button>
     </div>
@@ -680,14 +682,9 @@
         </div>
         <div class="detail-header-actions">
           <button class="btn btn-danger btn-sm" id="clearTodayPlaylistBtn" onclick="clearTodayPlaylist()" style="display:none">Limpar playlist</button>
-          <select class="form-input" id="plTomFilter" style="width:auto;min-width:90px;padding:5px 28px 5px 9px;font-size:.8rem;flex-shrink:0" onchange="applyPlaylistFilter()">
-            <option value="">— Tom —</option>
-            <option value="C">C</option><option value="C#">C#</option><option value="D">D</option><option value="D#">D#</option>
-            <option value="E">E</option><option value="F">F</option><option value="F#">F#</option><option value="G">G</option>
-            <option value="G#">G#</option><option value="A">A</option><option value="A#">A#</option><option value="B">B</option>
-            <option value="Cm">Cm</option><option value="Dm">Dm</option><option value="Em">Em</option><option value="Fm">Fm</option>
-            <option value="Gm">Gm</option><option value="Am">Am</option><option value="Bm">Bm</option>
-          </select>
+          <button class="form-input tone-filter-button playlist-tone-filter" id="plTomFilter" type="button" value="" onclick="openToneFilterModal('playlist')">
+            <span id="plTomFilterLabel">Tom</span>
+          </button>
           <button class="btn btn-teal btn-sm" onclick="openAddSongModal()">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
             Adicionar
@@ -910,6 +907,11 @@ let suppressSongClick = false;
 let letraSwipeStartX = 0;
 let letraSwipeStartY = 0;
 let letraSwipeActive = false;
+let appSwipeStartX = 0;
+let appSwipeStartY = 0;
+let appSwipeActive = false;
+let appSwipeAxis = null;
+let appSwipePanel = null;
 let addToPlaylistMusicId = null;
 let availablePlaylistsForSong = [];
 let playlistItems = [];
@@ -1353,13 +1355,81 @@ document.querySelectorAll('.modal-overlay').forEach(o=>{
   });
 });
 
-const MUSIC_TONES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B','Cm','Dm','Em','Fm','Gm','Am','Bm'];
+document.addEventListener('touchstart',appBackSwipeStart,{passive:true});
+document.addEventListener('touchmove',appBackSwipeMove,{passive:false});
+document.addEventListener('touchend',appBackSwipeEnd,{passive:false});
+document.addEventListener('touchcancel',appBackSwipeCancel,{passive:true});
 
-function openToneFilterModal(){
-  const current=document.getElementById('musicaTomFilter').value||'';
+function appBackSwipeStart(event){
+  const touch=event.touches[0];
+  const letraOpen=document.getElementById('letraScreen').classList.contains('open');
+  const modalOpen=document.querySelector('.modal-overlay.open');
+  appSwipePanel=document.querySelector('.panel.active');
+  appSwipeActive=Boolean(
+    touch&&touch.clientX<=36&&!letraOpen&&!modalOpen&&appSwipePanel?.id!=='panel-home'
+  );
+  appSwipeAxis=null;
+  if(appSwipeActive){
+    appSwipeStartX=touch.clientX;
+    appSwipeStartY=touch.clientY;
+  }
+}
+
+function appBackSwipeMove(event){
+  if(!appSwipeActive||!appSwipePanel)return;
+  const touch=event.touches[0];
+  const dx=touch.clientX-appSwipeStartX;
+  const dy=touch.clientY-appSwipeStartY;
+  if(!appSwipeAxis){
+    if(Math.abs(dy)>10&&Math.abs(dy)>Math.abs(dx)){
+      appSwipeAxis='vertical';
+      return;
+    }
+    if(dx>12&&dx>Math.abs(dy)*1.35)appSwipeAxis='horizontal';
+  }
+  if(appSwipeAxis==='horizontal'&&dx>0){
+    event.preventDefault();
+    appSwipePanel.style.transition='none';
+    appSwipePanel.style.transform=`translateX(${Math.min(dx,window.innerWidth)}px)`;
+  }
+}
+
+function appBackSwipeEnd(event){
+  if(!appSwipeActive)return;
+  const touch=event.changedTouches[0];
+  const dx=touch.clientX-appSwipeStartX;
+  const dy=touch.clientY-appSwipeStartY;
+  const shouldGoBack=appSwipeAxis==='horizontal'&&dx>=75&&dx>Math.abs(dy)*1.5;
+  const panel=appSwipePanel;
+  appBackSwipeCancel();
+  if(!shouldGoBack)return;
+  event.preventDefault();
+  const playlistDetailOpen=panel?.id==='panel-playlists'&&
+    document.getElementById('playlistDetailView').style.display!=='none';
+  if(playlistDetailOpen)showPlaylistList();
+  else switchPanel('home');
+}
+
+function appBackSwipeCancel(){
+  if(appSwipePanel){
+    appSwipePanel.style.transition='';
+    appSwipePanel.style.transform='';
+  }
+  appSwipeActive=false;
+  appSwipeAxis=null;
+  appSwipePanel=null;
+}
+
+const MUSIC_TONES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B','Cm','Dm','Em','Fm','Gm','Am','Bm'];
+let toneFilterTarget='musicas';
+
+function openToneFilterModal(target='musicas'){
+  toneFilterTarget=target;
+  const filterId=target==='playlist'?'plTomFilter':'musicaTomFilter';
+  const current=document.getElementById(filterId).value||'';
   document.getElementById('toneFilterGrid').innerHTML=
-    `<button class="tone-option tone-all ${current===''?'selected':''}" onclick="setMusicaTomFilter('')">Todos</button>`+
-    MUSIC_TONES.map(t=>`<button class="tone-option ${current===t?'selected':''}" onclick="setMusicaTomFilter('${t}')">${t}</button>`).join('');
+    `<button class="tone-option tone-all ${current===''?'selected':''}" onclick="setToneFilter('')">Todos</button>`+
+    MUSIC_TONES.map(t=>`<button class="tone-option ${current===t?'selected':''}" onclick="setToneFilter('${t}')">${t}</button>`).join('');
   document.getElementById('toneFilterModal').classList.add('open');
 }
 
@@ -1378,6 +1448,21 @@ function setMusicaTomFilter(tom,reload=true){
     musicaPage=0;
     loadMusicas();
   }
+}
+
+function setPlaylistTomFilter(tom,reload=true){
+  const filter=document.getElementById('plTomFilter');
+  filter.value=tom;
+  filter.classList.toggle('filtered',Boolean(tom));
+  filter.title=tom?`Filtro ativo: tom ${tom}`:'Filtrar por tom';
+  document.getElementById('plTomFilterLabel').textContent='Tom';
+  closeToneFilterModal();
+  if(reload)applyPlaylistFilter();
+}
+
+function setToneFilter(tom){
+  if(toneFilterTarget==='playlist')setPlaylistTomFilter(tom);
+  else setMusicaTomFilter(tom);
 }
 
 /* =====================================================================
@@ -1941,7 +2026,7 @@ async function openPlaylistDetail(id,title,publico){
   const isToday=title==='Hoje';
   document.getElementById('detailMeta').textContent=isToday?'📅 Repertório diário':(publico?'🌐 Pública':'🔒 Privada');
   document.getElementById('clearTodayPlaylistBtn').style.display=isToday?'inline-flex':'none';
-  document.getElementById('plTomFilter').value='';
+  setPlaylistTomFilter('',false);
   document.getElementById('playlistMusicaTbody').innerHTML='<tr class="loading-row"><td colspan="5"><div class="spinner" style="margin:auto"></div></td></tr>';
   let items;
   if(DEMO){await delay(200);items=DDATA.mp[id]||[];}
