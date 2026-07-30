@@ -143,6 +143,9 @@
     .tone-filter-button.filtered{border-color:var(--accent)!important;color:var(--accent3)!important;background:rgba(102,153,217,.12)!important}
     .tone-filter-button.filtered::after{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent2);margin-left:8px;box-shadow:0 0 8px rgba(122,170,222,.7)}
     .playlist-tone-filter{width:92px!important;height:36px;padding:0 12px!important;font-size:.8rem!important;flex-shrink:0}
+    .editor-tone-button{width:100%;min-height:42px;padding:10px 13px;justify-content:space-between;color:var(--text)}
+    .editor-tone-button .tone-field-placeholder{color:var(--text3)}
+    .editor-tone-button svg{width:14px;height:14px;color:var(--text3);flex-shrink:0}
     #panel-musicas .table-wrap,
     #panel-musicas .card-list-wrap{background:linear-gradient(145deg,rgba(31,55,86,.88),rgba(22,42,67,.9));border-color:var(--music-border);box-shadow:0 14px 35px rgba(0,0,0,.1)}
     #panel-musicas thead{display:none}
@@ -287,6 +290,80 @@
     .form-check{display:flex;align-items:center;gap:10px;margin-bottom:13px}
     .form-check input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0}
     .form-check label{font-size:.88rem;color:var(--text2);cursor:pointer}
+
+    /* ===== MODAL DE MÚSICA ===== */
+    #musicaModal .modal{max-width:760px;background:linear-gradient(145deg,#13243a,#0d1d30);border-color:#35516f;border-radius:18px;overflow:hidden;padding-bottom:0}
+    #musicaModal .modal::before{background:#405a7a}
+    #musicaModal .modal-header{padding:22px 28px 20px;margin:0;border-bottom:1px solid rgba(102,153,217,.14)}
+    .music-modal-heading{display:flex;align-items:center;gap:15px;min-width:0}
+    .music-modal-icon{width:52px;height:52px;border-radius:13px;background:linear-gradient(145deg,#263a69,#172a4d);display:flex;align-items:center;justify-content:center;color:#906bff;flex-shrink:0}
+    .music-modal-icon svg{width:27px;height:27px}
+    #musicaModalTitle{font-size:1.3rem}
+    .music-modal-subtitle{font-size:.82rem;color:#8fa6c7;margin-top:4px}
+    #musicaModal .modal-body{padding:22px 28px 26px}
+    #musicaModal .form-row{gap:18px}
+    #musicaModal .form-group{margin-bottom:18px}
+    #musicaModal .form-label{font-size:.74rem;color:#b7c9e3;margin-bottom:7px}
+    #musicaModal .form-input{min-height:50px;background:rgba(7,21,36,.66);border-color:#304b69;border-radius:11px;color:var(--text)}
+    #musicaModal .form-input:focus{border-color:#7367ef;box-shadow:0 0 0 3px rgba(124,99,232,.13)}
+    .music-input-wrap{position:relative}
+    .music-input-wrap>.music-field-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:19px;height:19px;color:#829bc0;pointer-events:none;z-index:1}
+    .music-input-wrap>input{padding-left:45px}
+    .music-input-wrap.textarea-wrap>.music-field-icon{top:17px;transform:none;color:#8b6cff}
+    #musicaModal #musicaLetra{min-height:190px;padding:15px 15px 15px 45px;line-height:1.6}
+    #musicaModal .editor-tone-button{min-height:50px;background:rgba(7,21,36,.66)}
+    #musicaModal .modal-footer{padding:18px 28px 22px;border-top:1px solid rgba(102,153,217,.14)}
+    #musicaModal .modal-footer .btn{min-height:44px;padding:10px 22px}
+    #musicaModal #musicaSaveBtn{min-width:155px;justify-content:center}
+    @media(max-width:599px){
+      #musicaModal .modal{border-radius:16px 16px 0 0}
+      #musicaModal .modal-header{padding:16px 17px 15px}
+      .music-modal-icon{width:42px;height:42px}
+      #musicaModalTitle{font-size:1.08rem}
+      .music-modal-subtitle{font-size:.73rem}
+      #musicaModal .modal-body{padding:17px}
+      #musicaModal .form-row{grid-template-columns:1fr;gap:0}
+      #musicaModal .form-group{margin-bottom:14px}
+      #musicaModal #musicaLetra{min-height:150px}
+      #musicaModal .modal-footer{padding:14px 17px calc(14px + var(--safe-bot))}
+    }
+
+    /* ===== MODAL DE PLAYLIST ===== */
+    #playlistModal .modal{max-width:650px;background:linear-gradient(145deg,#13243a,#0d1d30);border-color:#35516f;border-radius:18px;overflow:hidden;padding-bottom:0}
+    #playlistModal .modal::before{background:#405a7a}
+    #playlistModal .modal-header{padding:22px 28px 20px;margin:0;border-bottom:1px solid rgba(102,153,217,.14)}
+    .playlist-modal-heading{display:flex;align-items:center;gap:15px;min-width:0}
+    .playlist-modal-icon{width:52px;height:52px;border-radius:13px;background:linear-gradient(145deg,#263a69,#172a4d);display:flex;align-items:center;justify-content:center;color:#906bff;flex-shrink:0}
+    .playlist-modal-icon svg{width:28px;height:28px}
+    #playlistModalTitle{font-size:1.3rem}
+    .playlist-modal-subtitle{font-size:.82rem;color:#8fa6c7;margin-top:4px}
+    #playlistModal .modal-body{padding:24px 28px 26px}
+    #playlistModal .form-label{font-size:.74rem;color:#b7c9e3;margin-bottom:7px}
+    #playlistModal .form-input{min-height:50px;background:rgba(7,21,36,.66);border-color:#304b69;border-radius:11px;color:var(--text)}
+    #playlistModal .form-input:focus{border-color:#7367ef;box-shadow:0 0 0 3px rgba(124,99,232,.13)}
+    .playlist-public-setting{display:flex;align-items:center;gap:12px;margin-top:18px;padding:14px;border-radius:12px;background:rgba(7,21,36,.44);border:1px solid rgba(102,153,217,.16);cursor:pointer}
+    .playlist-public-setting input{position:absolute;opacity:0;pointer-events:none}
+    .playlist-public-icon{width:38px;height:38px;border-radius:10px;background:rgba(20,184,166,.1);color:#55d8d2;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .playlist-public-icon svg{width:20px;height:20px}
+    .playlist-public-copy{flex:1;min-width:0}
+    .playlist-public-title{display:block;font-size:.86rem;font-weight:700;color:var(--text)}
+    .playlist-public-desc{display:block;font-size:.72rem;color:var(--text3);margin-top:3px}
+    .playlist-switch{width:42px;height:24px;padding:3px;border-radius:99px;background:#263d58;border:1px solid #3d5878;transition:var(--transition);flex-shrink:0}
+    .playlist-switch::after{content:'';display:block;width:16px;height:16px;border-radius:50%;background:#91a7c5;transition:var(--transition)}
+    .playlist-public-setting input:checked~.playlist-switch{background:rgba(20,184,166,.35);border-color:#4dbbb2}
+    .playlist-public-setting input:checked~.playlist-switch::after{transform:translateX(18px);background:#62e0d5}
+    #playlistModal .modal-footer{padding:18px 28px 22px;border-top:1px solid rgba(102,153,217,.14)}
+    #playlistModal .modal-footer .btn{min-height:44px;padding:10px 22px}
+    #playlistModal #playlistSaveBtn{min-width:155px;justify-content:center}
+    @media(max-width:599px){
+      #playlistModal .modal{border-radius:16px 16px 0 0}
+      #playlistModal .modal-header{padding:16px 17px 15px}
+      .playlist-modal-icon{width:42px;height:42px}
+      #playlistModalTitle{font-size:1.08rem}
+      .playlist-modal-subtitle{font-size:.73rem}
+      #playlistModal .modal-body{padding:18px 17px 22px}
+      #playlistModal .modal-footer{padding:14px 17px calc(14px + var(--safe-bot))}
+    }
 
     /* ===== PLAYLIST DETAIL ===== */
     .playlist-detail-header{display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap}
@@ -744,42 +821,51 @@
 <!-- MODAL: MÚSICA -->
 <div class="modal-overlay" id="musicaModal">
   <div class="modal">
-    <div class="modal-header"><h2 id="musicaModalTitle">Nova Música</h2><button class="modal-close" onclick="closeMusicaModal()">✕</button></div>
+    <div class="modal-header">
+      <div class="music-modal-heading">
+        <span class="music-modal-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg>
+        </span>
+        <div><h2 id="musicaModalTitle">Nova Música</h2><div class="music-modal-subtitle" id="musicaModalSubtitle">Adicione os detalhes da música ao seu acervo.</div></div>
+      </div>
+      <button class="modal-close" onclick="closeMusicaModal()">✕</button>
+    </div>
     <div class="modal-body">
       <input type="hidden" id="musicaId" />
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">Título *</label>
-          <input class="form-input" id="musicaTitulo" type="text" placeholder="Ex: Oceans" autocomplete="off" />
+          <div class="music-input-wrap">
+            <svg class="music-field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l10-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="16" cy="16" r="3"/></svg>
+            <input class="form-input" id="musicaTitulo" type="text" placeholder="Ex: Oceans" autocomplete="off" />
+          </div>
         </div>
         <div class="form-group">
           <label class="form-label">Tom</label>
-          <select class="form-input" id="musicaTom">
-            <option value="">— Selecione —</option>
-            <option value="C">C (Dó)</option><option value="C#">C# (Dó#)</option>
-            <option value="D">D (Ré)</option><option value="D#">D# (Ré#)</option>
-            <option value="E">E (Mi)</option><option value="F">F (Fá)</option>
-            <option value="F#">F# (Fá#)</option><option value="G">G (Sol)</option>
-            <option value="G#">G# (Sol#)</option><option value="A">A (Lá)</option>
-            <option value="A#">A# (Lá#)</option><option value="B">B (Si)</option>
-            <option value="Cm">Cm</option><option value="Dm">Dm</option>
-            <option value="Em">Em</option><option value="Fm">Fm</option>
-            <option value="Gm">Gm</option><option value="Am">Am</option><option value="Bm">Bm</option>
-          </select>
+          <button class="form-input tone-filter-button editor-tone-button" id="musicaTom" type="button" value="" onclick="openToneFilterModal('editor')">
+            <span id="musicaTomLabel" class="tone-field-placeholder">Selecione o tom</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
         </div>
       </div>
       <div class="form-group">
         <label class="form-label">Autor</label>
-        <input class="form-input" id="musicaAutor" type="text" placeholder="Ex: Hillsong United" autocomplete="off" />
+        <div class="music-input-wrap">
+          <svg class="music-field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.5-4 3-6 7-6s6.5 2 7 6"/></svg>
+          <input class="form-input" id="musicaAutor" type="text" placeholder="Ex: Hillsong United" autocomplete="off" />
+        </div>
       </div>
       <div class="form-group">
         <label class="form-label">Letra</label>
-        <textarea class="form-input" id="musicaLetra" placeholder="Cole a letra da música..."></textarea>
+        <div class="music-input-wrap textarea-wrap">
+          <svg class="music-field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 6h14M5 12h14M5 18h9"/></svg>
+          <textarea class="form-input" id="musicaLetra" placeholder="Cole a letra da música aqui..."></textarea>
+        </div>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeMusicaModal()">Cancelar</button>
-      <button class="btn btn-primary" id="musicaSaveBtn" onclick="saveMusica()">Salvar</button>
+      <button class="btn btn-primary" id="musicaSaveBtn" onclick="saveMusica()">✓ Salvar música</button>
     </div>
   </div>
 </div>
@@ -787,7 +873,7 @@
 <!-- MODAL: FILTRO DE TOM -->
 <div class="modal-overlay" id="toneFilterModal">
   <div class="modal tone-modal">
-    <div class="modal-header"><h2>Filtrar por tom</h2><button class="modal-close" onclick="closeToneFilterModal()">✕</button></div>
+    <div class="modal-header"><h2 id="toneFilterModalTitle">Filtrar por tom</h2><button class="modal-close" onclick="closeToneFilterModal()">✕</button></div>
     <div class="modal-body">
       <div class="tone-grid" id="toneFilterGrid"></div>
     </div>
@@ -797,21 +883,34 @@
 <!-- MODAL: PLAYLIST -->
 <div class="modal-overlay" id="playlistModal">
   <div class="modal">
-    <div class="modal-header"><h2 id="playlistModalTitle">Nova Playlist</h2><button class="modal-close" onclick="closePlaylistModal()">✕</button></div>
+    <div class="modal-header">
+      <div class="playlist-modal-heading">
+        <span class="playlist-modal-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg>
+        </span>
+        <div><h2 id="playlistModalTitle">Nova Playlist</h2><div class="playlist-modal-subtitle" id="playlistModalSubtitle">Crie uma nova seleção para seus cultos e eventos.</div></div>
+      </div>
+      <button class="modal-close" onclick="closePlaylistModal()">✕</button>
+    </div>
     <div class="modal-body">
       <input type="hidden" id="playlistId" />
       <div class="form-group">
         <label class="form-label">Título *</label>
-        <input class="form-input" id="playlistTitle" type="text" placeholder="Ex: Culto Domingo Manhã" autocomplete="off" />
+        <div class="music-input-wrap">
+          <svg class="music-field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l10-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="16" cy="16" r="3"/></svg>
+          <input class="form-input" id="playlistTitle" type="text" placeholder="Ex: Culto Domingo Manhã" autocomplete="off" />
+        </div>
       </div>
-      <div class="form-check">
+      <label class="playlist-public-setting" for="playlistPublico">
         <input type="checkbox" id="playlistPublico" />
-        <label for="playlistPublico">🌐 Playlist Pública</label>
-      </div>
+        <span class="playlist-public-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18"/></svg></span>
+        <span class="playlist-public-copy"><span class="playlist-public-title">Playlist pública</span><span class="playlist-public-desc">Disponível para seleção e uso no repertório.</span></span>
+        <span class="playlist-switch" aria-hidden="true"></span>
+      </label>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closePlaylistModal()">Cancelar</button>
-      <button class="btn btn-primary" onclick="savePlaylist()">Salvar</button>
+      <button class="btn btn-primary" id="playlistSaveBtn" onclick="savePlaylist()">✓ Salvar playlist</button>
     </div>
   </div>
 </div>
@@ -957,7 +1056,7 @@ let appSwipeAxis = null;
 let appSwipePanel = null;
 let addToPlaylistMusicId = null;
 let availablePlaylistsForSong = [];
-let selectedPlaylistPickerId = null;
+let selectedPlaylistPickerIds = new Set();
 let playlistItems = [];
 let homeStatsUpdatedAt = null;
 let demoMusicUpdatedAt = null;
@@ -1480,10 +1579,12 @@ let toneFilterTarget='musicas';
 
 function openToneFilterModal(target='musicas'){
   toneFilterTarget=target;
-  const filterId=target==='playlist'?'plTomFilter':'musicaTomFilter';
+  const filterId=target==='playlist'?'plTomFilter':target==='editor'?'musicaTom':'musicaTomFilter';
   const current=document.getElementById(filterId).value||'';
+  document.getElementById('toneFilterModalTitle').textContent=target==='editor'?'Selecionar tom':'Filtrar por tom';
+  const emptyLabel=target==='editor'?'Sem tom':'Todos';
   document.getElementById('toneFilterGrid').innerHTML=
-    `<button class="tone-option tone-all ${current===''?'selected':''}" onclick="setToneFilter('')">Todos</button>`+
+    `<button class="tone-option tone-all ${current===''?'selected':''}" onclick="setToneFilter('')">${emptyLabel}</button>`+
     MUSIC_TONES.map(t=>`<button class="tone-option ${current===t?'selected':''}" onclick="setToneFilter('${t}')">${t}</button>`).join('');
   document.getElementById('toneFilterModal').classList.add('open');
 }
@@ -1517,7 +1618,18 @@ function setPlaylistTomFilter(tom,reload=true){
 
 function setToneFilter(tom){
   if(toneFilterTarget==='playlist')setPlaylistTomFilter(tom);
+  else if(toneFilterTarget==='editor')setEditorTom(tom);
   else setMusicaTomFilter(tom);
+}
+
+function setEditorTom(tom){
+  const field=document.getElementById('musicaTom');
+  const label=document.getElementById('musicaTomLabel');
+  field.value=tom;
+  field.classList.toggle('filtered',Boolean(tom));
+  label.textContent=tom?`Tom ${tom}`:'Selecione o tom';
+  label.classList.toggle('tone-field-placeholder',!tom);
+  closeToneFilterModal();
 }
 
 /* =====================================================================
@@ -1721,7 +1833,7 @@ function songSwipeCancel(){
 
 async function openAddToPlaylistModal(musicaId){
   addToPlaylistMusicId=musicaId;
-  selectedPlaylistPickerId=null;
+  selectedPlaylistPickerIds=new Set();
   const musica=cachedMusicas.find(m=>m.id===musicaId);
   document.getElementById('addToPlaylistSongName').innerHTML=musica?`<span class="song-picker-note">♪</span><b>${esc(musica.titulo)}</b>${musica.tom?`<span class="tom-badge">${esc(musica.tom)}</span>`:''}`:'';
   document.getElementById('playlistPickerSearch').value='';
@@ -1753,8 +1865,8 @@ function renderPlaylistPicker(filter=''){
     return;
   }
   document.getElementById('playlistPickerList').innerHTML=items.map(p=>`
-    <label class="playlist-picker-item ${selectedPlaylistPickerId===p.id?'selected':''}">
-      <input type="radio" name="playlistPick" value="${p.id}" ${selectedPlaylistPickerId===p.id?'checked':''} onchange="selectPlaylistForSong(${p.id})">
+    <label class="playlist-picker-item ${selectedPlaylistPickerIds.has(p.id)?'selected':''}">
+      <input type="checkbox" name="playlistPick" value="${p.id}" ${selectedPlaylistPickerIds.has(p.id)?'checked':''} onchange="togglePlaylistForSong(${p.id},this.checked)">
       <span class="playlist-picker-icon" aria-hidden="true">
         <svg viewBox="0 0 48 48" fill="none"><path d="M20 9v23.2a6.8 6.8 0 1 1-4-6.2V13l23-5v19.2a6.8 6.8 0 1 1-4-6.2V4L20 9Z" fill="currentColor"/><path d="M25 15.2 35 13v4.3l-10 2.2v-4.3Z" fill="#b79cff"/></svg>
       </span>
@@ -1767,13 +1879,14 @@ function renderPlaylistPicker(filter=''){
   `).join('');
 }
 
-function selectPlaylistForSong(playlistId){
-  selectedPlaylistPickerId=playlistId;
+function togglePlaylistForSong(playlistId,checked){
+  if(checked)selectedPlaylistPickerIds.add(playlistId);
+  else selectedPlaylistPickerIds.delete(playlistId);
   renderPlaylistPicker(document.getElementById('playlistPickerSearch').value);
-  const playlist=availablePlaylistsForSong.find(p=>p.id===playlistId);
+  const count=selectedPlaylistPickerIds.size;
   const btn=document.getElementById('addToPlaylistConfirmBtn');
-  btn.disabled=false;
-  btn.textContent=playlist?`Adicionar em ${playlist.title}`:'Adicionar';
+  btn.disabled=count===0;
+  btn.textContent=count?`Adicionar em ${count} ${count===1?'playlist':'playlists'}`:'Adicionar';
 }
 
 document.getElementById('playlistPickerSearch').addEventListener('input',e=>renderPlaylistPicker(e.target.value));
@@ -1782,35 +1895,44 @@ function closeAddToPlaylistModal(){
   document.getElementById('addToPlaylistModal').classList.remove('open');
   addToPlaylistMusicId=null;
   availablePlaylistsForSong=[];
-  selectedPlaylistPickerId=null;
+  selectedPlaylistPickerIds=new Set();
 }
 
 async function confirmAddToPlaylist(){
-  if(!selectedPlaylistPickerId||!addToPlaylistMusicId)return;
-  const playlistId=selectedPlaylistPickerId;
-  const playlist=availablePlaylistsForSong.find(p=>p.id===playlistId);
+  const playlistIds=[...selectedPlaylistPickerIds];
+  if(!playlistIds.length||!addToPlaylistMusicId)return;
   const btn=document.getElementById('addToPlaylistConfirmBtn');
   btn.disabled=true;
   btn.textContent='Adicionando…';
+  let addedCount=0;
   try{
     if(DEMO){
-      const lista=DDATA.mp[playlistId]||[];
-      if(lista.some(mp=>mp.musica_id===addToPlaylistMusicId))throw new Error('Essa música já está na playlist');
       const musica=DDATA.musicas.find(m=>m.id===addToPlaylistMusicId);
-      const nextId=Math.max(0,...Object.values(DDATA.mp).flat().map(mp=>mp.id))+1;
-      const nextOrder=Math.max(0,...lista.map(mp=>mp.ordem))+1;
-      lista.push({id:nextId,musica_id:addToPlaylistMusicId,playlist_id:playlistId,ordem:nextOrder,tocando:false,musica});
-      DDATA.mp[playlistId]=lista;
-    }else{
-      const items=await dbGetPlaylistMusicas(playlistId);
-      if(items.some(mp=>mp.musica_id===addToPlaylistMusicId))throw new Error('Essa música já está na playlist');
-      const nextOrder=Math.max(0,...items.map(mp=>mp.ordem))+1;
-      await dbAddSongToPL({
-        musicaId:addToPlaylistMusicId,playlistId,ordem:nextOrder,tocando:false
+      let nextId=Math.max(0,...Object.values(DDATA.mp).flat().map(mp=>mp.id))+1;
+      playlistIds.forEach(playlistId=>{
+        const lista=DDATA.mp[playlistId]||[];
+        if(lista.some(mp=>mp.musica_id===addToPlaylistMusicId))return;
+        const nextOrder=Math.max(0,...lista.map(mp=>mp.ordem))+1;
+        lista.push({id:nextId++,musica_id:addToPlaylistMusicId,playlist_id:playlistId,ordem:nextOrder,tocando:false,musica});
+        DDATA.mp[playlistId]=lista;
+        addedCount++;
       });
+    }else{
+      const results=await Promise.all(playlistIds.map(async playlistId=>{
+        const items=await dbGetPlaylistMusicas(playlistId);
+        if(items.some(mp=>mp.musica_id===addToPlaylistMusicId))return false;
+        const nextOrder=Math.max(0,...items.map(mp=>mp.ordem))+1;
+        await dbAddSongToPL({musicaId:addToPlaylistMusicId,playlistId,ordem:nextOrder,tocando:false});
+        return true;
+      }));
+      addedCount=results.filter(Boolean).length;
     }
     closeAddToPlaylistModal();
-    toast(`Música adicionada à playlist ${playlist?.title||''}`,'success');
+    if(addedCount){
+      toast(`Música adicionada em ${addedCount} ${addedCount===1?'playlist':'playlists'}`,'success');
+    }else{
+      toast('Essa música já estava nas playlists selecionadas','info');
+    }
   }catch(e){
     toast(e.message||'Erro ao adicionar música','error');
   }finally{
@@ -1830,8 +1952,10 @@ document.getElementById('musicaSearch').addEventListener('input',()=>{
    ===================================================================== */
 function openMusicaModal(id=null) {
   ['musicaId','musicaTitulo','musicaAutor','musicaLetra'].forEach(k=>document.getElementById(k).value='');
-  document.getElementById('musicaTom').value='';
+  setEditorTom('');
   document.getElementById('musicaModalTitle').textContent=id?'Editar Música':'Nova Música';
+  document.getElementById('musicaModalSubtitle').textContent=id?'Atualize os detalhes da música no seu acervo.':'Adicione os detalhes da música ao seu acervo.';
+  document.getElementById('musicaSaveBtn').textContent=id?'✓ Salvar alterações':'✓ Salvar música';
   document.getElementById('musicaId').value=id||'';
   document.getElementById('musicaModal').classList.add('open');
   setTimeout(()=>document.getElementById('musicaTitulo').focus(),150);
@@ -1846,7 +1970,7 @@ async function editMusica(id) {
   if(m){
     document.getElementById('musicaTitulo').value=m.titulo||'';
     document.getElementById('musicaAutor').value=m.autor||'';
-    document.getElementById('musicaTom').value=m.tom||'';
+    setEditorTom(m.tom||'');
     document.getElementById('musicaLetra').value=m.letra||'';
   }
 }
@@ -1871,7 +1995,7 @@ async function saveMusica() {
     toast(id?'Música atualizada!':'Música cadastrada! ✨','success');
     closeMusicaModal();loadMusicas();
   }catch(e){toast('Erro: '+e.message,'error');}
-  finally{btn.disabled=false;btn.textContent='Salvar';}
+  finally{btn.disabled=false;btn.textContent=id?'✓ Salvar alterações':'✓ Salvar música';}
 }
 
 function deleteMusica(id,nome){
@@ -2060,6 +2184,8 @@ function openPlaylistModal(id=null){
   document.getElementById('playlistTitle').value='';
   document.getElementById('playlistPublico').checked=true;
   document.getElementById('playlistModalTitle').textContent=id?'Editar Playlist':'Nova Playlist';
+  document.getElementById('playlistModalSubtitle').textContent=id?'Atualize os detalhes e a visibilidade da playlist.':'Crie uma nova seleção para seus cultos e eventos.';
+  document.getElementById('playlistSaveBtn').textContent=id?'✓ Salvar alterações':'✓ Salvar playlist';
   document.getElementById('playlistModal').classList.add('open');
   setTimeout(()=>document.getElementById('playlistTitle').focus(),150);
 }
@@ -2077,6 +2203,9 @@ async function savePlaylist(){
   const title=document.getElementById('playlistTitle').value.trim();
   if(!title){toast('Título obrigatório','error');return;}
   const body={title,publico:document.getElementById('playlistPublico').checked};
+  const btn=document.getElementById('playlistSaveBtn');
+  btn.disabled=true;
+  btn.textContent='Salvando…';
   try{
     if(DEMO){
       await delay(300);
@@ -2090,6 +2219,10 @@ async function savePlaylist(){
     toast(id?'Playlist atualizada!':'Playlist criada!','success');
     closePlaylistModal();loadPlaylists();
   }catch(e){toast('Erro: '+e.message,'error');}
+  finally{
+    btn.disabled=false;
+    btn.textContent=id?'✓ Salvar alterações':'✓ Salvar playlist';
+  }
 }
 
 function deletePlaylist(id,nome){
