@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="C-Music" />
@@ -25,10 +25,11 @@
       --safe-top:env(safe-area-inset-top,0px); --safe-bot:env(safe-area-inset-bottom,0px);
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    html{-webkit-tap-highlight-color:transparent}
+    html{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
     body{font-family:-apple-system,'SF Pro Display','Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;overflow-x:hidden}
     button{cursor:pointer;border:none;outline:none;font-family:inherit;-webkit-appearance:none}
     input,textarea,select{font-family:inherit;outline:none;border:none;-webkit-appearance:none;appearance:none}
+    @media(max-width:768px){input,textarea,select{font-size:16px!important}}
     ::-webkit-scrollbar{width:4px;height:4px}
     ::-webkit-scrollbar-thumb{background:var(--accent);border-radius:99px}
 
@@ -311,6 +312,39 @@
     .song-picker-body{flex:1;min-width:0}
     .song-picker-title{font-size:.87rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .song-picker-sub{font-size:.74rem;color:var(--text3)}
+    #addSongModal .modal{max-width:680px;background:#172a40;border-color:rgba(102,153,217,.22)}
+    .add-song-subtitle{font-size:.8rem;color:var(--text3);margin-top:4px}
+    #addSongModal .song-picker-list{max-height:min(42dvh,390px);border:1px solid rgba(102,153,217,.18);border-radius:12px;background:rgba(10,25,42,.36);overflow:hidden auto}
+    #addSongModal .song-picker-item{margin:0;padding:11px 13px;border-radius:0;border-bottom:1px solid rgba(102,153,217,.13)}
+    #addSongModal .song-picker-item:last-child{border-bottom:none}
+    #addSongModal .song-picker-item:hover{background:rgba(102,153,217,.08)}
+    #addSongModal .song-picker-item.selected{background:linear-gradient(90deg,rgba(99,102,241,.17),rgba(102,153,217,.08))}
+    #addSongModal .song-picker-item input[type=checkbox]{width:20px;height:20px;border-radius:6px;accent-color:#7c63e8;flex-shrink:0;cursor:pointer}
+    .song-picker-note{width:36px;height:36px;border-radius:9px;background:linear-gradient(145deg,rgba(102,86,230,.45),rgba(50,76,119,.55));display:flex;align-items:center;justify-content:center;color:#b79cff;font-size:1rem;flex-shrink:0}
+    .song-picker-tone{margin-left:auto;flex-shrink:0}
+    .selected-songs-box{display:none;margin-top:12px;padding:11px 12px;border:1px solid rgba(102,153,217,.18);border-radius:11px;background:rgba(10,25,42,.28)}
+    .selected-songs-box.show{display:block}
+    .selected-songs-head{display:flex;justify-content:space-between;gap:10px;margin-bottom:8px;font-size:.72rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.35px}
+    .selected-songs-count{color:#a78bfa;text-transform:none}
+    .selected-songs-chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+    .selected-song-chip{display:flex;align-items:center;gap:6px;min-width:max-content;padding:6px 9px;border-radius:8px;background:rgba(41,66,95,.55);border:1px solid rgba(102,153,217,.14);font-size:.73rem;color:var(--text2)}
+    #addSongConfirmBtn:disabled{opacity:.45;cursor:not-allowed}
+    #addToPlaylistModal .modal{max-width:620px;background:#172a40;border-color:rgba(102,153,217,.22)}
+    .playlist-target-song{display:flex;align-items:center;gap:9px;margin-bottom:12px;padding:9px 11px;border-radius:10px;background:rgba(10,25,42,.32);border:1px solid rgba(102,153,217,.14);font-size:.8rem;color:var(--text2)}
+    #addToPlaylistModal .song-picker-list{max-height:min(44dvh,390px);display:flex;flex-direction:column;gap:8px}
+    .playlist-picker-item{display:grid;grid-template-columns:38px minmax(0,1fr) 22px;gap:11px;align-items:center;padding:11px 12px;border-radius:12px;background:linear-gradient(105deg,#13253b,#101f34);border:1px solid #29415f;cursor:pointer;transition:var(--transition)}
+    .playlist-picker-item:hover{border-color:#405f88}
+    .playlist-picker-item.selected{border-color:#7068df;background:linear-gradient(90deg,rgba(99,102,241,.2),rgba(16,31,52,.96));box-shadow:inset 3px 0 #7c63e8}
+    .playlist-picker-item input{position:absolute;opacity:0;pointer-events:none}
+    .playlist-picker-icon{width:38px;height:38px;border-radius:10px;background:linear-gradient(145deg,#465fa4,#263b68);border:1px solid rgba(132,121,255,.34);display:flex;align-items:center;justify-content:center;color:#8b5cf6}
+    .playlist-picker-icon svg{width:22px;height:22px}
+    .playlist-picker-content{min-width:0}
+    .playlist-picker-title{display:block;font-size:.86rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .playlist-picker-meta{display:flex;align-items:center;gap:7px;margin-top:4px;font-size:.7rem;color:#9cb2d2}
+    .playlist-picker-check{width:21px;height:21px;border:1px solid #47617f;border-radius:6px;display:flex;align-items:center;justify-content:center;color:transparent;font-size:.75rem}
+    .playlist-picker-item.selected .playlist-picker-check{background:linear-gradient(135deg,#6656e6,#8b5cf6);border-color:#8b5cf6;color:white}
+    #addToPlaylistConfirmBtn{max-width:72%;overflow:hidden;text-overflow:ellipsis}
+    #addToPlaylistConfirmBtn:disabled{opacity:.45;cursor:not-allowed}
 
     /* ===== SETTINGS MODAL ===== */
     .setup-steps{display:flex;flex-direction:column;gap:18px;margin-bottom:4px}
@@ -785,37 +819,45 @@
 <!-- MODAL: ADICIONAR MÚSICA NA PLAYLIST -->
 <div class="modal-overlay" id="addSongModal">
   <div class="modal">
-    <div class="modal-header"><h2>Adicionar Música</h2><button class="modal-close" onclick="closeAddSongModal()">✕</button></div>
+    <div class="modal-header">
+      <div><h2>Adicionar músicas</h2><div class="add-song-subtitle">Selecione uma ou mais músicas para adicionar à playlist.</div></div>
+      <button class="modal-close" onclick="closeAddSongModal()">✕</button>
+    </div>
     <div class="modal-body">
       <div class="form-group">
-        <input class="form-input" id="songPickerSearch" type="search" placeholder="Filtrar músicas..." autocomplete="off" />
+        <input class="form-input" id="songPickerSearch" type="search" placeholder="Buscar músicas..." autocomplete="off" />
       </div>
       <div class="song-picker-list" id="songPickerList">
         <div style="text-align:center;padding:24px;color:var(--text3)"><div class="spinner" style="margin:auto"></div></div>
       </div>
-      <div style="margin-top:14px">
-        <div class="form-group">
-          <label class="form-label">Ordem na Playlist</label>
-          <input class="form-input" id="songPickerOrdem" type="number" min="1" value="1" />
+      <input id="songPickerOrdem" type="hidden" value="1" />
+      <div class="selected-songs-box" id="selectedSongsBox">
+        <div class="selected-songs-head">
+          <span>Músicas selecionadas</span>
+          <span class="selected-songs-count" id="selectedSongsCount"></span>
         </div>
+        <div class="selected-songs-chips" id="selectedSongsChips"></div>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeAddSongModal()">Cancelar</button>
-      <button class="btn btn-primary" onclick="confirmAddSong()">Adicionar</button>
+      <button class="btn btn-primary" id="addSongConfirmBtn" onclick="confirmAddSong()" disabled>Adicionar músicas</button>
     </div>
   </div>
 </div>
 
 <!-- MODAL: ADICIONAR MÚSICA A UMA PLAYLIST -->
 <div class="modal-overlay" id="addToPlaylistModal">
-  <div class="modal" style="max-width:460px">
+  <div class="modal">
     <div class="modal-header">
-      <h2>Adicionar à Playlist</h2>
+      <div><h2>Adicionar à playlist</h2><div class="add-song-subtitle">Selecione onde deseja adicionar esta música.</div></div>
       <button class="modal-close" onclick="closeAddToPlaylistModal()">✕</button>
     </div>
     <div class="modal-body">
-      <div id="addToPlaylistSongName" style="font-size:.82rem;color:var(--text2);margin-bottom:12px"></div>
+      <div class="playlist-target-song" id="addToPlaylistSongName"></div>
+      <div class="form-group">
+        <input class="form-input" id="playlistPickerSearch" type="search" placeholder="Buscar playlists..." autocomplete="off" />
+      </div>
       <div class="song-picker-list" id="playlistPickerList">
         <div style="text-align:center;padding:24px;color:var(--text3)"><div class="spinner" style="margin:auto"></div></div>
       </div>
@@ -896,6 +938,7 @@ let musicaLoadingMore = false;
 let musicaHasMore = false;
 let currentPL     = null; // { id, title, publico }
 let allMusicasPicker = [];
+let selectedSongPickerIds = new Set();
 let currentPLItems   = [];
 let realtimeChannel  = null;
 let swipeStartX = 0;
@@ -914,6 +957,7 @@ let appSwipeAxis = null;
 let appSwipePanel = null;
 let addToPlaylistMusicId = null;
 let availablePlaylistsForSong = [];
+let selectedPlaylistPickerId = null;
 let playlistItems = [];
 let homeStatsUpdatedAt = null;
 let demoMusicUpdatedAt = null;
@@ -1101,6 +1145,17 @@ async function dbAddSongToPL(body) {
   if(body.adicionadoEm)payload.adicionado_em=body.adicionadoEm;
   const {data,error} = await sb.from('musica_playlist').insert(payload).select().single();
   if (error) throw error; return data;
+}
+async function dbAddSongsToPL({musicaIds,playlistId,ordemInicial}) {
+  const payloads=musicaIds.map((musicaId,index)=>({
+    musica_id:musicaId,
+    playlist_id:playlistId,
+    ordem:ordemInicial+index,
+    tocando:false
+  }));
+  const {data,error}=await sb.from('musica_playlist').insert(payloads).select();
+  if(error)throw error;
+  return data;
 }
 async function dbGetOrCreateHojePlaylist() {
   const {data,error}=await sb.from('playlist').select('*').eq('title','Hoje').maybeSingle();
@@ -1666,42 +1721,73 @@ function songSwipeCancel(){
 
 async function openAddToPlaylistModal(musicaId){
   addToPlaylistMusicId=musicaId;
+  selectedPlaylistPickerId=null;
   const musica=cachedMusicas.find(m=>m.id===musicaId);
-  document.getElementById('addToPlaylistSongName').textContent=musica?`🎵 ${musica.titulo}`:'';
+  document.getElementById('addToPlaylistSongName').innerHTML=musica?`<span class="song-picker-note">♪</span><b>${esc(musica.titulo)}</b>${musica.tom?`<span class="tom-badge">${esc(musica.tom)}</span>`:''}`:'';
+  document.getElementById('playlistPickerSearch').value='';
   document.getElementById('playlistPickerList').innerHTML='<div style="text-align:center;padding:24px"><div class="spinner" style="margin:auto"></div></div>';
-  document.getElementById('addToPlaylistConfirmBtn').disabled=true;
+  const confirmBtn=document.getElementById('addToPlaylistConfirmBtn');
+  confirmBtn.disabled=true;
+  confirmBtn.textContent='Adicionar';
   document.getElementById('addToPlaylistModal').classList.add('open');
   try{
-    const playlists=DEMO?DDATA.playlists:await dbListPlaylists();
+    const playlists=DEMO
+      ?DDATA.playlists.map(p=>({...p,musicas_count:(DDATA.mp[p.id]||[]).length}))
+      :await dbListPlaylists();
     availablePlaylistsForSong=(playlists||[]).filter(p=>p.title!=='Hoje');
     if(!availablePlaylistsForSong.length){
       document.getElementById('playlistPickerList').innerHTML='<div style="text-align:center;padding:24px;color:var(--text3)">Nenhuma playlist disponível. Crie uma playlist primeiro.</div>';
       return;
     }
-    document.getElementById('playlistPickerList').innerHTML=availablePlaylistsForSong.map(p=>`
-      <label class="song-picker-item">
-        <input type="radio" name="playlistPick" value="${p.id}" onchange="document.getElementById('addToPlaylistConfirmBtn').disabled=false">
-        <div class="song-picker-body">
-          <div class="song-picker-title">${esc(p.title)}</div>
-          <div class="song-picker-sub">${p.publico?'🌐 Pública':'🔒 Privada'}</div>
-        </div>
-      </label>
-    `).join('');
+    renderPlaylistPicker('');
   }catch(e){
     document.getElementById('playlistPickerList').innerHTML='<div style="text-align:center;padding:24px;color:var(--red)">Erro ao carregar playlists.</div>';
   }
 }
 
+function renderPlaylistPicker(filter=''){
+  const term=filter.trim().toLocaleLowerCase('pt-BR');
+  const items=availablePlaylistsForSong.filter(p=>!term||p.title.toLocaleLowerCase('pt-BR').includes(term));
+  if(!items.length){
+    document.getElementById('playlistPickerList').innerHTML='<div style="text-align:center;padding:24px;color:var(--text3)">Nenhuma playlist encontrada.</div>';
+    return;
+  }
+  document.getElementById('playlistPickerList').innerHTML=items.map(p=>`
+    <label class="playlist-picker-item ${selectedPlaylistPickerId===p.id?'selected':''}">
+      <input type="radio" name="playlistPick" value="${p.id}" ${selectedPlaylistPickerId===p.id?'checked':''} onchange="selectPlaylistForSong(${p.id})">
+      <span class="playlist-picker-icon" aria-hidden="true">
+        <svg viewBox="0 0 48 48" fill="none"><path d="M20 9v23.2a6.8 6.8 0 1 1-4-6.2V13l23-5v19.2a6.8 6.8 0 1 1-4-6.2V4L20 9Z" fill="currentColor"/><path d="M25 15.2 35 13v4.3l-10 2.2v-4.3Z" fill="#b79cff"/></svg>
+      </span>
+      <span class="playlist-picker-content">
+        <span class="playlist-picker-title">${esc(p.title)}</span>
+        <span class="playlist-picker-meta"><span>${p.publico?'◎ Pública':'▣ Privada'}</span><span>·</span><span>${p.musicas_count||0} ${(p.musicas_count||0)===1?'música':'músicas'}</span></span>
+      </span>
+      <span class="playlist-picker-check">✓</span>
+    </label>
+  `).join('');
+}
+
+function selectPlaylistForSong(playlistId){
+  selectedPlaylistPickerId=playlistId;
+  renderPlaylistPicker(document.getElementById('playlistPickerSearch').value);
+  const playlist=availablePlaylistsForSong.find(p=>p.id===playlistId);
+  const btn=document.getElementById('addToPlaylistConfirmBtn');
+  btn.disabled=false;
+  btn.textContent=playlist?`Adicionar em ${playlist.title}`:'Adicionar';
+}
+
+document.getElementById('playlistPickerSearch').addEventListener('input',e=>renderPlaylistPicker(e.target.value));
+
 function closeAddToPlaylistModal(){
   document.getElementById('addToPlaylistModal').classList.remove('open');
   addToPlaylistMusicId=null;
   availablePlaylistsForSong=[];
+  selectedPlaylistPickerId=null;
 }
 
 async function confirmAddToPlaylist(){
-  const selected=document.querySelector('input[name="playlistPick"]:checked');
-  if(!selected||!addToPlaylistMusicId)return;
-  const playlistId=Number(selected.value);
+  if(!selectedPlaylistPickerId||!addToPlaylistMusicId)return;
+  const playlistId=selectedPlaylistPickerId;
   const playlist=availablePlaylistsForSong.find(p=>p.id===playlistId);
   const btn=document.getElementById('addToPlaylistConfirmBtn');
   btn.disabled=true;
@@ -2144,6 +2230,8 @@ function showPlaylistList(refresh=true){
 async function openAddSongModal(){
   document.getElementById('songPickerSearch').value='';
   document.getElementById('songPickerOrdem').value=getNextOrdem();
+  selectedSongPickerIds=new Set();
+  updateSelectedSongsSummary();
   document.getElementById('addSongModal').classList.add('open');
   document.getElementById('songPickerList').innerHTML='<div style="text-align:center;padding:24px"><div class="spinner" style="margin:auto"></div></div>';
 
@@ -2157,8 +2245,7 @@ async function openAddSongModal(){
 }
 
 function getNextOrdem(){
-  const rows=document.querySelectorAll('#playlistMusicaTbody tr');
-  return rows.length>0&&!rows[0].classList.contains('empty-row')?rows.length+1:1;
+  return Math.max(0,...currentPLItems.map(mp=>Number(mp.ordem)||0))+1;
 }
 
 function renderSongPicker(filter){
@@ -2169,37 +2256,73 @@ function renderSongPicker(filter){
   );
   if(!f.length){document.getElementById('songPickerList').innerHTML='<div style="text-align:center;padding:24px;color:var(--text3);font-style:italic">Nenhuma música disponível para adicionar.</div>';return;}
   document.getElementById('songPickerList').innerHTML=f.map(m=>`
-    <label class="song-picker-item">
-      <input type="radio" name="songPick" value="${m.id}">
+    <label class="song-picker-item ${selectedSongPickerIds.has(m.id)?'selected':''}">
+      <input type="checkbox" name="songPick" value="${m.id}" ${selectedSongPickerIds.has(m.id)?'checked':''} onchange="toggleSongPicker(${m.id},this.checked)">
+      <span class="song-picker-note">♪</span>
       <div class="song-picker-body">
         <div class="song-picker-title">${esc(m.titulo)}</div>
-        <div class="song-picker-sub">${m.autor?esc(m.autor):''}${m.tom?` · Tom ${m.tom}`:''}</div>
+        <div class="song-picker-sub">${m.autor?esc(m.autor):''}</div>
       </div>
+      ${m.tom?`<span class="tom-badge song-picker-tone">${esc(m.tom)}</span>`:''}
     </label>`).join('');
 }
 
 document.getElementById('songPickerSearch').addEventListener('input',e=>renderSongPicker(e.target.value));
-function closeAddSongModal(){document.getElementById('addSongModal').classList.remove('open');}
+function toggleSongPicker(musicaId,checked){
+  if(checked)selectedSongPickerIds.add(musicaId);
+  else selectedSongPickerIds.delete(musicaId);
+  renderSongPicker(document.getElementById('songPickerSearch').value);
+  updateSelectedSongsSummary();
+}
+
+function updateSelectedSongsSummary(){
+  const selected=[...selectedSongPickerIds]
+    .map(id=>allMusicasPicker.find(m=>m.id===id))
+    .filter(Boolean);
+  const count=selected.length;
+  const box=document.getElementById('selectedSongsBox');
+  box.classList.toggle('show',count>0);
+  document.getElementById('selectedSongsCount').textContent=`${count} ${count===1?'selecionada':'selecionadas'}`;
+  document.getElementById('selectedSongsChips').innerHTML=selected.map(m=>
+    `<span class="selected-song-chip"><span>⠿</span><b>${esc(m.titulo)}</b>${m.tom?`<span class="tom-badge">${esc(m.tom)}</span>`:''}</span>`
+  ).join('');
+  const btn=document.getElementById('addSongConfirmBtn');
+  btn.disabled=count===0;
+  btn.textContent=count?`＋ Adicionar ${count} ${count===1?'música':'músicas'}`:'Adicionar músicas';
+}
+
+function closeAddSongModal(){
+  document.getElementById('addSongModal').classList.remove('open');
+  selectedSongPickerIds=new Set();
+}
 
 async function confirmAddSong(){
-  const radio=document.querySelector('input[name="songPick"]:checked');
-  if(!radio){toast('Selecione uma música','error');return;}
-  const musicaId=parseInt(radio.value);
-  const ordem=parseInt(document.getElementById('songPickerOrdem').value)||1;
+  const musicaIds=[...selectedSongPickerIds];
+  if(!musicaIds.length){toast('Selecione ao menos uma música','error');return;}
+  const ordem=parseInt(document.getElementById('songPickerOrdem').value)||getNextOrdem();
+  const btn=document.getElementById('addSongConfirmBtn');
+  btn.disabled=true;
+  btn.textContent='Adicionando...';
   try{
     if(DEMO){
       await delay(300);
       const lista=DDATA.mp[currentPL.id]||[];
-      const musica=allMusicasPicker.find(m=>m.id===musicaId);
-      lista.push({id:lista.length?Math.max(...lista.map(m=>m.id))+1:1,musica_id:musicaId,playlist_id:currentPL.id,ordem,tocando:false,musica});
+      let nextId=Math.max(0,...Object.values(DDATA.mp).flat().map(mp=>mp.id))+1;
+      musicaIds.forEach((musicaId,index)=>{
+        const musica=allMusicasPicker.find(m=>m.id===musicaId);
+        lista.push({id:nextId++,musica_id:musicaId,playlist_id:currentPL.id,ordem:ordem+index,tocando:false,musica});
+      });
       DDATA.mp[currentPL.id]=lista;
     }else{
-      await dbAddSongToPL({musicaId,playlistId:currentPL.id,ordem,tocando:false});
+      await dbAddSongsToPL({musicaIds,playlistId:currentPL.id,ordemInicial:ordem});
     }
-    toast('Música adicionada!','success');
+    toast(`${musicaIds.length} ${musicaIds.length===1?'música adicionada':'músicas adicionadas'}!`,'success');
     closeAddSongModal();
     await openPlaylistDetail(currentPL.id,currentPL.title,currentPL.publico);
-  }catch(e){toast('Erro: '+e.message,'error');}
+  }catch(e){
+    toast('Erro: '+e.message,'error');
+    updateSelectedSongsSummary();
+  }
 }
 
 
