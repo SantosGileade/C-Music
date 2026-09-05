@@ -605,9 +605,42 @@
       .datashow-next-actions{width:100%;margin-left:0}
       .datashow-complete{flex:1;justify-content:center}
     }
+
+    /* ===== HOME STAT BUTTON (Últimas atualizações) ===== */
+    .home-stat-btn{background:transparent;border:none;color:inherit;font:inherit;cursor:pointer;width:100%}
+    .home-stat-btn:hover{background:rgba(102,153,217,.1);border-radius:10px}
+    .home-stat-btn:active{transform:scale(.96)}
+    .home-stat-icon-wrap{position:relative;display:inline-flex}
+    .stat-badge{position:absolute;top:-6px;right:-11px;min-width:16px;height:16px;padding:0 4px;border-radius:99px;background:var(--red);color:#fff;font-size:.62rem;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px var(--bg)}
+
+    /* ===== ÚLTIMAS ATUALIZAÇÕES (fullscreen) ===== */
+    #recentUpdatesScreen{display:none;position:fixed;inset:0;z-index:300;background:var(--bg);flex-direction:column}
+    #recentUpdatesScreen.open{display:flex}
+    .recent-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(20px + var(--safe-bot))}
+    .recent-time{color:var(--accent2);font-weight:600}
+
+    /* ===== OPERADOR DE SOM ===== */
+    .chamada-banner{display:none;align-items:center;justify-content:center;gap:8px;position:fixed;top:0;left:0;right:0;z-index:500;background:var(--red);color:#fff;text-align:center;font-weight:700;font-size:.85rem;padding:calc(10px + var(--safe-top)) 14px 10px;cursor:pointer;animation:bannerBlink 1s infinite}
+    @keyframes bannerBlink{0%,100%{opacity:1}50%{opacity:.78}}
+    .bn-icon-wrap{position:relative;display:inline-flex}
+    .bn-dot{position:absolute;top:-2px;right:-7px;width:8px;height:8px;border-radius:50%;background:var(--red);box-shadow:0 0 0 2px rgba(13,13,26,.96);animation:pulse 1.2s infinite}
+    .operador-shell{max-width:420px;margin:32px auto;text-align:center;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:40px 24px;display:flex;flex-direction:column;align-items:center;gap:12px;transition:background .25s ease,border-color .25s ease}
+    .operador-icon{font-size:3.4rem;line-height:1}
+    .operador-title{font-size:1.3rem;font-weight:800}
+    .operador-title.alert-active{color:var(--red)}
+    .operador-sub{font-size:.88rem;color:var(--text3);margin-bottom:8px}
+    .operador-call-btn,.operador-resolve-btn{width:100%;justify-content:center;padding:14px}
+    .operador-notif-btn{margin-top:2px}
+    .operador-shell.alert-active{background:linear-gradient(160deg,rgba(224,82,82,.28),rgba(224,82,82,.12));border-color:var(--red);animation:operadorPulse 1.1s ease-in-out infinite}
+    @keyframes operadorPulse{0%,100%{box-shadow:0 0 0 0 rgba(224,82,82,.5)}50%{box-shadow:0 0 0 14px rgba(224,82,82,0)}}
   </style>
 </head>
 <body>
+
+<!-- BANNER GLOBAL: CHAMADA DO OPERADOR -->
+<div class="chamada-banner" id="chamadaBanner" onclick="switchPanel('operador')">
+  🚨 <span>Operador de som foi chamado! Toque para ver.</span>
+</div>
 
 <!-- HEADER -->
 <header>
@@ -655,6 +688,14 @@
           </div>
           <div class="home-card-arrow">›</div>
         </button>
+        <button class="home-card" style="--home-color:#e05252" onclick="switchPanel('operador')">
+          <div class="home-card-icon" style="background:linear-gradient(135deg,var(--red),var(--yellow))">🔊</div>
+          <div class="home-card-body">
+            <div class="home-card-title">Operador de Som</div>
+            <div class="home-card-desc">Chame o operador quando precisar de ajuda</div>
+          </div>
+          <div class="home-card-arrow">›</div>
+        </button>
       </div>
       <div class="home-stats">
         <div class="home-stat">
@@ -667,11 +708,14 @@
           <div class="home-stat-value" id="homeTopSong">—</div>
           <div class="home-stat-label" id="homeTopSongUses">Música mais tocada</div>
         </div>
-        <div class="home-stat">
-          <div class="home-stat-icon">☁️</div>
+        <button class="home-stat home-stat-btn" id="homeUpdateBtn" onclick="openRecentUpdatesScreen()" title="Ver músicas atualizadas recentemente">
+          <div class="home-stat-icon-wrap">
+            <div class="home-stat-icon">☁️</div>
+            <span class="stat-badge" id="homeUpdateBadge" style="display:none">0</span>
+          </div>
           <div class="home-stat-value" id="homeLastUpdate">—</div>
           <div class="home-stat-label">Última atualização</div>
-        </div>
+        </button>
       </div>
     </div>
   </div>
@@ -760,6 +804,24 @@
           <button class="btn btn-teal btn-sm datashow-complete" id="apCompleteBtn" onclick="apCompleteProxima()">✓ Concluir</button>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- PAINEL OPERADOR DE SOM -->
+  <div class="panel" id="panel-operador">
+    <div class="panel-header">
+      <div>
+        <div class="panel-title">🔊 <span>Operador de Som</span></div>
+        <div style="font-size:.79rem;color:var(--text3);margin-top:2px">Chame o operador quando precisar de ajuda no palco</div>
+      </div>
+    </div>
+    <div class="operador-shell" id="operadorShell">
+      <div class="operador-icon" id="operadorIcon">🔊</div>
+      <div class="operador-title" id="operadorTitle">Tudo certo por aqui</div>
+      <div class="operador-sub" id="operadorSub">Nenhum chamado no momento</div>
+      <button class="btn btn-primary operador-call-btn" id="operadorCallBtn" onclick="chamarOperador()">📣 Chamar operador de som</button>
+      <button class="btn btn-danger operador-resolve-btn" id="operadorResolveBtn" onclick="resolverChamada()" style="display:none">✅ Já estou indo / Resolver</button>
+      <button class="btn btn-ghost btn-sm operador-notif-btn" id="operadorNotifBtn" onclick="ativarAlertasOperador()" style="display:none">🔔 Ativar alertas neste dispositivo</button>
     </div>
   </div>
 
@@ -1006,6 +1068,20 @@
   </div>
 </div>
 
+<!-- ÚLTIMAS ATUALIZAÇÕES FULLSCREEN -->
+<div id="recentUpdatesScreen">
+  <div class="letra-header">
+    <button class="letra-close" onclick="closeRecentUpdatesScreen()">←</button>
+    <div class="letra-header-info">
+      <div class="letra-header-title">Últimas atualizações</div>
+      <div class="letra-header-meta">Músicas adicionadas ou editadas recentemente</div>
+    </div>
+  </div>
+  <div class="recent-body">
+    <div id="recentUpdatesList"></div>
+  </div>
+</div>
+
 <div class="toast-container" id="toastContainer"></div>
 
 <!-- BOTTOM NAV -->
@@ -1017,6 +1093,10 @@
   <button class="bottom-nav-btn" id="bnPlaylists" onclick="switchPanel('playlists')" aria-label="Playlists">
     <span class="bn-icon">📋</span>
     <span>Playlists</span>
+  </button>
+  <button class="bottom-nav-btn" id="bnOperador" onclick="switchPanel('operador')" aria-label="Operador de Som">
+    <span class="bn-icon-wrap"><span class="bn-icon">🔊</span><span class="bn-dot" id="bnOperadorDot" style="display:none"></span></span>
+    <span>Operador</span>
   </button>
 </nav>
 
@@ -1061,6 +1141,13 @@ let playlistItems = [];
 let homeStatsUpdatedAt = null;
 let demoMusicUpdatedAt = null;
 let homeRealtimeCh = null;
+let recentUpdatesCache = [];
+let chamadaChannel = null;
+let chamadaAtiva = false;
+let chamadaChamadoEm = null;
+let chamadaTickTimer = null;
+let chamadaCooldownUntil = 0;
+let alertAudioCtx = null;
 const ICON_EDIT='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m4 16.8-.8 4 4-.8L18.7 8.5l-3.2-3.2L4 16.8Zm16.7-11.1a1 1 0 0 0 0-1.4l-1-1a1 1 0 0 0-1.4 0l-1.5 1.5L20 8l.7-.7Z"/></svg>';
 const ICON_DELETE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7h14M9 7V4.5h6V7M7.5 7l.7 12h7.6l.7-12M10.5 10.5v5M13.5 10.5v5"/></svg>';
 
@@ -1420,24 +1507,16 @@ async function loadHomeStats(){
 function updateHomeRelativeTime(){
   const el=document.getElementById('homeLastUpdate');
   if(!el)return;
-  if(!homeStatsUpdatedAt){
-    el.textContent='Sem registro';
-    return;
-  }
-  const elapsed=Date.now()-homeStatsUpdatedAt;
-  const minutes=Math.floor(elapsed/60000);
-  const hours=Math.floor(elapsed/3600000);
-  const days=Math.floor(elapsed/86400000);
-  if(days>0)el.textContent=`Há ${days}d`;
-  else if(hours>0)el.textContent=`Há ${hours}h`;
-  else if(minutes>0)el.textContent=`Há ${minutes}min`;
-  else el.textContent='Agora';
+  el.textContent=homeStatsUpdatedAt?relativeTimeFrom(new Date(homeStatsUpdatedAt).toISOString()):'Sem registro';
 }
 
 function startHomeRealtime(){
   if(DEMO||!sb||homeRealtimeCh)return;
   homeRealtimeCh=sb.channel('home-musica-updates')
-    .on('postgres_changes',{event:'*',schema:'public',table:'musica'},loadHomeStats)
+    .on('postgres_changes',{event:'*',schema:'public',table:'musica'},()=>{
+      loadHomeStats();
+      refreshUpdateBadge();
+    })
     .subscribe();
 }
 
@@ -1448,10 +1527,290 @@ function stopHomeRealtime(){
   }
 }
 
+function relativeTimeFrom(iso){
+  if(!iso)return '';
+  const elapsed=Date.now()-new Date(iso).getTime();
+  const minutes=Math.floor(elapsed/60000);
+  const hours=Math.floor(elapsed/3600000);
+  const days=Math.floor(elapsed/86400000);
+  if(days>0)return `Há ${days}d`;
+  if(hours>0)return `Há ${hours}h`;
+  if(minutes>0)return `Há ${minutes}min`;
+  return 'Agora';
+}
+
+/* =====================================================================
+   HOME — ÚLTIMAS ATUALIZAÇÕES
+   ===================================================================== */
+const RECENT_SEEN_KEY='cmusic_last_seen_updates';
+
+async function dbListRecentMusicas(limit=30){
+  const {data,error}=await sb.from('musica').select('*').order('created_at',{ascending:false}).limit(limit);
+  if(error)throw error;
+  return data||[];
+}
+
+function getLastSeenUpdates(){
+  const v=localStorage.getItem(RECENT_SEEN_KEY);
+  return v?new Date(v).getTime():0;
+}
+function setLastSeenUpdates(ts){
+  localStorage.setItem(RECENT_SEEN_KEY,new Date(ts).toISOString());
+}
+
+async function fetchRecentMusicas(){
+  if(DEMO){
+    return demoMusicUpdatedAt?DDATA.musicas.map(m=>({...m,created_at:demoMusicUpdatedAt})):[];
+  }
+  return dbListRecentMusicas(30);
+}
+
+async function refreshUpdateBadge(){
+  const badge=document.getElementById('homeUpdateBadge');
+  if(!badge)return;
+  try{
+    const items=await fetchRecentMusicas();
+    recentUpdatesCache=items;
+    const lastSeen=getLastSeenUpdates();
+    const count=items.filter(m=>m.created_at&&new Date(m.created_at).getTime()>lastSeen).length;
+    if(count>0){
+      badge.textContent=count>9?'9+':String(count);
+      badge.style.display='flex';
+    }else{
+      badge.style.display='none';
+    }
+  }catch(e){}
+}
+
+async function openRecentUpdatesScreen(){
+  const listEl=document.getElementById('recentUpdatesList');
+  listEl.innerHTML='<div style="text-align:center;padding:40px"><div class="spinner" style="margin:auto"></div></div>';
+  document.getElementById('recentUpdatesScreen').classList.add('open');
+  document.body.style.overflow='hidden';
+  try{
+    const items=await fetchRecentMusicas();
+    recentUpdatesCache=items;
+    if(!items.length){
+      listEl.innerHTML='<div class="letra-empty"><div class="letra-empty-icon">🎵</div><div>Nenhuma atualização recente</div></div>';
+    }else{
+      listEl.innerHTML=items.map(m=>`
+        <div class="song-card">
+          <div class="song-card-body">
+            <div class="song-card-title" title="${esc(m.titulo)}">${esc(m.titulo)}</div>
+            <div class="song-card-sub">
+              ${m.autor?`<span>${esc(m.autor)}</span>`:''}
+              <span class="recent-time">${relativeTimeFrom(m.created_at)}</span>
+            </div>
+          </div>
+          <div class="song-card-actions">
+            ${m.tom?`<span class="tom-badge song-card-tone">${esc(m.tom)}</span>`:''}
+            <button class="btn btn-ghost btn-sm" onclick="copyLetraToClipboard(${m.id})">📋 Copiar letra</button>
+          </div>
+        </div>`).join('');
+    }
+    const newest=items.reduce((max,m)=>{
+      const t=m.created_at?new Date(m.created_at).getTime():0;
+      return t>max?t:max;
+    },0);
+    if(newest)setLastSeenUpdates(newest);
+    refreshUpdateBadge();
+  }catch(e){
+    listEl.innerHTML='<div class="letra-empty"><div class="letra-empty-icon">⚠️</div><div>Não foi possível carregar as atualizações</div></div>';
+  }
+}
+
+function closeRecentUpdatesScreen(){
+  document.getElementById('recentUpdatesScreen').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+async function copyLetraToClipboard(id){
+  let m=recentUpdatesCache.find(x=>x.id===id)||cachedMusicas.find(x=>x.id===id);
+  if(!m){
+    try{m=DEMO?DDATA.musicas.find(x=>x.id===id):await dbGetMusica(id);}
+    catch(e){toast('Erro ao buscar a letra','error');return;}
+  }
+  const letra=(m?.letra||'').trim();
+  if(!letra){toast('Esta música não tem letra cadastrada','info');return;}
+  try{
+    await navigator.clipboard.writeText(letra);
+    toast('Letra copiada!','success');
+  }catch(e){
+    toast('Não foi possível copiar a letra','error');
+  }
+}
+
+/* =====================================================================
+   OPERADOR DE SOM
+   ===================================================================== */
+async function dbGetChamadaOperador(){
+  const {data,error}=await sb.from('chamada_operador').select('*').eq('id',1).maybeSingle();
+  if(error)throw error;
+  return data;
+}
+async function dbChamarOperador(){
+  const {error}=await sb.from('chamada_operador').update({ativo:true,chamado_em:new Date().toISOString()}).eq('id',1);
+  if(error)throw error;
+}
+async function dbResolverChamada(){
+  const {error}=await sb.from('chamada_operador').update({ativo:false}).eq('id',1);
+  if(error)throw error;
+}
+
+function startChamadaRealtime(){
+  if(DEMO||!sb||chamadaChannel)return;
+  chamadaChannel=sb.channel('chamada-operador')
+    .on('postgres_changes',{event:'*',schema:'public',table:'chamada_operador'},payload=>{
+      applyChamadaState(payload.new);
+    })
+    .subscribe();
+}
+
+async function loadChamadaInicial(){
+  if(DEMO||!sb)return;
+  try{
+    const row=await dbGetChamadaOperador();
+    if(row)applyChamadaState(row);
+  }catch(e){}
+}
+
+function applyChamadaState(row){
+  const wasAtiva=chamadaAtiva;
+  chamadaAtiva=Boolean(row?.ativo);
+  chamadaChamadoEm=row?.chamado_em||null;
+  updateOperadorPanel();
+  updateOperadorNavIndicator();
+  if(chamadaAtiva&&!wasAtiva)onChamadaAtivada();
+  else if(!chamadaAtiva&&wasAtiva)onChamadaResolvida();
+}
+
+function onChamadaAtivada(){
+  showChamadaBanner();
+  playAlertSound();
+  if(navigator.vibrate)navigator.vibrate([200,100,200,100,200]);
+  if(document.hidden&&typeof Notification!=='undefined'&&Notification.permission==='granted'){
+    try{
+      const n=new Notification('🔊 Operador de som chamado!',{body:'Vá até os músicos.',tag:'chamada-operador',renotify:true});
+      n.onclick=()=>{window.focus();};
+    }catch(e){}
+  }
+  clearInterval(chamadaTickTimer);
+  chamadaTickTimer=setInterval(updateOperadorPanel,30000);
+}
+
+function onChamadaResolvida(){
+  hideChamadaBanner();
+  clearInterval(chamadaTickTimer);
+  chamadaTickTimer=null;
+}
+
+function showChamadaBanner(){
+  const b=document.getElementById('chamadaBanner');
+  if(b)b.style.display='flex';
+}
+function hideChamadaBanner(){
+  const b=document.getElementById('chamadaBanner');
+  if(b)b.style.display='none';
+}
+
+function updateOperadorNavIndicator(){
+  const dot=document.getElementById('bnOperadorDot');
+  if(dot)dot.style.display=chamadaAtiva?'block':'none';
+}
+
+function updateOperadorPanel(){
+  const shell=document.getElementById('operadorShell');
+  const icon=document.getElementById('operadorIcon');
+  const title=document.getElementById('operadorTitle');
+  const sub=document.getElementById('operadorSub');
+  const callBtn=document.getElementById('operadorCallBtn');
+  const resolveBtn=document.getElementById('operadorResolveBtn');
+  if(!shell)return;
+  if(chamadaAtiva){
+    shell.classList.add('alert-active');
+    title.classList.add('alert-active');
+    icon.textContent='🚨';
+    title.textContent='Vá até os músicos!';
+    sub.textContent=chamadaChamadoEm?`Chamado ${relativeTimeFrom(chamadaChamadoEm)}`:'O operador de som foi chamado';
+    callBtn.style.display='none';
+    resolveBtn.style.display='inline-flex';
+  }else{
+    shell.classList.remove('alert-active');
+    title.classList.remove('alert-active');
+    icon.textContent='🔊';
+    title.textContent='Tudo certo por aqui';
+    sub.textContent='Nenhum chamado no momento';
+    callBtn.style.display='inline-flex';
+    resolveBtn.style.display='none';
+  }
+  updateOperadorNotifButton();
+}
+
+function updateOperadorNotifButton(){
+  const btn=document.getElementById('operadorNotifBtn');
+  if(!btn)return;
+  btn.style.display=(typeof Notification!=='undefined'&&Notification.permission==='default')?'inline-flex':'none';
+}
+
+async function ativarAlertasOperador(){
+  if(typeof Notification==='undefined'){toast('Seu navegador não suporta notificações','info');return;}
+  const perm=await Notification.requestPermission();
+  updateOperadorNotifButton();
+  toast(perm==='granted'?'Alertas ativados neste dispositivo!':'Permissão não concedida','info');
+}
+
+async function chamarOperador(){
+  if(Date.now()<chamadaCooldownUntil){toast('O operador já foi avisado, aguarde um instante.','info');return;}
+  chamadaCooldownUntil=Date.now()+15000;
+  try{
+    if(DEMO){
+      applyChamadaState({ativo:true,chamado_em:new Date().toISOString()});
+    }else{
+      await dbChamarOperador();
+    }
+    toast('Operador de som avisado!','success');
+  }catch(e){
+    toast('Não foi possível chamar o operador','error');
+  }
+}
+
+async function resolverChamada(){
+  try{
+    if(DEMO){
+      applyChamadaState({ativo:false,chamado_em:null});
+    }else{
+      await dbResolverChamada();
+    }
+  }catch(e){
+    toast('Não foi possível resolver o chamado','error');
+  }
+}
+
+function playAlertSound(){
+  try{
+    const ctx=alertAudioCtx||(alertAudioCtx=new (window.AudioContext||window.webkitAudioContext)());
+    const beep=(freq,start,dur)=>{
+      const osc=ctx.createOscillator();
+      const gain=ctx.createGain();
+      osc.type='sine';
+      osc.frequency.value=freq;
+      gain.gain.setValueAtTime(0.0001,ctx.currentTime+start);
+      gain.gain.exponentialRampToValueAtTime(0.3,ctx.currentTime+start+0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+start+dur);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(ctx.currentTime+start);
+      osc.stop(ctx.currentTime+start+dur+0.02);
+    };
+    beep(880,0,0.18);
+    beep(880,0.24,0.18);
+    beep(880,0.48,0.24);
+  }catch(e){}
+}
+
 /* =====================================================================
    PANEL SWITCHING
    ===================================================================== */
-const PANEL_LABELS = {musicas:'🎶 Músicas', playlists:'📋 Playlists', apresentacao:'🎬 Datashow'};
+const PANEL_LABELS = {musicas:'🎶 Músicas', playlists:'📋 Playlists', apresentacao:'🎬 Datashow', operador:'🔊 Operador de Som'};
 
 function switchPanel(name) {
   if(name==='home')startHomeRealtime();else stopHomeRealtime();
@@ -1467,8 +1826,8 @@ function switchPanel(name) {
   titleEl.style.display='none';
   titleEl.textContent='';
 
-  // Bottom nav — visível apenas em Músicas e Playlists
-  const showNav = name === 'musicas' || name === 'playlists';
+  // Bottom nav — visível em Músicas, Playlists e Operador de Som
+  const showNav = name === 'musicas' || name === 'playlists' || name === 'operador';
   const nav = document.getElementById('bottomNav');
   nav.classList.toggle('visible', showNav);
   document.querySelector('main').style.paddingBottom = showNav
@@ -1477,6 +1836,7 @@ function switchPanel(name) {
   if (showNav) {
     document.getElementById('bnMusicas').classList.toggle('active', name === 'musicas');
     document.getElementById('bnPlaylists').classList.toggle('active', name === 'playlists');
+    document.getElementById('bnOperador').classList.toggle('active', name === 'operador');
   }
 
   if(name==='musicas'){
@@ -1490,7 +1850,11 @@ function switchPanel(name) {
     loadPlaylists();
   }
   if(name==='apresentacao') apLoadPlaylists();
-  if(name==='home') loadHomeStats();
+  if(name==='operador') updateOperadorPanel();
+  if(name==='home'){
+    loadHomeStats();
+    refreshUpdateBadge();
+  }
 }
 
 /* =====================================================================
@@ -1499,6 +1863,7 @@ function switchPanel(name) {
 document.addEventListener('keydown',e=>{
   if(e.key!=='Escape')return;
   if(document.getElementById('letraScreen').classList.contains('open')){closeLetra();return;}
+  if(document.getElementById('recentUpdatesScreen').classList.contains('open')){closeRecentUpdatesScreen();return;}
   ['musicaModal','toneFilterModal','playlistModal','addSongModal','addToPlaylistModal','confirmModal'].forEach(id=>{
     document.getElementById(id).classList.remove('open');
   });
@@ -1517,10 +1882,11 @@ document.addEventListener('touchcancel',appBackSwipeCancel,{passive:true});
 function appBackSwipeStart(event){
   const touch=event.touches[0];
   const letraOpen=document.getElementById('letraScreen').classList.contains('open');
+  const recentOpen=document.getElementById('recentUpdatesScreen').classList.contains('open');
   const modalOpen=document.querySelector('.modal-overlay.open');
   appSwipePanel=document.querySelector('.panel.active');
   appSwipeActive=Boolean(
-    touch&&touch.clientX<=36&&!letraOpen&&!modalOpen&&appSwipePanel?.id!=='panel-home'
+    touch&&touch.clientX<=36&&!letraOpen&&!recentOpen&&!modalOpen&&appSwipePanel?.id!=='panel-home'
   );
   appSwipeAxis=null;
   if(appSwipeActive){
@@ -2855,6 +3221,10 @@ function apStopRealtime() {
   }
   await loadHomeStats();
   startHomeRealtime();
+  await refreshUpdateBadge();
+  await loadChamadaInicial();
+  startChamadaRealtime();
+  updateOperadorPanel();
   setInterval(checkConn,60000);
   setInterval(updateHomeRelativeTime,60000);
 })();
