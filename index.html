@@ -630,7 +630,10 @@
     .operador-title.alert-active{color:var(--red)}
     .operador-sub{font-size:.88rem;color:var(--text3);margin-bottom:8px}
     .operador-call-btn,.operador-resolve-btn{width:100%;justify-content:center;padding:14px}
-    .operador-notif-btn{margin-top:2px}
+    .operador-call-btn:disabled{opacity:.45;cursor:not-allowed}
+    .operador-call-btn:disabled:hover{opacity:.45;transform:none;box-shadow:none}
+    .operador-role-box{max-width:420px;margin:14px auto 0;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
+    .operador-role-note{font-size:.8rem;color:var(--green);font-weight:600}
     .operador-shell.alert-active{background:linear-gradient(160deg,rgba(224,82,82,.28),rgba(224,82,82,.12));border-color:var(--red);animation:operadorPulse 1.1s ease-in-out infinite}
     @keyframes operadorPulse{0%,100%{box-shadow:0 0 0 0 rgba(224,82,82,.5)}50%{box-shadow:0 0 0 14px rgba(224,82,82,0)}}
   </style>
@@ -817,12 +820,12 @@
     </div>
     <div class="operador-shell" id="operadorShell">
       <div class="operador-icon" id="operadorIcon">🔊</div>
-      <div class="operador-title" id="operadorTitle">Tudo certo por aqui</div>
-      <div class="operador-sub" id="operadorSub">Nenhum chamado no momento</div>
+      <div class="operador-title" id="operadorTitle">Precisa de ajuda com o som?</div>
+      <div class="operador-sub" id="operadorSub">Toque para chamar o operador de som</div>
       <button class="btn btn-primary operador-call-btn" id="operadorCallBtn" onclick="chamarOperador()">📣 Chamar operador de som</button>
       <button class="btn btn-danger operador-resolve-btn" id="operadorResolveBtn" onclick="resolverChamada()" style="display:none">✅ Já estou indo / Resolver</button>
-      <button class="btn btn-ghost btn-sm operador-notif-btn" id="operadorNotifBtn" onclick="ativarAlertasOperador()" style="display:none">🔔 Ativar alertas neste dispositivo</button>
     </div>
+    <div class="operador-role-box" id="operadorRoleBox"></div>
   </div>
 
   <!-- PAINEL PLAYLISTS -->
@@ -1148,6 +1151,8 @@ let chamadaChamadoEm = null;
 let chamadaTickTimer = null;
 let chamadaCooldownUntil = 0;
 let alertAudioCtx = null;
+const OPERADOR_ROLE_KEY = 'cmusic_is_operador';
+let isOperadorDevice = localStorage.getItem(OPERADOR_ROLE_KEY) === '1';
 const ICON_EDIT='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m4 16.8-.8 4 4-.8L18.7 8.5l-3.2-3.2L4 16.8Zm16.7-11.1a1 1 0 0 0 0-1.4l-1-1a1 1 0 0 0-1.4 0l-1.5 1.5L20 8l.7-.7Z"/></svg>';
 const ICON_DELETE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7h14M9 7V4.5h6V7M7.5 7l.7 12h7.6l.7-12M10.5 10.5v5M13.5 10.5v5"/></svg>';
 
@@ -1685,6 +1690,8 @@ function applyChamadaState(row){
 }
 
 function onChamadaAtivada(){
+  updateOperadorNavIndicator();
+  if(!isOperadorDevice)return;
   showChamadaBanner();
   playAlertSound();
   if(navigator.vibrate)navigator.vibrate([200,100,200,100,200]);
@@ -1699,6 +1706,8 @@ function onChamadaAtivada(){
 }
 
 function onChamadaResolvida(){
+  updateOperadorNavIndicator();
+  if(!isOperadorDevice)return;
   hideChamadaBanner();
   clearInterval(chamadaTickTimer);
   chamadaTickTimer=null;
@@ -1715,7 +1724,7 @@ function hideChamadaBanner(){
 
 function updateOperadorNavIndicator(){
   const dot=document.getElementById('bnOperadorDot');
-  if(dot)dot.style.display=chamadaAtiva?'block':'none';
+  if(dot)dot.style.display=(isOperadorDevice&&chamadaAtiva)?'block':'none';
 }
 
 function updateOperadorPanel(){
@@ -1726,40 +1735,83 @@ function updateOperadorPanel(){
   const callBtn=document.getElementById('operadorCallBtn');
   const resolveBtn=document.getElementById('operadorResolveBtn');
   if(!shell)return;
-  if(chamadaAtiva){
-    shell.classList.add('alert-active');
-    title.classList.add('alert-active');
-    icon.textContent='🚨';
-    title.textContent='Vá até os músicos!';
-    sub.textContent=chamadaChamadoEm?`Chamado ${relativeTimeFrom(chamadaChamadoEm)}`:'O operador de som foi chamado';
+  if(isOperadorDevice){
     callBtn.style.display='none';
-    resolveBtn.style.display='inline-flex';
+    if(chamadaAtiva){
+      shell.classList.add('alert-active');
+      title.classList.add('alert-active');
+      icon.textContent='🚨';
+      title.textContent='Vá até os músicos!';
+      sub.textContent=chamadaChamadoEm?`Chamado ${relativeTimeFrom(chamadaChamadoEm)}`:'O operador de som foi chamado';
+      resolveBtn.style.display='inline-flex';
+    }else{
+      shell.classList.remove('alert-active');
+      title.classList.remove('alert-active');
+      icon.textContent='🔊';
+      title.textContent='Tudo certo por aqui';
+      sub.textContent='Nenhum chamado no momento';
+      resolveBtn.style.display='none';
+    }
   }else{
     shell.classList.remove('alert-active');
     title.classList.remove('alert-active');
-    icon.textContent='🔊';
-    title.textContent='Tudo certo por aqui';
-    sub.textContent='Nenhum chamado no momento';
-    callBtn.style.display='inline-flex';
     resolveBtn.style.display='none';
+    callBtn.style.display='inline-flex';
+    icon.textContent='🔊';
+    title.textContent='Precisa de ajuda com o som?';
+    if(chamadaAtiva){
+      sub.textContent='Operador já foi avisado, aguarde um momento';
+      callBtn.disabled=true;
+    }else{
+      sub.textContent='Toque para chamar o operador de som';
+      callBtn.disabled=false;
+    }
   }
-  updateOperadorNotifButton();
+  renderOperadorRoleBox();
 }
 
-function updateOperadorNotifButton(){
-  const btn=document.getElementById('operadorNotifBtn');
-  if(!btn)return;
-  btn.style.display=(typeof Notification!=='undefined'&&Notification.permission==='default')?'inline-flex':'none';
+function renderOperadorRoleBox(){
+  const box=document.getElementById('operadorRoleBox');
+  if(!box)return;
+  if(isOperadorDevice){
+    const notifOk=typeof Notification!=='undefined'&&Notification.permission==='granted';
+    box.innerHTML=`
+      <div class="operador-role-note">✅ Você é o operador de som neste aparelho</div>
+      ${!notifOk?'<button class="btn btn-ghost btn-sm" onclick="ativarAlertasOperador()">🔔 Ativar notificações</button>':''}
+      <button class="btn btn-ghost btn-sm" onclick="sairDoPapelOperador()">Sair desse papel</button>`;
+  }else{
+    box.innerHTML=`<button class="btn btn-ghost btn-sm" onclick="tornarSeOperador()">🔔 Sou eu quem opera o som neste aparelho</button>`;
+  }
+}
+
+async function tornarSeOperador(){
+  isOperadorDevice=true;
+  localStorage.setItem(OPERADOR_ROLE_KEY,'1');
+  toast('Você agora é o operador de som neste aparelho!','success');
+  if(typeof Notification!=='undefined'&&Notification.permission==='default'){
+    await Notification.requestPermission();
+  }
+  updateOperadorPanel();
+  updateOperadorNavIndicator();
+}
+
+function sairDoPapelOperador(){
+  isOperadorDevice=false;
+  localStorage.removeItem(OPERADOR_ROLE_KEY);
+  toast('Você não é mais o operador de som neste aparelho.','info');
+  updateOperadorPanel();
+  updateOperadorNavIndicator();
 }
 
 async function ativarAlertasOperador(){
   if(typeof Notification==='undefined'){toast('Seu navegador não suporta notificações','info');return;}
   const perm=await Notification.requestPermission();
-  updateOperadorNotifButton();
-  toast(perm==='granted'?'Alertas ativados neste dispositivo!':'Permissão não concedida','info');
+  renderOperadorRoleBox();
+  toast(perm==='granted'?'Notificações ativadas neste dispositivo!':'Permissão não concedida','info');
 }
 
 async function chamarOperador(){
+  if(chamadaAtiva){toast('O operador já foi avisado, aguarde um instante.','info');return;}
   if(Date.now()<chamadaCooldownUntil){toast('O operador já foi avisado, aguarde um instante.','info');return;}
   chamadaCooldownUntil=Date.now()+15000;
   try{
