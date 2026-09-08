@@ -1,6 +1,6 @@
 ***Sobre o Projeto***
 
-O C-Music foi criado para resolver um problema comum entre os lideres de cânticos: organizar previamente as músicas que serão tocadas em um evento.
+O Nexo foi criado para resolver um problema comum entre os lideres de cânticos: organizar previamente as músicas que serão tocadas em um evento.
 
 Com ele, o líder de cânticos pode:
 

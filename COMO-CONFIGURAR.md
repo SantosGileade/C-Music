@@ -1,4 +1,4 @@
-# 🎵 C-Music — Como Configurar para Salvar Sempre
+# 🎵 Nexo — Como Configurar para Salvar Sempre
 
 ## O que você vai ter no final
 - Um link público (tipo `https://seu-usuario.github.io/c-music`) que abre no celular de qualquer pessoa da equipe
@@ -114,7 +114,7 @@ Para acessar de qualquer celular pelo navegador, sem precisar abrir arquivo.
 ```bash
 git init
 git add index.html
-git commit -m "C-Music app"
+git commit -m "Nexo app"
 git branch -M main
 git remote add origin https://github.com/SEU-USUARIO/c-music.git
 git push -u origin main
