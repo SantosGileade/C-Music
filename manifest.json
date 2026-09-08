@@ -1,6 +1,6 @@
 {
-  "name": "C-Music",
-  "short_name": "C-Music",
+  "name": "Nexo",
+  "short_name": "Nexo",
   "description": "App de músicas para culto",
   "start_url": ".",
   "display": "standalone",
