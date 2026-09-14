@@ -618,6 +618,11 @@
     #recentUpdatesScreen.open{display:flex}
     .recent-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(20px + var(--safe-bot))}
     .recent-time{color:var(--accent2);font-weight:600}
+    .recent-item{background:var(--card);border-bottom:1px solid var(--border);padding:13px 14px}
+    .recent-item:last-child{border-bottom:none}
+    .recent-item-top{display:flex;align-items:center;gap:11px}
+    .recent-item-actions{display:flex;gap:8px;margin-top:10px}
+    .recent-item-actions .btn{flex:1;justify-content:center}
 
     /* ===== OPERADOR DE SOM ===== */
     .bn-icon-wrap{position:relative;display:inline-flex}
@@ -1179,6 +1184,7 @@ let selectedPlaylistPickerIds = new Set();
 let playlistItems = [];
 let homeStatsUpdatedAt = null;
 let demoMusicUpdatedAt = null;
+const demoVistoIds = new Set();
 let homeRealtimeCh = null;
 let recentUpdatesCache = [];
 let alertAudioCtx = null;
@@ -1588,20 +1594,14 @@ function relativeTimeFrom(iso){
 /* =====================================================================
    HOME — ÚLTIMAS ATUALIZAÇÕES
    ===================================================================== */
-const RECENT_SEEN_KEY='cmusic_last_seen_updates';
-
-async function dbListRecentMusicas(limit=30){
-  const {data,error}=await sb.from('musica').select('*').order('criado_em',{ascending:false}).limit(limit);
+async function dbListRecentMusicas(limit=50){
+  const {data,error}=await sb.from('musica').select('*').is('visto_em',null).order('criado_em',{ascending:false}).limit(limit);
   if(error)throw error;
   return data||[];
 }
-
-function getLastSeenUpdates(){
-  const v=localStorage.getItem(RECENT_SEEN_KEY);
-  return v?new Date(v).getTime():0;
-}
-function setLastSeenUpdates(ts){
-  localStorage.setItem(RECENT_SEEN_KEY,new Date(ts).toISOString());
+async function dbMarcarMusicaVista(id){
+  const {error}=await sb.from('musica').update({visto_em:new Date().toISOString()}).eq('id',id);
+  if(error)throw error;
 }
 
 function recentTimestampOf(m){
@@ -1610,9 +1610,9 @@ function recentTimestampOf(m){
 
 async function fetchRecentMusicas(){
   if(DEMO){
-    return demoMusicUpdatedAt?DDATA.musicas.map(m=>({...m,criado_em:demoMusicUpdatedAt})):[];
+    return DDATA.musicas.filter(m=>!demoVistoIds.has(m.id)).map(m=>({...m,criado_em:demoMusicUpdatedAt||m.criado_em}));
   }
-  return dbListRecentMusicas(30);
+  return dbListRecentMusicas(50);
 }
 
 async function refreshUpdateBadge(){
@@ -1621,11 +1621,7 @@ async function refreshUpdateBadge(){
   try{
     const items=await fetchRecentMusicas();
     recentUpdatesCache=items;
-    const lastSeen=getLastSeenUpdates();
-    const count=items.filter(m=>{
-      const t=recentTimestampOf(m);
-      return t&&new Date(t).getTime()>lastSeen;
-    }).length;
+    const count=items.length;
     if(count>0){
       badge.textContent=count>9?'9+':String(count);
       badge.style.display='flex';
@@ -1635,41 +1631,57 @@ async function refreshUpdateBadge(){
   }catch(e){}
 }
 
+function renderRecentUpdatesList(){
+  const listEl=document.getElementById('recentUpdatesList');
+  if(!recentUpdatesCache.length){
+    listEl.innerHTML='<div class="letra-empty"><div class="letra-empty-icon">🎵</div><div>Nenhuma atualização recente</div></div>';
+    return;
+  }
+  listEl.innerHTML=recentUpdatesCache.map(m=>`
+    <div class="recent-item" id="recentItem${m.id}">
+      <div class="recent-item-top">
+        <div class="song-card-body">
+          <div class="song-card-title" title="${esc(m.titulo)}">${esc(m.titulo)}</div>
+          <div class="song-card-sub">
+            ${m.autor?`<span>${esc(m.autor)}</span>`:''}
+            <span class="recent-time">${relativeTimeFrom(recentTimestampOf(m))}</span>
+          </div>
+        </div>
+        ${m.tom?`<span class="tom-badge song-card-tone">${esc(m.tom)}</span>`:''}
+      </div>
+      <div class="recent-item-actions">
+        <button class="btn btn-ghost btn-sm" onclick="copyLetraToClipboard(${m.id})">📋 Copiar letra</button>
+        <button class="btn btn-teal btn-sm" onclick="marcarComoVista(${m.id})">✅ Já adicionada</button>
+      </div>
+    </div>`).join('');
+}
+
 async function openRecentUpdatesScreen(){
   const listEl=document.getElementById('recentUpdatesList');
   listEl.innerHTML='<div style="text-align:center;padding:40px"><div class="spinner" style="margin:auto"></div></div>';
   document.getElementById('recentUpdatesScreen').classList.add('open');
   document.body.style.overflow='hidden';
   try{
-    const items=await fetchRecentMusicas();
-    recentUpdatesCache=items;
-    if(!items.length){
-      listEl.innerHTML='<div class="letra-empty"><div class="letra-empty-icon">🎵</div><div>Nenhuma atualização recente</div></div>';
-    }else{
-      listEl.innerHTML=items.map(m=>`
-        <div class="song-card">
-          <div class="song-card-body">
-            <div class="song-card-title" title="${esc(m.titulo)}">${esc(m.titulo)}</div>
-            <div class="song-card-sub">
-              ${m.autor?`<span>${esc(m.autor)}</span>`:''}
-              <span class="recent-time">${relativeTimeFrom(recentTimestampOf(m))}</span>
-            </div>
-          </div>
-          <div class="song-card-actions">
-            ${m.tom?`<span class="tom-badge song-card-tone">${esc(m.tom)}</span>`:''}
-            <button class="btn btn-ghost btn-sm" onclick="copyLetraToClipboard(${m.id})">📋 Copiar letra</button>
-          </div>
-        </div>`).join('');
-    }
-    const newest=items.reduce((max,m)=>{
-      const t=recentTimestampOf(m);
-      const time=t?new Date(t).getTime():0;
-      return time>max?time:max;
-    },0);
-    if(newest)setLastSeenUpdates(newest);
+    recentUpdatesCache=await fetchRecentMusicas();
+    renderRecentUpdatesList();
     refreshUpdateBadge();
   }catch(e){
     listEl.innerHTML='<div class="letra-empty"><div class="letra-empty-icon">⚠️</div><div>Não foi possível carregar as atualizações</div></div>';
+  }
+}
+
+async function marcarComoVista(id){
+  try{
+    if(DEMO){
+      demoVistoIds.add(id);
+    }else{
+      await dbMarcarMusicaVista(id);
+    }
+    recentUpdatesCache=recentUpdatesCache.filter(m=>m.id!==id);
+    renderRecentUpdatesList();
+    refreshUpdateBadge();
+  }catch(e){
+    toast('Não foi possível marcar como adicionada','error');
   }
 }
 
