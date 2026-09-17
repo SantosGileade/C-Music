@@ -634,8 +634,6 @@
     .already-added-tag{display:inline-flex;align-items:center;justify-content:center;flex:1;padding:5px 11px;font-size:.78rem;font-weight:600;color:var(--green);background:rgba(76,175,130,.12);border:1px solid rgba(76,175,130,.3);border-radius:var(--radius2)}
 
     /* ===== OPERADOR DE SOM ===== */
-    .bn-icon-wrap{position:relative;display:inline-flex}
-    .bn-dot{position:absolute;top:-2px;right:-7px;width:8px;height:8px;border-radius:50%;background:var(--red);box-shadow:0 0 0 2px rgba(13,13,26,.96);animation:pulse 1.2s infinite}
     .operador-shell{max-width:420px;margin:32px auto;text-align:center;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:40px 24px;display:flex;flex-direction:column;align-items:center;gap:12px;transition:background .25s ease,border-color .25s ease}
     .operador-icon{font-size:3.4rem;line-height:1}
     .operador-title{font-size:1.3rem;font-weight:800}
@@ -729,7 +727,7 @@
         <div class="home-hero-sub">O que você vai fazer hoje?</div>
       </div>
       <div class="home-actions">
-        <button class="home-card" style="--home-color:#7c63e8" onclick="switchPanel('musicas')">
+        <button class="home-card" style="--home-color:#7c63e8" onclick="openMusicasChoiceModal()">
           <div class="home-card-icon" style="background:linear-gradient(135deg,var(--accent),var(--accent2))">🎶</div>
           <div class="home-card-body">
             <div class="home-card-title">Músicas</div>
@@ -737,7 +735,7 @@
           </div>
           <div class="home-card-arrow">›</div>
         </button>
-        <button class="home-card" style="--home-color:#e5a940" onclick="switchPanel('apresentacao')">
+        <button class="home-card" style="--home-color:#e5a940" onclick="openDatashowChoiceModal()">
           <div class="home-card-icon" style="background:linear-gradient(135deg,var(--pink),var(--yellow))">🎬</div>
           <div class="home-card-body">
             <div class="home-card-title">Datashow</div>
@@ -864,6 +862,21 @@
           <button class="btn btn-teal btn-sm datashow-complete" id="apCompleteBtn" onclick="apCompleteProxima()">✓ Concluir</button>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- PAINEL MENSAGENS -->
+  <div class="panel" id="panel-mensagens">
+    <div class="panel-header">
+      <div>
+        <div class="panel-title">💬 <span>Mensagens</span></div>
+        <div style="font-size:.79rem;color:var(--text3);margin-top:2px">Envie avisos e versículos para o telão</div>
+      </div>
+    </div>
+    <div class="ap-waiting">
+      <div class="ap-waiting-icon">🚧</div>
+      <div class="ap-waiting-title">Em desenvolvimento</div>
+      <div class="ap-waiting-sub">Em breve você vai poder enviar mensagens e versículos direto para o telão do Datashow.</div>
     </div>
   </div>
 
@@ -1086,6 +1099,56 @@
   </div>
 </div>
 
+<!-- MODAL: ESCOLHA MÚSICAS/PLAYLISTS -->
+<div class="modal-overlay" id="musicasChoiceModal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header"><h2>Músicas</h2><button class="modal-close" onclick="closeMusicasChoiceModal()">✕</button></div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:10px">
+      <button class="home-card" style="--home-color:#7c63e8" onclick="closeMusicasChoiceModal();switchPanel('musicas')">
+        <div class="home-card-icon" style="background:linear-gradient(135deg,var(--accent),var(--accent2))">🎶</div>
+        <div class="home-card-body">
+          <div class="home-card-title">Músicas</div>
+          <div class="home-card-desc">Cadastre, edite e gerencie seu acervo</div>
+        </div>
+        <div class="home-card-arrow">›</div>
+      </button>
+      <button class="home-card" style="--home-color:#4E75A6" onclick="closeMusicasChoiceModal();switchPanel('playlists')">
+        <div class="home-card-icon" style="background:linear-gradient(135deg,var(--teal),var(--accent2))">📋</div>
+        <div class="home-card-body">
+          <div class="home-card-title">Playlists</div>
+          <div class="home-card-desc">Organize o repertório por evento</div>
+        </div>
+        <div class="home-card-arrow">›</div>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ESCOLHA DATASHOW/MENSAGENS -->
+<div class="modal-overlay" id="datashowChoiceModal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header"><h2>Datashow</h2><button class="modal-close" onclick="closeDatashowChoiceModal()">✕</button></div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:10px">
+      <button class="home-card" style="--home-color:#e5a940" onclick="closeDatashowChoiceModal();switchPanel('apresentacao')">
+        <div class="home-card-icon" style="background:linear-gradient(135deg,var(--pink),var(--yellow))">🎬</div>
+        <div class="home-card-body">
+          <div class="home-card-title">Visualização de Playlist</div>
+          <div class="home-card-desc">Acompanhe o repertório e a próxima música</div>
+        </div>
+        <div class="home-card-arrow">›</div>
+      </button>
+      <button class="home-card" style="--home-color:#4E75A6" onclick="closeDatashowChoiceModal();switchPanel('mensagens')">
+        <div class="home-card-icon" style="background:linear-gradient(135deg,var(--teal),var(--accent2))">💬</div>
+        <div class="home-card-body">
+          <div class="home-card-title">Mensagens</div>
+          <div class="home-card-desc">Envie avisos e versículos para o telão</div>
+        </div>
+        <div class="home-card-arrow">›</div>
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: CONFIRM -->
 <div class="modal-overlay" id="confirmModal">
   <div class="modal" style="max-width:400px">
@@ -1149,10 +1212,6 @@
   <button class="bottom-nav-btn" id="bnPlaylists" onclick="switchPanel('playlists')" aria-label="Playlists">
     <span class="bn-icon">📋</span>
     <span>Playlists</span>
-  </button>
-  <button class="bottom-nav-btn" id="bnOperador" onclick="switchPanel('operador')" aria-label="Operador de Som">
-    <span class="bn-icon-wrap"><span class="bn-icon">🔊</span><span class="bn-dot" id="bnOperadorDot" style="display:none"></span></span>
-    <span>Operador</span>
   </button>
 </nav>
 
@@ -1546,6 +1605,14 @@ function toast(msg, type='info') {
 }
 
 /* =====================================================================
+   MODAIS DE ESCOLHA (HOME)
+   ===================================================================== */
+function openMusicasChoiceModal(){document.getElementById('musicasChoiceModal').classList.add('open');}
+function closeMusicasChoiceModal(){document.getElementById('musicasChoiceModal').classList.remove('open');}
+function openDatashowChoiceModal(){document.getElementById('datashowChoiceModal').classList.add('open');}
+function closeDatashowChoiceModal(){document.getElementById('datashowChoiceModal').classList.remove('open');}
+
+/* =====================================================================
    CONFIRM DIALOG
    ===================================================================== */
 let confirmCb = null;
@@ -1839,7 +1906,6 @@ function applyOperadorAtualState(row){
   operadorAtualDeviceId=row?.device_id||null;
   isOperadorDevice=operadorAtualDeviceId===MY_DEVICE_ID;
   renderOperadorPanel();
-  updateOperadorNavIndicator();
   updateOperadorHomeBadge();
 }
 
@@ -1852,7 +1918,6 @@ async function refreshPedidosPendentes(){
     pedidosPendentes=[];
   }
   renderOperadorPanel();
-  updateOperadorNavIndicator();
   updateOperadorHomeBadge();
 }
 
@@ -1885,11 +1950,6 @@ function updateOperadorHomeBadge(){
   }else{
     badge.style.display='none';
   }
-}
-
-function updateOperadorNavIndicator(){
-  const dot=document.getElementById('bnOperadorDot');
-  if(dot)dot.style.display=(isOperadorDevice&&pedidosPendentes.length>0)?'block':'none';
 }
 
 function tipoIcon(tipo){
@@ -2114,7 +2174,7 @@ function playAlertSound(){
 /* =====================================================================
    PANEL SWITCHING
    ===================================================================== */
-const PANEL_LABELS = {musicas:'🎶 Músicas', playlists:'📋 Playlists', apresentacao:'🎬 Datashow', operador:'🔊 Operador de Som'};
+const PANEL_LABELS = {musicas:'🎶 Músicas', playlists:'📋 Playlists', apresentacao:'🎬 Datashow', mensagens:'💬 Mensagens', operador:'🔊 Operador de Som'};
 
 function switchPanel(name) {
   if(name==='home')startHomeRealtime();else stopHomeRealtime();
@@ -2130,8 +2190,8 @@ function switchPanel(name) {
   titleEl.style.display='none';
   titleEl.textContent='';
 
-  // Bottom nav — visível em Músicas, Playlists e Operador de Som
-  const showNav = name === 'musicas' || name === 'playlists' || name === 'operador';
+  // Bottom nav — visível só em Músicas e Playlists (áreas irmãs); Operador é destino único, sem nav
+  const showNav = name === 'musicas' || name === 'playlists';
   const nav = document.getElementById('bottomNav');
   nav.classList.toggle('visible', showNav);
   document.querySelector('main').style.paddingBottom = showNav
@@ -2140,7 +2200,6 @@ function switchPanel(name) {
   if (showNav) {
     document.getElementById('bnMusicas').classList.toggle('active', name === 'musicas');
     document.getElementById('bnPlaylists').classList.toggle('active', name === 'playlists');
-    document.getElementById('bnOperador').classList.toggle('active', name === 'operador');
   }
 
   if(name==='musicas'){
@@ -2168,7 +2227,7 @@ document.addEventListener('keydown',e=>{
   if(e.key!=='Escape')return;
   if(document.getElementById('letraScreen').classList.contains('open')){closeLetra();return;}
   if(document.getElementById('recentUpdatesScreen').classList.contains('open')){closeRecentUpdatesScreen();return;}
-  ['musicaModal','toneFilterModal','playlistModal','addSongModal','addToPlaylistModal','confirmModal'].forEach(id=>{
+  ['musicaModal','toneFilterModal','playlistModal','addSongModal','addToPlaylistModal','confirmModal','musicasChoiceModal','datashowChoiceModal'].forEach(id=>{
     document.getElementById(id).classList.remove('open');
   });
 });
