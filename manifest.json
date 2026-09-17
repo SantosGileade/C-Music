@@ -1,6 +1,6 @@
 {
-  "name": "Nexo",
-  "short_name": "Nexo",
+  "name": "Nexos",
+  "short_name": "Nexos",
   "description": "App de músicas para culto",
   "start_url": ".",
   "display": "standalone",
