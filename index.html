@@ -370,6 +370,9 @@
     .back-btn{width:38px;height:38px;border-radius:10px;background:var(--card2);border:1px solid var(--border);color:var(--text2);display:flex;align-items:center;justify-content:center;transition:var(--transition);font-size:1.1rem;flex-shrink:0}
     .back-btn:hover{background:var(--accent);color:#fff;border-color:transparent}
     .detail-header-actions{margin-left:auto;display:flex;gap:8px}
+    .playlist-ativa-bar{margin-bottom:14px}
+    .playlist-ativa-bar .btn{width:100%;justify-content:center;padding:10px}
+    .playlist-ativa-bar .btn.playlist-ativa-on{background:linear-gradient(135deg,var(--green),#3d9d6f);color:#fff}
     .playing-indicator{display:flex;align-items:center;gap:5px;font-size:.74rem;color:var(--green);font-weight:600}
     .playing-bars{display:flex;gap:2px;align-items:flex-end;height:13px}
     .playing-bars span{width:3px;background:var(--green);border-radius:2px;animation:bar .8s ease infinite alternate}
@@ -542,6 +545,10 @@
     .ap-card-header{padding:11px 15px;background:var(--card2);border-bottom:1px solid var(--border);font-size:.73rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);display:flex;align-items:center;justify-content:space-between;gap:10px}
     .ap-card-hint{font-weight:500;text-transform:none;letter-spacing:0;text-align:right}
     .ap-song-list{width:100%;min-width:0;max-height:calc(100dvh - 380px);min-height:180px;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch}
+    .ap-waiting{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:48px 24px;gap:10px;color:var(--text3)}
+    .ap-waiting-icon{font-size:2.6rem}
+    .ap-waiting-title{font-size:1rem;font-weight:700;color:var(--text)}
+    .ap-waiting-sub{font-size:.82rem;max-width:320px;line-height:1.5}
     .ap-song-item{width:100%;min-width:0;display:grid;grid-template-columns:24px minmax(0,1fr) 22px;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border);transition:var(--transition)}
     .ap-song-item:last-child{border-bottom:none}
     .ap-song-item.ap-proxima{background:rgba(20,184,166,.07)}
@@ -620,9 +627,11 @@
     .recent-time{color:var(--accent2);font-weight:600}
     .recent-item{background:var(--card);border-bottom:1px solid var(--border);padding:13px 14px}
     .recent-item:last-child{border-bottom:none}
+    .recent-item.recent-item-done{opacity:.55}
     .recent-item-top{display:flex;align-items:center;gap:11px}
     .recent-item-actions{display:flex;gap:8px;margin-top:10px}
     .recent-item-actions .btn{flex:1;justify-content:center}
+    .already-added-tag{display:inline-flex;align-items:center;justify-content:center;flex:1;padding:5px 11px;font-size:.78rem;font-weight:600;color:var(--green);background:rgba(76,175,130,.12);border:1px solid rgba(76,175,130,.3);border-radius:var(--radius2)}
 
     /* ===== OPERADOR DE SOM ===== */
     .bn-icon-wrap{position:relative;display:inline-flex}
@@ -908,6 +917,9 @@
           </button>
         </div>
       </div>
+      <div class="playlist-ativa-bar">
+        <button class="btn btn-primary btn-sm" id="playlistAtivaBtn" onclick="togglePlaylistAtiva()">📽 Exibir no Datashow</button>
+      </div>
       <div class="table-wrap" style="display:block">
         <table>
           <thead><tr>
@@ -1185,6 +1197,7 @@ let playlistItems = [];
 let homeStatsUpdatedAt = null;
 let demoMusicUpdatedAt = null;
 const demoVistoIds = new Set();
+let demoPlaylistAtivaId = null;
 let homeRealtimeCh = null;
 let recentUpdatesCache = [];
 let alertAudioCtx = null;
@@ -1362,6 +1375,30 @@ async function dbUpdatePlaylist(id,b) {
 async function dbClearPublicPlaylists() {
   const {error}=await sb.from('playlist').update({publico:false}).eq('publico',true);
   if(error) throw error;
+}
+const PLAYLIST_ATIVA_MAX_MS=24*3600*1000;
+
+async function dbSetPlaylistAtiva(id) {
+  const {error:e1}=await sb.from('playlist').update({ativa:false,ativada_em:null}).eq('ativa',true);
+  if(e1) throw e1;
+  const {error:e2}=await sb.from('playlist').update({ativa:true,ativada_em:new Date().toISOString()}).eq('id',id);
+  if(e2) throw e2;
+}
+async function dbClearPlaylistAtiva(id) {
+  const {error}=await sb.from('playlist').update({ativa:false,ativada_em:null}).eq('id',id);
+  if(error) throw error;
+}
+async function dbGetPlaylistAtiva() {
+  const {data,error}=await sb.from('playlist').select('*').eq('ativa',true).maybeSingle();
+  if(error) throw error;
+  if(data&&data.ativada_em){
+    const elapsed=Date.now()-new Date(data.ativada_em).getTime();
+    if(elapsed>PLAYLIST_ATIVA_MAX_MS){
+      try{await dbClearPlaylistAtiva(data.id);}catch(e){}
+      return null;
+    }
+  }
+  return data;
 }
 async function dbDeletePlaylist(id) {
   const {error} = await sb.from('playlist').delete().eq('id',id);
@@ -1594,10 +1631,15 @@ function relativeTimeFrom(iso){
 /* =====================================================================
    HOME — ÚLTIMAS ATUALIZAÇÕES
    ===================================================================== */
-async function dbListRecentMusicas(limit=50){
-  const {data,error}=await sb.from('musica').select('*').is('visto_em',null).order('criado_em',{ascending:false}).limit(limit);
+async function dbListRecentMusicas(limit=30){
+  const {data,error}=await sb.from('musica').select('*').order('criado_em',{ascending:false}).limit(limit);
   if(error)throw error;
   return data||[];
+}
+async function dbCountPendentesRevisao(){
+  const {count,error}=await sb.from('musica').select('id',{count:'exact',head:true}).is('visto_em',null);
+  if(error)throw error;
+  return count||0;
 }
 async function dbMarcarMusicaVista(id){
   const {error}=await sb.from('musica').update({visto_em:new Date().toISOString()}).eq('id',id);
@@ -1610,18 +1652,18 @@ function recentTimestampOf(m){
 
 async function fetchRecentMusicas(){
   if(DEMO){
-    return DDATA.musicas.filter(m=>!demoVistoIds.has(m.id)).map(m=>({...m,criado_em:demoMusicUpdatedAt||m.criado_em}));
+    return DDATA.musicas.map(m=>({...m,criado_em:demoMusicUpdatedAt||m.criado_em,visto_em:demoVistoIds.has(m.id)?new Date().toISOString():null}));
   }
-  return dbListRecentMusicas(50);
+  return dbListRecentMusicas(30);
 }
 
 async function refreshUpdateBadge(){
   const badge=document.getElementById('homeUpdateBadge');
   if(!badge)return;
   try{
-    const items=await fetchRecentMusicas();
-    recentUpdatesCache=items;
-    const count=items.length;
+    const count=DEMO
+      ?DDATA.musicas.filter(m=>!demoVistoIds.has(m.id)).length
+      :await dbCountPendentesRevisao();
     if(count>0){
       badge.textContent=count>9?'9+':String(count);
       badge.style.display='flex';
@@ -1638,7 +1680,7 @@ function renderRecentUpdatesList(){
     return;
   }
   listEl.innerHTML=recentUpdatesCache.map(m=>`
-    <div class="recent-item" id="recentItem${m.id}">
+    <div class="recent-item${m.visto_em?' recent-item-done':''}" id="recentItem${m.id}">
       <div class="recent-item-top">
         <div class="song-card-body">
           <div class="song-card-title" title="${esc(m.titulo)}">${esc(m.titulo)}</div>
@@ -1651,7 +1693,9 @@ function renderRecentUpdatesList(){
       </div>
       <div class="recent-item-actions">
         <button class="btn btn-ghost btn-sm" onclick="copyLetraToClipboard(${m.id})">📋 Copiar letra</button>
-        <button class="btn btn-teal btn-sm" onclick="marcarComoVista(${m.id})">✅ Já adicionada</button>
+        ${m.visto_em
+          ?'<span class="already-added-tag">✔️ Já adicionada</span>'
+          :`<button class="btn btn-teal btn-sm" onclick="marcarComoVista(${m.id})">✅ Já adicionada</button>`}
       </div>
     </div>`).join('');
 }
@@ -1677,7 +1721,8 @@ async function marcarComoVista(id){
     }else{
       await dbMarcarMusicaVista(id);
     }
-    recentUpdatesCache=recentUpdatesCache.filter(m=>m.id!==id);
+    const item=recentUpdatesCache.find(m=>m.id===id);
+    if(item)item.visto_em=new Date().toISOString();
     renderRecentUpdatesList();
     refreshUpdateBadge();
   }catch(e){
@@ -2878,6 +2923,50 @@ async function openPlaylistDetail(id,title,publico){
   currentPLItems=(items||[]).sort((a,b)=>a.ordem-b.ordem);
   renderPlaylistDetail(currentPLItems);
   startDetailRefresh();
+  refreshPlaylistAtivaButton();
+}
+
+async function refreshPlaylistAtivaButton(){
+  if(!currentPL)return;
+  try{
+    const ativaPl=DEMO?(demoPlaylistAtivaId?{id:demoPlaylistAtivaId}:null):await dbGetPlaylistAtiva();
+    currentPL.ativa=Boolean(ativaPl&&ativaPl.id===currentPL.id);
+  }catch(e){
+    currentPL.ativa=false;
+  }
+  updatePlaylistAtivaButton();
+}
+
+function updatePlaylistAtivaButton(){
+  const btn=document.getElementById('playlistAtivaBtn');
+  if(!btn||!currentPL)return;
+  if(currentPL.ativa){
+    btn.classList.add('playlist-ativa-on');
+    btn.textContent='🟢 Em exibição no Datashow · Parar';
+  }else{
+    btn.classList.remove('playlist-ativa-on');
+    btn.textContent='📽 Exibir no Datashow';
+  }
+}
+
+async function togglePlaylistAtiva(){
+  if(!currentPL)return;
+  try{
+    if(currentPL.ativa){
+      if(DEMO){demoPlaylistAtivaId=null;}
+      else{await dbClearPlaylistAtiva(currentPL.id);}
+      currentPL.ativa=false;
+      toast('Playlist não está mais no Datashow.','info');
+    }else{
+      if(DEMO){demoPlaylistAtivaId=currentPL.id;}
+      else{await dbSetPlaylistAtiva(currentPL.id);}
+      currentPL.ativa=true;
+      toast('Playlist sendo exibida no Datashow!','success');
+    }
+    updatePlaylistAtivaButton();
+  }catch(e){
+    toast('Não foi possível atualizar o Datashow','error');
+  }
 }
 
 function renderPlaylistDetail(items){
@@ -3091,6 +3180,8 @@ let apSongs       = [];   // [{mp, musica}]
 let apProximaGlobal = null;
 let apProximaId   = null;
 let apRealtimeCh  = null;
+let apAtivaCh     = null;
+let apPlaylistAtivaId = null;
 let apGlobalRefreshTimer = null;
 let apDraggedId   = null;
 let apJustDragged = false;
@@ -3102,25 +3193,24 @@ let apLastAlertedProximaId = null;
    ===================================================================== */
 async function apLoadPlaylists() {
   const sel = document.getElementById('apPlaylistSel');
-  const prev = sel.value || localStorage.getItem('cmusic_datashow_playlist') || '';
   let items;
-  if (DEMO) { await delay(100); getOrCreateDemoHojePlaylist(); items = DDATA.playlists; }
-  else {
-    try { await dbGetOrCreateHojePlaylist(); items = await dbListPlaylists(); } catch(e) { return; }
+  let ativaPl=null;
+  if (DEMO) {
+    await delay(100); getOrCreateDemoHojePlaylist(); items = DDATA.playlists;
+    ativaPl = demoPlaylistAtivaId ? items.find(p=>p.id===demoPlaylistAtivaId) : null;
+  } else {
+    try {
+      await dbGetOrCreateHojePlaylist();
+      items = await dbListPlaylists();
+    } catch(e) { return; }
+    try { ativaPl = await dbGetPlaylistAtiva(); } catch(e) { ativaPl = null; }
   }
+  apPlaylistAtivaId = ativaPl ? ativaPl.id : null;
   sel.innerHTML = '<option value="">— Selecione a Playlist —</option>' +
     (items||[]).map(p=>`<option value="${p.id}" data-title="${esc(p.title)}" data-pub="${p.publico}">${esc(p.title)}</option>`).join('');
-  const prevExists=(items||[]).some(p=>String(p.id)===String(prev));
-  const todayPlaylist=(items||[]).find(p=>p.title==='Hoje');
-  const preferred = todayPlaylist
-    ?String(todayPlaylist.id)
-    :(prevExists ? prev : String((items||[]).find(p=>p.publico)?.id || ''));
-  if (preferred) {
-    sel.value = preferred;
-    await apLoadSongs();
-  }else{
-    await apLoadSongs();
-  }
+  sel.value = apPlaylistAtivaId ? String(apPlaylistAtivaId) : '';
+  await apLoadSongs();
+  startApAtivaRealtime();
 }
 
 function apPlaylistChanged() {
@@ -3128,6 +3218,25 @@ function apPlaylistChanged() {
   if(id) localStorage.setItem('cmusic_datashow_playlist',id);
   else localStorage.removeItem('cmusic_datashow_playlist');
   apLoadSongs();
+}
+
+async function apResyncAtiva(){
+  try{
+    const ativaPl=await dbGetPlaylistAtiva();
+    const newId=ativaPl?ativaPl.id:null;
+    if(newId!==apPlaylistAtivaId){
+      apPlaylistAtivaId=newId;
+      document.getElementById('apPlaylistSel').value=newId?String(newId):'';
+      await apLoadSongs();
+    }
+  }catch(e){}
+}
+
+function startApAtivaRealtime(){
+  if(DEMO||!sb||apAtivaCh)return;
+  apAtivaCh=sb.channel('playlist-ativa')
+    .on('postgres_changes',{event:'*',schema:'public',table:'playlist'},apResyncAtiva)
+    .subscribe();
 }
 
 async function apLoadSongs() {
@@ -3142,7 +3251,12 @@ async function apLoadSongs() {
   apStartRealtime(id||null);
 
   if (!id) {
-    listEl.innerHTML = '<div style="padding:28px;text-align:center;color:var(--text3);font-size:.84rem">Selecione uma playlist acima</div>';
+    listEl.innerHTML = `
+      <div class="ap-waiting">
+        <div class="ap-waiting-icon">⏳</div>
+        <div class="ap-waiting-title">Aguardando o líder de cânticos</div>
+        <div class="ap-waiting-sub">Assim que uma playlist for selecionada para o Datashow, ela aparece aqui automaticamente. Se uma próxima música já tiver sido indicada, ela aparece ao lado.</div>
+      </div>`;
     return;
   }
   listEl.innerHTML = '<div style="padding:28px;text-align:center"><div class="spinner" style="margin:auto"></div></div>';
@@ -3486,6 +3600,7 @@ function apStopRealtime() {
   startOperadorRealtime();
   setInterval(checkConn,60000);
   setInterval(updateHomeRelativeTime,60000);
+  setInterval(apResyncAtiva,5*60000);
 })();
 </script>
 </body>
