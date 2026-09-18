@@ -16,3 +16,4 @@ HELP.md
 node_modules/
 package-lock.json
 dist/
+.claude/
