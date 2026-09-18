@@ -36,7 +36,8 @@
     /* ===== HEADER ===== */
     header{position:sticky;top:0;z-index:100;background:rgba(13,13,26,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border);display:flex;align-items:flex-end;gap:10px;padding:0 16px 10px;padding-top:calc(var(--safe-top) + 10px);min-height:calc(60px + var(--safe-top))}
     .logo{display:flex;align-items:center;gap:9px;font-size:1.2rem;font-weight:700;letter-spacing:-.5px}
-    .logo-icon{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--pink));display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+    .logo-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;overflow:hidden}
+    .logo-icon img{width:100%;height:100%;object-fit:cover}
     .logo-text span{color:var(--accent3)}
     nav{display:flex;gap:3px;margin-left:12px}
     .nav-btn{padding:6px 13px;border-radius:8px;background:transparent;color:var(--text2);font-size:.84rem;font-weight:500;transition:var(--transition);white-space:nowrap}
@@ -275,12 +276,18 @@
     .modal-close:hover{background:var(--red);color:#fff}
     .modal-body{padding:0 20px}
     .modal-footer{display:flex;justify-content:flex-end;gap:10px;padding:16px 20px}
+    /* Modais de escolha (home) não têm rodapé — no desktop o .modal zera o padding-bottom e o último card fica colado */
+    @media(min-width:600px){
+      #musicasChoiceModal .modal-body,#datashowChoiceModal .modal-body{padding-bottom:20px}
+    }
 
     /* ===== FORM ===== */
     .form-group{margin-bottom:13px}
     .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
     @media(max-width:400px){.form-row{grid-template-columns:1fr}}
     .form-label{display:block;font-size:.76rem;font-weight:600;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px}
+    .form-label-row{display:flex!important;align-items:center;justify-content:space-between;gap:8px}
+    .conteudo-fix-btn{text-transform:none;letter-spacing:0;font-size:.72rem;padding:4px 9px}
     .form-input{width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--text);border-radius:var(--radius2);padding:10px 13px;font-size:1rem;transition:var(--transition)}
     .form-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,58,237,.15)}
     .form-input::placeholder{color:var(--text3)}
@@ -447,7 +454,29 @@
     /* ===== LETRA FULLSCREEN ===== */
     #letraScreen{display:none;position:fixed;inset:0;z-index:300;background:#000;flex-direction:column;transition:transform .18s ease}
     #letraScreen.open{display:flex}
+    #mensagemScreen{display:none;position:fixed;inset:0;z-index:300;background:#000;flex-direction:column}
+    #mensagemScreen.open{display:flex}
     #letraScreen.edge-swiping{transition:none}
+    .verso-list{display:flex;flex-direction:column;gap:12px}
+    .verso-item{display:flex;gap:14px;align-items:flex-start;padding:16px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);cursor:pointer;transition:background .15s ease,border-color .15s ease;user-select:none}
+    .verso-item:hover{background:rgba(255,255,255,.07)}
+    .verso-item.verso-ativo{background:rgba(224,82,82,.16);border-color:rgba(224,82,82,.55)}
+    .verso-num{flex-shrink:0;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.09);color:rgba(255,255,255,.5);font-size:.72rem;font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:3px}
+    .verso-item.verso-ativo .verso-num{background:var(--red);color:#fff}
+    .verso-texto{flex:1;min-width:0;color:#fff;line-height:1.8;white-space:pre-wrap;font-family:'Georgia','Times New Roman',serif}
+    .verso-retirar{flex-shrink:0}
+    .telao-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 18px;background:rgba(0,0,0,.6);border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0}
+    .telao-toolbar-font{display:flex;align-items:center;gap:6px;margin-left:auto}
+    .telao-toolbar-label{font-size:.72rem;color:rgba(255,255,255,.45);margin-right:2px;white-space:nowrap}
+    /* ===== TELÃO (2ª tela) ===== */
+    #telaoScreen{display:none;position:fixed;inset:0;z-index:300;background:#000;background-size:cover;background-position:center;align-items:center;justify-content:center;padding:60px}
+    #telaoScreen.active{display:flex}
+    .telao-content{max-width:1400px;width:100%;text-align:center}
+    .telao-content.telao-com-fundo .telao-text{background:rgba(0,0,0,.55);padding:24px 40px;border-radius:16px;display:inline-block}
+    .telao-text{color:#fff;font-size:2.6rem;line-height:1.6;white-space:pre-wrap;font-family:'Georgia','Times New Roman',serif}
+    .telao-idle{color:rgba(255,255,255,.25);font-size:1.3rem;font-family:inherit}
+    body.telao-mode>*:not(#telaoScreen){display:none!important}
+    body.telao-mode #telaoScreen{display:flex}
     .letra-header{display:flex;align-items:center;gap:12px;padding:13px 18px;padding-top:calc(13px + var(--safe-top));background:rgba(0,0,0,.8);border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0}
     .letra-header-info{flex:1;min-width:0}
     .letra-header-title{font-size:1rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -495,6 +524,7 @@
     .home-hero{text-align:center;padding:28px 12px 30px}
     .home-hero-icon{font-size:3.6rem;line-height:1;margin-bottom:14px;filter:drop-shadow(0 10px 24px rgba(102,86,230,.38))}
     .home-hero-title{font-size:2.35rem;font-weight:800;letter-spacing:-1.5px}
+    .home-hero-title span{color:var(--accent3)}
     .home-hero-sub{font-size:1rem;color:var(--text3);margin-top:8px}
     .home-actions{display:flex;flex-direction:column;gap:14px}
     .home-actions .home-card{padding:20px 18px;border-radius:18px;background:linear-gradient(105deg,rgba(42,63,89,.9),rgba(27,43,70,.76));position:relative;overflow:hidden}
@@ -536,6 +566,23 @@
     }
     @media(min-width:640px){
       #panel-home{height:calc(100dvh - 112px - var(--safe-top))}
+    }
+    /* Notebook/desktop: os elementos foram pensados pra celular e ficam grandes demais numa tela maior */
+    @media(min-width:1024px){
+      .home-hero{padding:16px 12px 18px}
+      .home-hero-icon{font-size:2.2rem;margin-bottom:8px}
+      .home-hero-title{font-size:1.6rem;letter-spacing:-1px}
+      .home-hero-sub{font-size:.88rem;margin-top:4px}
+      .home-actions{gap:10px}
+      .home-actions .home-card{padding:14px 16px}
+      .home-actions .home-card-icon{width:46px;height:46px;font-size:1.3rem}
+      .home-actions .home-card-title{font-size:1rem}
+      .home-actions .home-card-desc{font-size:.8rem}
+      .home-actions .home-card-arrow{width:32px;height:32px;font-size:.95rem}
+      .home-stats{padding:12px 8px}
+      .home-stat-icon{font-size:1.05rem;margin-bottom:4px}
+      .home-stat-value{font-size:.92rem}
+      .home-stat-label{font-size:.66rem}
     }
 
     /* ===== DATASHOW PANEL ===== */
@@ -701,7 +748,7 @@
 <header>
   <button class="back-btn" id="headerBackBtn" onclick="switchPanel('home')" style="display:none" title="Voltar">←</button>
   <div class="logo">
-    <div class="logo-icon">🎵</div>
+    <div class="logo-icon"><img src="img/icon-192.png" alt="Nexos"></div>
     <div class="logo-text">Nex<span>os</span></div>
   </div>
   <div id="headerPanelTitle" style="font-size:.9rem;font-weight:600;color:var(--text2);display:none"></div>
@@ -869,14 +916,34 @@
   <div class="panel" id="panel-mensagens">
     <div class="panel-header">
       <div>
-        <div class="panel-title">💬 <span>Mensagens</span></div>
-        <div style="font-size:.79rem;color:var(--text3);margin-top:2px">Envie avisos e versículos para o telão</div>
+        <div class="panel-title">Mensagens</div>
+        <div class="music-subtitle">Gerencie os livros de pregação</div>
+      </div>
+      <button class="btn btn-primary music-add-btn" onclick="openMensagemModal()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        <span class="music-add-label">Nova mensagem</span>
+      </button>
+    </div>
+    <div class="search-row">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input class="search-input" type="search" id="mensagemSearch" placeholder="Buscar por título, autor..." autocomplete="off" />
       </div>
     </div>
-    <div class="ap-waiting">
-      <div class="ap-waiting-icon">🚧</div>
-      <div class="ap-waiting-title">Em desenvolvimento</div>
-      <div class="ap-waiting-sub">Em breve você vai poder enviar mensagens e versículos direto para o telão do Datashow.</div>
+    <!-- Desktop -->
+    <div class="table-wrap" id="mensagemTableWrap">
+      <table>
+        <thead><tr><th style="width:38px">#</th><th>Título</th><th>Autor</th><th style="text-align:right">Ações</th></tr></thead>
+        <tbody id="mensagemTbody"><tr class="loading-row"><td colspan="4"><div class="spinner" style="margin:auto"></div></td></tr></tbody>
+      </table>
+    </div>
+    <!-- Mobile -->
+    <div class="card-list-wrap">
+      <div id="mensagemCardList"><div style="text-align:center;padding:40px"><div class="spinner" style="margin:auto"></div></div></div>
+    </div>
+    <!-- Carregamento automático ao chegar ao fim da lista -->
+    <div id="mensagemVerMais" style="display:none;justify-content:center;padding:18px 0" aria-live="polite">
+      <div class="spinner" title="Carregando mais mensagens"></div>
     </div>
   </div>
 
@@ -997,6 +1064,52 @@
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeMusicaModal()">Cancelar</button>
       <button class="btn btn-primary" id="musicaSaveBtn" onclick="saveMusica()">✓ Salvar música</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: MENSAGEM -->
+<div class="modal-overlay" id="mensagemModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="music-modal-heading">
+        <span class="music-modal-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        </span>
+        <div><h2 id="mensagemModalTitle">Nova Mensagem</h2><div class="music-modal-subtitle" id="mensagemModalSubtitle">Adicione os detalhes da mensagem ao acervo.</div></div>
+      </div>
+      <button class="modal-close" onclick="closeMensagemModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="mensagemId" />
+      <div class="form-group">
+        <label class="form-label">Título *</label>
+        <div class="music-input-wrap">
+          <svg class="music-field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l10-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="16" cy="16" r="3"/></svg>
+          <input class="form-input" id="mensagemTitulo" type="text" placeholder="Ex: A Parábola do Semeador" autocomplete="off" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Autor</label>
+        <div class="music-input-wrap">
+          <svg class="music-field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.5-4 3-6 7-6s6.5 2 7 6"/></svg>
+          <input class="form-input" id="mensagemAutor" type="text" placeholder="Ex: Pr. João Silva" autocomplete="off" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label form-label-row">
+          Conteúdo
+          <button type="button" class="btn btn-ghost btn-sm conteudo-fix-btn" onclick="corrigirEspacamentoConteudo()" title="Corrige palavras coladas ao colar de um PDF">🪄 Corrigir espaçamento</button>
+        </label>
+        <div class="music-input-wrap textarea-wrap">
+          <svg class="music-field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 6h14M5 12h14M5 18h9"/></svg>
+          <textarea class="form-input" id="mensagemConteudo" placeholder="Cole o conteúdo da mensagem aqui..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeMensagemModal()">Cancelar</button>
+      <button class="btn btn-primary" id="mensagemSaveBtn" onclick="saveMensagem()">✓ Salvar mensagem</button>
     </div>
   </div>
 </div>
@@ -1187,6 +1300,49 @@
   </div>
 </div>
 
+<!-- MENSAGEM FULLSCREEN -->
+<div id="mensagemScreen">
+  <div class="letra-header">
+    <button class="letra-close" onclick="closeMensagemView()">←</button>
+    <div class="letra-header-info">
+      <div class="letra-header-title" id="mensagemViewTitulo">—</div>
+      <div class="letra-header-meta">
+        <span id="mensagemViewAutor"></span>
+      </div>
+    </div>
+    <div class="letra-controls">
+      <button class="letra-font-btn" onclick="changeMensagemFont(-2)" title="Diminuir minha leitura">A−</button>
+      <button class="letra-font-btn" onclick="changeMensagemFont(2)" title="Aumentar minha leitura">A+</button>
+    </div>
+  </div>
+  <div class="telao-toolbar">
+    <button class="btn btn-ghost btn-sm" onclick="abrirTelao()">🖥️ Abrir Telão</button>
+    <button class="btn btn-ghost btn-sm" onclick="triggerTelaoBgInput()">🖼️ Fundo</button>
+    <button class="btn btn-ghost btn-sm" id="telaoBgClearBtn" onclick="limparTelaoFundo()" style="display:none">✕ Remover fundo</button>
+    <input type="file" id="telaoBgInput" accept="image/*" style="display:none" onchange="onTelaoBgSelected(event)">
+    <div class="telao-toolbar-font">
+      <span class="telao-toolbar-label">Tamanho no telão</span>
+      <button class="letra-font-btn" onclick="changeTelaoFont(-2)">A−</button>
+      <button class="letra-font-btn" onclick="changeTelaoFont(2)">A+</button>
+    </div>
+    <button class="btn btn-danger btn-sm" id="retirarTelaoBtn" onclick="retirarDoTelao()" style="display:none">🚫 Retirar do telão</button>
+  </div>
+  <div class="letra-body">
+    <div id="mensagemViewEmpty" class="letra-empty" style="display:none">
+      <div class="letra-empty-icon">💬</div>
+      <div>Nenhum conteúdo cadastrado</div>
+    </div>
+    <div id="mensagemViewBody" class="verso-list"></div>
+  </div>
+</div>
+
+<!-- TELÃO (2ª tela, aberta em outra janela no modo Estender) -->
+<div id="telaoScreen">
+  <div id="telaoContent" class="telao-content">
+    <div class="telao-idle">Aguardando conteúdo do operador…</div>
+  </div>
+</div>
+
 <!-- ÚLTIMAS ATUALIZAÇÕES FULLSCREEN -->
 <div id="recentUpdatesScreen">
   <div class="letra-header">
@@ -1213,6 +1369,14 @@
     <span class="bn-icon">📋</span>
     <span>Playlists</span>
   </button>
+  <button class="bottom-nav-btn" id="bnApresentacao" onclick="switchPanel('apresentacao')" aria-label="Visualização" style="display:none">
+    <span class="bn-icon">🎬</span>
+    <span>Visualização</span>
+  </button>
+  <button class="bottom-nav-btn" id="bnMensagens" onclick="switchPanel('mensagens')" aria-label="Mensagens" style="display:none">
+    <span class="bn-icon">💬</span>
+    <span>Mensagens</span>
+  </button>
 </nav>
 
 <script>
@@ -1230,6 +1394,12 @@ const PAGE_SIZE   = 10;
 let cachedMusicas = [];
 let musicaLoadingMore = false;
 let musicaHasMore = false;
+let mensagemFontSize = 22;
+let mensagemPage = 0;
+let mensagemTotalEl = 0;
+let cachedMensagens = [];
+let mensagemLoadingMore = false;
+let mensagemHasMore = false;
 let currentPL     = null; // { id, title, publico }
 let allMusicasPicker = [];
 let selectedSongPickerIds = new Set();
@@ -1313,6 +1483,10 @@ const DDATA = {
     {id:6,titulo:'10,000 Reasons',autor:'Matt Redman',tom:'G',letra:'Bless the Lord O my soul, O my soul\nWorship His holy name\nSing like never before, O my soul\nI\'ll worship Your holy name'},
     {id:7,titulo:'Cornerstone',autor:'Hillsong Worship',tom:'A',letra:'My hope is built on nothing less\nThan Jesus\' blood and righteousness\nI dare not trust the sweetest frame\nBut wholly trust in Jesus\' Name\n\nOn Christ the solid Rock I stand\nAll other ground is sinking sand'},
   ],
+  mensagens: [
+    {id:1,titulo:'A Parábola do Semeador',autor:'Pr. João Silva',conteudo:'E ele lhes falou muitas coisas por parábolas, dizendo: Eis que o semeador saiu a semear...'},
+    {id:2,titulo:'O Filho Pródigo',autor:'Pr. Marcos Souza',conteudo:'Disse ainda: Um homem tinha dois filhos...'},
+  ],
   playlists:[
     {id:1,title:'Culto Domingo Manhã',publico:true},
     {id:2,title:'Culto Quarta-Feira',publico:false},
@@ -1386,6 +1560,32 @@ async function dbUpdateMusica(id,b) {
 }
 async function dbDeleteMusica(id) {
   const {error} = await sb.from('musica').delete().eq('id',id);
+  if (error) throw error;
+}
+async function dbListMensagens(titulo, page) {
+  let q = sb.from('mensagem').select('*', {count:'exact'});
+  if (titulo) q = q.or(`titulo.ilike.%${titulo}%,autor.ilike.%${titulo}%,conteudo.ilike.%${titulo}%`);
+  const {data, count, error} = await q
+    .range(page * PAGE_SIZE, (page+1)*PAGE_SIZE - 1)
+    .order('titulo', {ascending:true})
+    .order('id', {ascending:true});
+  if (error) throw error;
+  return {content:data, totalElements:count, totalPages:Math.ceil(count/PAGE_SIZE), number:page};
+}
+async function dbGetMensagem(id) {
+  const {data,error} = await sb.from('mensagem').select('*').eq('id',id).single();
+  if (error) throw error; return data;
+}
+async function dbCreateMensagem(b) {
+  const {data,error} = await sb.from('mensagem').insert(b).select().single();
+  if (error) throw error; return data;
+}
+async function dbUpdateMensagem(id,b) {
+  const {data,error} = await sb.from('mensagem').update(b).eq('id',id).select().single();
+  if (error) throw error; return data;
+}
+async function dbDeleteMensagem(id) {
+  const {error} = await sb.from('mensagem').delete().eq('id',id);
   if (error) throw error;
 }
 async function dbListPlaylists() {
@@ -1779,6 +1979,7 @@ async function openRecentUpdatesScreen(){
   }catch(e){
     listEl.innerHTML='<div class="letra-empty"><div class="letra-empty-icon">⚠️</div><div>Não foi possível carregar as atualizações</div></div>';
   }
+  if(location.hash!=='#atualizacoes')history.pushState({overlay:'atualizacoes'},'','#atualizacoes');
 }
 
 async function marcarComoVista(id){
@@ -1797,9 +1998,13 @@ async function marcarComoVista(id){
   }
 }
 
-function closeRecentUpdatesScreen(){
+function hideRecentUpdatesOverlay(){
   document.getElementById('recentUpdatesScreen').classList.remove('open');
   document.body.style.overflow='';
+}
+function closeRecentUpdatesScreen(){
+  hideRecentUpdatesOverlay();
+  if(location.hash==='#atualizacoes')history.back();
 }
 
 async function copyLetraToClipboard(id){
@@ -2176,10 +2381,19 @@ function playAlertSound(){
    ===================================================================== */
 const PANEL_LABELS = {musicas:'🎶 Músicas', playlists:'📋 Playlists', apresentacao:'🎬 Datashow', mensagens:'💬 Mensagens', operador:'🔊 Operador de Som'};
 
-function switchPanel(name) {
+function switchPanel(name, navOpts) {
+  navOpts = navOpts || {};
   if(name==='home')startHomeRealtime();else stopHomeRealtime();
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.getElementById('panel-'+name).classList.add('active');
+
+  if(!navOpts.fromPopstate){
+    const hash='#'+name;
+    if(location.hash!==hash){
+      if(navOpts.replaceUrl)history.replaceState({panel:name},'',hash);
+      else history.pushState({panel:name},'',hash);
+    }
+  }
 
   const backBtn   = document.getElementById('headerBackBtn');
   const titleEl   = document.getElementById('headerPanelTitle');
@@ -2190,16 +2404,27 @@ function switchPanel(name) {
   titleEl.style.display='none';
   titleEl.textContent='';
 
-  // Bottom nav — visível só em Músicas e Playlists (áreas irmãs); Operador é destino único, sem nav
-  const showNav = name === 'musicas' || name === 'playlists';
+  // Bottom nav — cada "área" (Músicas/Playlists e Datashow/Mensagens) mostra só os seus 2 botões;
+  // Operador é destino único, acessado pela home, sem nav
+  const musicasArea = name === 'musicas' || name === 'playlists';
+  const datashowArea = name === 'apresentacao' || name === 'mensagens';
+  const showNav = musicasArea || datashowArea;
   const nav = document.getElementById('bottomNav');
   nav.classList.toggle('visible', showNav);
   document.querySelector('main').style.paddingBottom = showNav
     ? 'calc(72px + var(--safe-bot))'
     : 'calc(20px + var(--safe-bot))';
-  if (showNav) {
+  document.getElementById('bnMusicas').style.display = musicasArea ? '' : 'none';
+  document.getElementById('bnPlaylists').style.display = musicasArea ? '' : 'none';
+  document.getElementById('bnApresentacao').style.display = datashowArea ? '' : 'none';
+  document.getElementById('bnMensagens').style.display = datashowArea ? '' : 'none';
+  if (musicasArea) {
     document.getElementById('bnMusicas').classList.toggle('active', name === 'musicas');
     document.getElementById('bnPlaylists').classList.toggle('active', name === 'playlists');
+  }
+  if (datashowArea) {
+    document.getElementById('bnApresentacao').classList.toggle('active', name === 'apresentacao');
+    document.getElementById('bnMensagens').classList.toggle('active', name === 'mensagens');
   }
 
   if(name==='musicas'){
@@ -2213,6 +2438,10 @@ function switchPanel(name) {
     loadPlaylists();
   }
   if(name==='apresentacao') apLoadPlaylists();
+  if(name==='mensagens'){
+    document.getElementById('mensagemSearch').value='';
+    loadMensagens();
+  }
   if(name==='operador') renderOperadorPanel();
   if(name==='home'){
     loadHomeStats();
@@ -2227,7 +2456,8 @@ document.addEventListener('keydown',e=>{
   if(e.key!=='Escape')return;
   if(document.getElementById('letraScreen').classList.contains('open')){closeLetra();return;}
   if(document.getElementById('recentUpdatesScreen').classList.contains('open')){closeRecentUpdatesScreen();return;}
-  ['musicaModal','toneFilterModal','playlistModal','addSongModal','addToPlaylistModal','confirmModal','musicasChoiceModal','datashowChoiceModal'].forEach(id=>{
+  if(document.getElementById('mensagemScreen').classList.contains('open')){closeMensagemView();return;}
+  ['musicaModal','mensagemModal','toneFilterModal','playlistModal','addSongModal','addToPlaylistModal','confirmModal','musicasChoiceModal','datashowChoiceModal'].forEach(id=>{
     document.getElementById(id).classList.remove('open');
   });
 });
@@ -2246,10 +2476,11 @@ function appBackSwipeStart(event){
   const touch=event.touches[0];
   const letraOpen=document.getElementById('letraScreen').classList.contains('open');
   const recentOpen=document.getElementById('recentUpdatesScreen').classList.contains('open');
+  const mensagemOpen=document.getElementById('mensagemScreen').classList.contains('open');
   const modalOpen=document.querySelector('.modal-overlay.open');
   appSwipePanel=document.querySelector('.panel.active');
   appSwipeActive=Boolean(
-    touch&&touch.clientX<=36&&!letraOpen&&!recentOpen&&!modalOpen&&appSwipePanel?.id!=='panel-home'
+    touch&&touch.clientX<=36&&!letraOpen&&!recentOpen&&!mensagemOpen&&!modalOpen&&appSwipePanel?.id!=='panel-home'
   );
   appSwipeAxis=null;
   if(appSwipeActive){
@@ -2493,6 +2724,453 @@ const musicaScrollObserver = new IntersectionObserver(entries=>{
   if(entries.some(entry=>entry.isIntersecting)) loadMoreMusicas();
 },{rootMargin:'300px 0px'});
 musicaScrollObserver.observe(document.getElementById('musicaVerMais'));
+
+/* =====================================================================
+   MENSAGENS — LISTAGEM
+   ===================================================================== */
+async function loadMensagens() {
+  mensagemPage=0;
+  mensagemLoadingMore=false;
+  mensagemHasMore=false;
+  const titulo=document.getElementById('mensagemSearch').value.trim();
+  document.getElementById('mensagemTbody').innerHTML='<tr class="loading-row"><td colspan="4"><div class="spinner" style="margin:auto"></div></td></tr>';
+  document.getElementById('mensagemCardList').innerHTML='<div style="text-align:center;padding:36px"><div class="spinner" style="margin:auto"></div></div>';
+  document.getElementById('mensagemVerMais').style.display='none';
+
+  let data;
+  if(DEMO){
+    await delay(220);
+    let f=DDATA.mensagens.filter(m=>
+      !titulo||(m.titulo.toLowerCase().includes(titulo.toLowerCase())||(m.autor||'').toLowerCase().includes(titulo.toLowerCase())||(m.conteudo||'').toLowerCase().includes(titulo.toLowerCase()))
+    );
+    f=f.slice().sort((a,b)=>a.titulo.localeCompare(b.titulo,'pt-BR'));
+    data={content:f.slice(0,PAGE_SIZE),totalElements:f.length,totalPages:Math.ceil(f.length/PAGE_SIZE),number:0};
+  }else{
+    try{data=await dbListMensagens(titulo,0);}
+    catch(e){
+      document.getElementById('mensagemTbody').innerHTML='<tr class="empty-row"><td colspan="4">Erro ao carregar. Verifique a conexão.</td></tr>';
+      document.getElementById('mensagemCardList').innerHTML='<div style="text-align:center;padding:36px;color:var(--red)">Erro ao carregar.</div>';
+      return;
+    }
+  }
+  renderMensagens(data,false);
+}
+
+async function loadMoreMensagens(){
+  if(mensagemLoadingMore || !mensagemHasMore) return;
+  mensagemLoadingMore=true;
+  mensagemPage++;
+  const titulo=document.getElementById('mensagemSearch').value.trim();
+  let data;
+  if(DEMO){
+    await delay(220);
+    let f=DDATA.mensagens.filter(m=>
+      !titulo||(m.titulo.toLowerCase().includes(titulo.toLowerCase())||(m.autor||'').toLowerCase().includes(titulo.toLowerCase()))
+    );
+    f=f.slice().sort((a,b)=>a.titulo.localeCompare(b.titulo,'pt-BR'));
+    const s=mensagemPage*PAGE_SIZE;
+    data={content:f.slice(s,s+PAGE_SIZE),totalElements:f.length,totalPages:Math.ceil(f.length/PAGE_SIZE),number:mensagemPage};
+  }else{
+    try{data=await dbListMensagens(titulo,mensagemPage);}
+    catch(e){
+      mensagemPage--;
+      mensagemLoadingMore=false;
+      return;
+    }
+  }
+  renderMensagens(data,true);
+  mensagemLoadingMore=false;
+}
+
+function renderMensagens(data,append=false){
+  const items=Array.isArray(data)?data:(data.content||[]);
+  const totalEl=Array.isArray(data)?data.length:(data.totalElements||0);
+  mensagemPage=Array.isArray(data)?0:(data.number||0);
+  mensagemTotalEl=totalEl;
+  cachedMensagens=append?[...cachedMensagens,...items]:items;
+
+  const offset=mensagemPage*PAGE_SIZE;
+
+  if(!append&&!items.length){
+    document.getElementById('mensagemTbody').innerHTML='<tr class="empty-row"><td colspan="4">Nenhuma mensagem encontrada.</td></tr>';
+    document.getElementById('mensagemCardList').innerHTML='<div style="text-align:center;padding:36px;color:var(--text3);font-style:italic">Nenhuma mensagem.</div>';
+    document.getElementById('mensagemVerMais').style.display='none';
+    mensagemHasMore=false;
+    return;
+  }
+
+  const rowsHtml=items.map((m,i)=>`
+    <tr>
+      <td style="color:var(--text3);font-size:.77rem">${offset+i+1}</td>
+      <td class="td-title clickable" onclick="openMensagemView(${m.id})">${esc(m.titulo)}</td>
+      <td>${esc(m.autor||'—')}</td>
+      <td><div class="td-actions">
+        <button class="btn btn-ghost btn-sm btn-icon music-action music-action-edit standard-edit-icon" title="Editar" onclick="editMensagem(${m.id})">${ICON_EDIT}</button>
+        <button class="btn btn-danger btn-sm btn-icon music-action music-action-delete standard-delete-icon" title="Excluir" onclick="deleteMensagem(${m.id},'${esc(m.titulo)}')">${ICON_DELETE}</button>
+      </div></td>
+    </tr>`).join('');
+
+  const cardsHtml=items.map((m,i)=>`
+    <div class="song-card">
+      <div class="song-num">${offset+i+1}</div>
+      <div class="song-card-body clickable" onclick="openMensagemView(${m.id})">
+        <div class="song-card-title" title="${esc(m.titulo)}">${esc(m.titulo)}</div>
+        <div class="song-card-sub">
+          ${m.autor?`<span>${esc(m.autor)}</span>`:''}
+        </div>
+      </div>
+      <div class="song-card-actions">
+        <button class="btn btn-ghost btn-sm btn-icon music-action music-action-edit standard-edit-icon" title="Editar" onclick="editMensagem(${m.id})">${ICON_EDIT}</button>
+        <button class="btn btn-danger btn-sm btn-icon music-action music-action-delete standard-delete-icon" title="Excluir" onclick="deleteMensagem(${m.id},'${esc(m.titulo)}')">${ICON_DELETE}</button>
+      </div>
+    </div>`).join('');
+
+  if(append){
+    document.getElementById('mensagemTbody').innerHTML+=rowsHtml;
+    document.getElementById('mensagemCardList').innerHTML+=cardsHtml;
+  }else{
+    document.getElementById('mensagemTbody').innerHTML=rowsHtml;
+    document.getElementById('mensagemCardList').innerHTML=cardsHtml;
+  }
+
+  const loaded=(mensagemPage+1)*PAGE_SIZE;
+  const verMais=document.getElementById('mensagemVerMais');
+  mensagemHasMore=loaded<totalEl;
+  verMais.style.display=mensagemHasMore?'flex':'none';
+}
+
+const mensagemScrollObserver = new IntersectionObserver(entries=>{
+  if(entries.some(entry=>entry.isIntersecting)) loadMoreMensagens();
+},{rootMargin:'300px 0px'});
+mensagemScrollObserver.observe(document.getElementById('mensagemVerMais'));
+
+let mensagemSearchTimer;
+document.getElementById('mensagemSearch').addEventListener('input',()=>{
+  clearTimeout(mensagemSearchTimer);
+  mensagemSearchTimer=setTimeout(loadMensagens,380);
+});
+
+/* =====================================================================
+   MENSAGENS — CRUD MODAL
+   ===================================================================== */
+function openMensagemModal(id=null) {
+  ['mensagemId','mensagemTitulo','mensagemAutor','mensagemConteudo'].forEach(k=>document.getElementById(k).value='');
+  document.getElementById('mensagemModalTitle').textContent=id?'Editar Mensagem':'Nova Mensagem';
+  document.getElementById('mensagemModalSubtitle').textContent=id?'Atualize os detalhes da mensagem.':'Adicione os detalhes da mensagem ao acervo.';
+  document.getElementById('mensagemSaveBtn').textContent=id?'✓ Salvar alterações':'✓ Salvar mensagem';
+  document.getElementById('mensagemId').value=id||'';
+  document.getElementById('mensagemModal').classList.add('open');
+  setTimeout(()=>document.getElementById('mensagemTitulo').focus(),150);
+}
+async function editMensagem(id) {
+  openMensagemModal(id);
+  let m=cachedMensagens.find(x=>x.id===id);
+  if(!m){
+    try{m=DEMO?DDATA.mensagens.find(x=>x.id===id):await dbGetMensagem(id);}
+    catch(e){toast('Erro ao buscar','error');return;}
+  }
+  if(m){
+    document.getElementById('mensagemTitulo').value=m.titulo||'';
+    document.getElementById('mensagemAutor').value=m.autor||'';
+    document.getElementById('mensagemConteudo').value=m.conteudo||'';
+  }
+}
+function closeMensagemModal(){document.getElementById('mensagemModal').classList.remove('open');}
+
+/* =====================================================================
+   CORREÇÃO DE PALAVRAS COLADAS (paste de PDF sem espaços)
+   ===================================================================== */
+const PT_DICT=new Set(['a','ao','aos','aquela','aquelas','aquele','aqueles','aquilo','as','às','até','através','cada','com','como','contra','da','das','de','dele','deles','dela','delas','desde','deste','desta','destes','destas','disso','disto','do','dos','e','ela','elas','ele','eles','em','entre','era','eram','essa','essas','esse','esses','esta','está','estamos','estão','estar','estas','estava','estavam','este','esteja','estejam','estes','esteve','estive','estivemos','estiveram','estou','eu','foi','fomos','for','fora','foram','fosse','fossem','fui','há','haja','hajam','havia','hei','houve','houvemos','houver','houvera','houveram','isso','isto','já','lhe','lhes','lá','mais','mas','me','mesmo','mesma','mesmos','mesmas','meu','meus','minha','minhas','muito','muita','muitos','muitas','na','nas','nem','no','nos','nós','nossa','nossas','nosso','nossos','num','numa','não','o','os','ou','para','pela','pelas','pelo','pelos','por','qual','quando','que','quem','se','seja','sejam','sem','ser','será','serão','seu','seus','só','sua','suas','também','te','tem','tém','têm','temos','tendo','tenha','tenham','tenho','ter','terá','terão','teu','teus','teve','tinha','tinham','tive','tivemos','tiveram','tu','tua','tuas','tudo','um','uma','umas','uns','vai','vamos','você','vocês','vos','vosso','vossa','à','ainda','agora','então','assim','sobre','sob','após','antes','depois','onde','porque','porquê','pois','sim','não','todo','toda','todos','todas','outro','outra','outros','outras','algum','alguma','alguns','algumas','nenhum','nenhuma','cada','qualquer','quaisquer','tão','tanto','tanta','tantos','tantas','mais','menos','bem','mal','melhor','pior','grande','pequeno','pequena','novo','nova','velho','velha','bom','boa','mau','má','deus','senhor','jesus','cristo','espírito','santo','igreja','fé','graça','amor','vida','mundo','homem','homens','mulher','mulheres','povo','filho','filhos','filha','filhas','pai','mãe','irmão','irmãos','irmã','irmãs','coração','alma','palavra','palavras','verdade','luz','trevas','céu','céus','terra','reino','glória','poder','paz','esperança','oração','orações','orando','orar','ora','oro','vontade','caminho','porta','casa','tempo','dia','dias','noite','noites','hoje','amanhã','ontem','sempre','nunca','jamais','aqui','ali','lá','cá','todo','toda','gente','pessoa','pessoas','coisa','coisas','fazer','faz','fazem','fazendo','fez','fizeram','disse','disseram','diz','dizem','dizendo','dar','dá','dão','dando','deu','deram','ver','vê','vêem','vendo','viu','viram','saber','sabe','sabem','sabendo','soube','souberam','poder','pode','podem','podendo','pôde','puderam','querer','quer','querem','querendo','quis','quiseram','ir','vai','vão','indo','foi','foram','vir','vem','vêm','vindo','veio','vieram','chegar','chega','chegam','chegando','chegou','chegaram','falar','fala','falam','falando','falou','falaram','pensar','pensa','pensam','pensando','pensou','pensaram','crer','crê','creem','crendo','creu','creram','ouvir','ouve','ouvem','ouvindo','ouviu','ouviram','sentir','sente','sentem','sentindo','sentiu','sentiram','mão','mãos','nome','boca','mente','obra','obras','sangue','cruz','salvação','pecado','pecados','perdão','milagre','milagres','promessa','promessas','bênção','bênçãos','vitória','batalha','guerra','anjo','anjos','profeta','profetas','apóstolo','apóstolos','discípulo','discípulos','templo','altar','sacrifício','oferta','dízimo','jejum','adoração','louvor','cântico','hino','testemunho','poderoso','poderosa','fiel','fidelidade','misericórdia','bondade','justiça','santidade','pureza','humildade','obediência','desobediência','arrependimento','conversão','salvo','salva','salvos','salvas','batismo','ceia','comunhão','unção','nosso','nossos','família','famílias','irmão','servo','serva','servos','servas','rei','reis','rainha','povo','nação','nações']);
+
+function segmentGluedWord(token,dict,maxWord=15){
+  const n=token.length;
+  const dp=new Array(n+1).fill(null);
+  dp[0]=[];
+  for(let i=1;i<=n;i++){
+    for(let j=Math.max(0,i-maxWord);j<i;j++){
+      if(dp[j]===null)continue;
+      const piece=token.slice(j,i);
+      if(piece.length<2&&dp[j].length>0)continue;
+      if(dict.has(piece.toLowerCase())){
+        if(dp[i]===null||dp[j].length+1<dp[i].length){
+          dp[i]=[...dp[j],piece];
+        }
+      }
+    }
+  }
+  return dp[n];
+}
+
+function fixGluedWords(text){
+  if(!text)return text;
+  return text.replace(/\b[A-Za-zÀ-ÿ]{14,}\b/g,(token)=>{
+    const segments=segmentGluedWord(token,PT_DICT);
+    if(segments&&segments.length>1)return segments.join(' ');
+    return token;
+  });
+}
+
+function corrigirEspacamentoConteudo(){
+  const el=document.getElementById('mensagemConteudo');
+  const antes=el.value;
+  const depois=fixGluedWords(antes);
+  el.value=depois;
+  toast(depois!==antes?'Espaçamento corrigido!':'Nenhum trecho colado foi encontrado.',depois!==antes?'success':'info');
+}
+
+document.getElementById('mensagemConteudo').addEventListener('paste',(ev)=>{
+  const texto=(ev.clipboardData||window.clipboardData).getData('text');
+  if(texto==null)return;
+  ev.preventDefault();
+  const corrigido=fixGluedWords(texto);
+  const conteudoEl=ev.target;
+  const start=conteudoEl.selectionStart,end=conteudoEl.selectionEnd;
+  const val=conteudoEl.value;
+  conteudoEl.value=val.slice(0,start)+corrigido+val.slice(end);
+  const pos=start+corrigido.length;
+  conteudoEl.selectionStart=conteudoEl.selectionEnd=pos;
+});
+
+async function saveMensagem() {
+  const id=document.getElementById('mensagemId').value;
+  const titulo=document.getElementById('mensagemTitulo').value.trim();
+  if(!titulo){toast('O título é obrigatório','error');return;}
+  const body={titulo,autor:document.getElementById('mensagemAutor').value.trim(),conteudo:document.getElementById('mensagemConteudo').value.trim()};
+  const btn=document.getElementById('mensagemSaveBtn');
+  btn.disabled=true;btn.textContent='Salvando…';
+  try{
+    if(DEMO){
+      await delay(350);
+      if(id){const i=DDATA.mensagens.findIndex(m=>m.id==id);if(i>=0)DDATA.mensagens[i]={...DDATA.mensagens[i],...body};}
+      else{DDATA.mensagens.push({id:(Math.max(0,...DDATA.mensagens.map(m=>m.id))+1),...body});}
+    }else{
+      if(id)await dbUpdateMensagem(id,body);else await dbCreateMensagem(body);
+    }
+    toast(id?'Mensagem atualizada!':'Mensagem cadastrada! ✨','success');
+    closeMensagemModal();loadMensagens();
+  }catch(e){toast('Erro: '+e.message,'error');}
+  finally{btn.disabled=false;btn.textContent=id?'✓ Salvar alterações':'✓ Salvar mensagem';}
+}
+
+function deleteMensagem(id,nome){
+  openConfirm(`Excluir "${nome}"?`,async()=>{
+    try{
+      if(DEMO){await delay(200);DDATA.mensagens=DDATA.mensagens.filter(m=>m.id!==id);}
+      else{await dbDeleteMensagem(id);}
+      toast('Mensagem excluída!','success');loadMensagens();
+    }catch(e){toast('Erro: '+e.message,'error');}
+  });
+}
+
+/* =====================================================================
+   MENSAGENS — VISUALIZAÇÃO EM VERSOS
+   ===================================================================== */
+let mensagemVerses=[];
+let mensagemProjecting=null;
+
+function splitVerses(texto){
+  if(!texto)return[];
+  const t=texto.replace(/\r\n/g,'\n').trim();
+  if(!t)return[];
+  let parts=t.split(/\n\s*\n+/).map(s=>s.trim()).filter(Boolean);
+  if(parts.length>1)return parts;
+  parts=t.split(/\n(?=\d{1,3}\s)/).map(s=>s.trim()).filter(Boolean);
+  if(parts.length>1)return parts;
+  parts=t.split(/\n+/).map(s=>s.trim()).filter(Boolean);
+  if(parts.length>1)return parts;
+  return[t];
+}
+
+async function openMensagemView(id) {
+  let m=cachedMensagens.find(x=>x.id===id);
+  if(!m){
+    try{m=DEMO?DDATA.mensagens.find(x=>x.id===id):await dbGetMensagem(id);}
+    catch(e){toast('Erro ao abrir mensagem','error');return;}
+  }
+  document.getElementById('mensagemViewTitulo').textContent=m.titulo||'—';
+  document.getElementById('mensagemViewAutor').textContent=m.autor||'';
+  mensagemVerses=splitVerses(m.conteudo);
+  mensagemProjecting=null;
+  renderMensagemVerses();
+  atualizarBotaoRetirarTelao();
+  atualizarBotaoLimparFundo();
+  document.getElementById('mensagemScreen').classList.add('open');
+  document.body.style.overflow='hidden';
+  const hash='#mensagem-'+id;
+  if(location.hash!==hash)history.pushState({overlay:'mensagem',id},'',hash);
+}
+
+function renderMensagemVerses(){
+  const body=document.getElementById('mensagemViewBody');
+  const empty=document.getElementById('mensagemViewEmpty');
+  if(!mensagemVerses.length){
+    body.innerHTML='';
+    empty.style.display='flex';
+    return;
+  }
+  empty.style.display='none';
+  body.innerHTML=mensagemVerses.map((v,i)=>`
+    <div class="verso-item${mensagemProjecting===i?' verso-ativo':''}" ondblclick="toggleProjetarVerso(${i})">
+      <div class="verso-num">${i+1}</div>
+      <div class="verso-texto" style="font-size:${mensagemFontSize}px">${esc(v)}</div>
+    </div>`).join('');
+}
+
+function atualizarBotaoRetirarTelao(){
+  const btn=document.getElementById('retirarTelaoBtn');
+  if(btn)btn.style.display=mensagemProjecting!=null?'inline-flex':'none';
+}
+
+function hideMensagemOverlay(){document.getElementById('mensagemScreen').classList.remove('open');document.body.style.overflow='';}
+function closeMensagemView(){
+  hideMensagemOverlay();
+  if(location.hash.indexOf('#mensagem-')===0)history.back();
+}
+function changeMensagemFont(d){
+  mensagemFontSize=Math.max(14,Math.min(52,mensagemFontSize+d));
+  document.querySelectorAll('#mensagemViewBody .verso-texto').forEach(el=>el.style.fontSize=mensagemFontSize+'px');
+}
+
+/* =====================================================================
+   TELÃO — 2ª TELA (BroadcastChannel entre janelas da mesma origem)
+   ===================================================================== */
+const TELAO_CHANNEL_NAME='nexos-telao';
+const TELAO_FONT_KEY='nexos_telao_font';
+const TELAO_BG_KEY='nexos_telao_bg';
+let telaoChannel=null;
+let telaoWindowRef=null;
+let telaoFontSize=parseInt(localStorage.getItem(TELAO_FONT_KEY))||42;
+
+function getTelaoChannel(){
+  if(!telaoChannel&&'BroadcastChannel'in window){
+    telaoChannel=new BroadcastChannel(TELAO_CHANNEL_NAME);
+    telaoChannel.onmessage=(ev)=>{
+      const msg=ev.data||{};
+      if(msg.type==='ready')enviarParaTelao();
+    };
+  }
+  return telaoChannel;
+}
+
+function garantirTelaoAberto(){
+  if(!telaoWindowRef||telaoWindowRef.closed){
+    const url=location.origin+location.pathname+'#telao';
+    telaoWindowRef=window.open(url,'nexos_telao','width=1100,height=700');
+  }
+  return telaoWindowRef;
+}
+
+function abrirTelao(){
+  if(!('BroadcastChannel'in window)){
+    toast('Seu navegador não suporta o telão','error');
+    return;
+  }
+  getTelaoChannel();
+  const w=garantirTelaoAberto();
+  if(!w){
+    toast('Não foi possível abrir o telão. Verifique o bloqueador de pop-ups.','error');
+    return;
+  }
+  toast('Arraste a janela do telão para a segunda tela','info');
+}
+
+function enviarParaTelao(){
+  const ch=getTelaoChannel();
+  if(!ch)return;
+  if(mensagemProjecting!=null&&mensagemVerses[mensagemProjecting]!=null){
+    ch.postMessage({type:'show',texto:mensagemVerses[mensagemProjecting],fontSize:telaoFontSize,bg:localStorage.getItem(TELAO_BG_KEY)||null});
+  }
+}
+
+function toggleProjetarVerso(i){
+  mensagemProjecting=i;
+  if(!('BroadcastChannel'in window)){toast('Seu navegador não suporta o telão','error');return;}
+  getTelaoChannel();
+  garantirTelaoAberto();
+  enviarParaTelao();
+  renderMensagemVerses();
+  atualizarBotaoRetirarTelao();
+}
+
+function retirarDoTelao(){
+  mensagemProjecting=null;
+  const ch=getTelaoChannel();
+  if(ch)ch.postMessage({type:'clear'});
+  renderMensagemVerses();
+  atualizarBotaoRetirarTelao();
+}
+
+function changeTelaoFont(d){
+  telaoFontSize=Math.max(20,Math.min(96,telaoFontSize+d));
+  localStorage.setItem(TELAO_FONT_KEY,telaoFontSize);
+  enviarParaTelao();
+}
+
+function triggerTelaoBgInput(){document.getElementById('telaoBgInput').click();}
+
+function onTelaoBgSelected(event){
+  const file=event.target.files&&event.target.files[0];
+  event.target.value='';
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    localStorage.setItem(TELAO_BG_KEY,reader.result);
+    atualizarBotaoLimparFundo();
+    enviarParaTelao();
+    toast('Fundo do telão salvo!','success');
+  };
+  reader.onerror=()=>toast('Não foi possível ler a imagem','error');
+  reader.readAsDataURL(file);
+}
+
+function limparTelaoFundo(){
+  localStorage.removeItem(TELAO_BG_KEY);
+  atualizarBotaoLimparFundo();
+  enviarParaTelao();
+  const ch=getTelaoChannel();
+  if(ch)ch.postMessage({type:'bg',bg:null});
+  toast('Fundo do telão removido.','info');
+}
+
+function atualizarBotaoLimparFundo(){
+  const btn=document.getElementById('telaoBgClearBtn');
+  if(btn)btn.style.display=localStorage.getItem(TELAO_BG_KEY)?'inline-flex':'none';
+}
+
+function initTelaoMode(){
+  document.title='Nexos — Telão';
+  document.body.classList.add('telao-mode');
+  aplicarTelaoFundo(localStorage.getItem(TELAO_BG_KEY));
+  const ch=getTelaoChannel();
+  if(!ch)return;
+  ch.onmessage=(ev)=>{
+    const msg=ev.data||{};
+    if(msg.type==='show')showTelaoContent(msg.texto,msg.fontSize,msg.bg);
+    else if(msg.type==='clear')clearTelaoContent();
+    else if(msg.type==='bg')aplicarTelaoFundo(msg.bg);
+  };
+  ch.postMessage({type:'ready'});
+}
+
+function aplicarTelaoFundo(bg){
+  const screen=document.getElementById('telaoScreen');
+  if(bg){
+    screen.style.backgroundImage=`url("${bg}")`;
+    document.getElementById('telaoContent').classList.add('telao-com-fundo');
+  }else{
+    screen.style.backgroundImage='';
+    document.getElementById('telaoContent').classList.remove('telao-com-fundo');
+  }
+}
+
+function showTelaoContent(texto,fontSize,bg){
+  if(bg!==undefined)aplicarTelaoFundo(bg);
+  const content=document.getElementById('telaoContent');
+  content.innerHTML=`<div class="telao-text" style="font-size:${fontSize||42}px">${esc(texto)}</div>`;
+}
+function clearTelaoContent(){
+  document.getElementById('telaoContent').innerHTML='<div class="telao-idle">Aguardando conteúdo do operador…</div>';
+}
 
 function openSongFromMusicList(musicaId){
   if(suppressSongClick)return;
@@ -2806,8 +3484,14 @@ async function openLetra(id) {
   lt.style.fontSize=letraFontSize+'px';
   document.getElementById('letraScreen').classList.add('open');
   document.body.style.overflow='hidden';
+  const hash='#letra-'+id;
+  if(location.hash!==hash)history.pushState({overlay:'letra',id},'',hash);
 }
-function closeLetra(){document.getElementById('letraScreen').classList.remove('open');document.body.style.overflow='';}
+function hideLetraOverlay(){document.getElementById('letraScreen').classList.remove('open');document.body.style.overflow='';}
+function closeLetra(){
+  hideLetraOverlay();
+  if(location.hash.indexOf('#letra-')===0)history.back();
+}
 function changeFont(d){letraFontSize=Math.max(14,Math.min(52,letraFontSize+d));document.getElementById('letraText').style.fontSize=letraFontSize+'px';}
 
 function letraSwipeStart(event){
@@ -3642,9 +4326,41 @@ function apStopRealtime() {
 }
 
 /* =====================================================================
+   ROTEAMENTO (URL por tela — permite usar o "voltar" do navegador no PC)
+   ===================================================================== */
+const VALID_PANELS=['home','musicas','playlists','apresentacao','mensagens','operador'];
+
+window.addEventListener('popstate',()=>{
+  const hash=location.hash||'#home';
+  if(hash.indexOf('#letra-')===0){
+    const id=parseInt(hash.slice(7),10);
+    if(id)openLetra(id);
+    return;
+  }
+  if(hash==='#atualizacoes'){
+    openRecentUpdatesScreen();
+    return;
+  }
+  if(hash.indexOf('#mensagem-')===0){
+    const id=parseInt(hash.slice(10),10);
+    if(id)openMensagemView(id);
+    return;
+  }
+  hideLetraOverlay();
+  hideRecentUpdatesOverlay();
+  hideMensagemOverlay();
+  const name=hash.slice(1);
+  switchPanel(VALID_PANELS.includes(name)?name:'home',{fromPopstate:true});
+});
+
+/* =====================================================================
    INIT
    ===================================================================== */
 (async()=>{
+  if(location.hash==='#telao'){
+    initTelaoMode();
+    return;
+  }
   if(SB_URL&&SB_KEY){
     document.getElementById('connText').textContent='Conectando…';
     await checkConn();
@@ -3660,6 +4376,13 @@ function apStopRealtime() {
   setInterval(checkConn,60000);
   setInterval(updateHomeRelativeTime,60000);
   setInterval(apResyncAtiva,5*60000);
+
+  const initialPanel=(location.hash||'').slice(1);
+  if(initialPanel&&initialPanel!=='home'&&VALID_PANELS.includes(initialPanel)){
+    switchPanel(initialPanel,{replaceUrl:true});
+  }else{
+    history.replaceState({panel:'home'},'','#home');
+  }
 })();
 </script>
 </body>
