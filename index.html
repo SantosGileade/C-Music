@@ -197,6 +197,15 @@
       #panel-musicas .song-card-actions{gap:3px}
     }
 
+    #panel-mensagens .mensagem-header-actions{display:flex;gap:8px;flex-shrink:0}
+    @media(max-width:639px){
+      #panel-mensagens .panel-header{flex-wrap:nowrap;align-items:flex-start}
+      #panel-mensagens .panel-header>div:first-child{min-width:0;flex:1 1 auto}
+      #panel-mensagens .mensagem-add-btn .music-add-label{display:none}
+      #panel-mensagens .mensagem-add-btn{width:42px;height:40px;padding:0;justify-content:center}
+      #panel-mensagens .mensagem-import-btn{height:40px;padding:0 12px;white-space:nowrap}
+    }
+
     /* ===== BADGES ===== */
     .badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:99px;font-size:.72rem;font-weight:600}
     .badge-pub{background:rgba(20,184,166,.15);color:var(--teal);border:1px solid rgba(20,184,166,.25)}
@@ -416,6 +425,18 @@
     .selected-songs-chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
     .selected-song-chip{display:flex;align-items:center;gap:6px;min-width:max-content;padding:6px 9px;border-radius:8px;background:rgba(41,66,95,.55);border:1px solid rgba(102,153,217,.14);font-size:.73rem;color:var(--text2)}
     #addSongConfirmBtn:disabled{opacity:.45;cursor:not-allowed}
+    #importarMensagensModal .modal{max-width:680px;background:#172a40;border-color:rgba(102,153,217,.22)}
+    #importarMensagensModal .song-picker-list{max-height:min(46dvh,420px);border:1px solid rgba(102,153,217,.18);border-radius:12px;background:rgba(10,25,42,.36);overflow:hidden auto}
+    #importarMensagensModal .song-picker-item{margin:0;padding:11px 13px;border-radius:0;border-bottom:1px solid rgba(102,153,217,.13)}
+    #importarMensagensModal .song-picker-item:last-child{border-bottom:none}
+    #importarMensagensModal .song-picker-item:hover{background:rgba(102,153,217,.08)}
+    #importarMensagensModal .song-picker-item.selected{background:linear-gradient(90deg,rgba(99,102,241,.17),rgba(102,153,217,.08))}
+    #importarMensagensModal .song-picker-item input[type=checkbox]{width:20px;height:20px;border-radius:6px;accent-color:#7c63e8;flex-shrink:0;cursor:pointer}
+    #importarMensagensModal .importar-item-existente{opacity:.45}
+    #importarMensagensModal .importar-item-existente input[type=checkbox]{cursor:not-allowed}
+    #importarMensagensConfirmBtn:disabled{opacity:.45;cursor:not-allowed}
+    .importar-mensagens-pager{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;font-size:.78rem;color:var(--text3)}
+    .importar-mensagens-pager button:disabled{opacity:.35;cursor:not-allowed}
     #addToPlaylistModal .modal{max-width:620px;background:#172a40;border-color:rgba(102,153,217,.22)}
     .playlist-target-song{display:flex;align-items:center;gap:9px;margin-bottom:12px;padding:9px 11px;border-radius:10px;background:rgba(10,25,42,.32);border:1px solid rgba(102,153,217,.14);font-size:.8rem;color:var(--text2)}
     #addToPlaylistModal .song-picker-list{max-height:min(44dvh,390px);display:flex;flex-direction:column;gap:8px}
@@ -919,10 +940,16 @@
         <div class="panel-title">Mensagens</div>
         <div class="music-subtitle">Gerencie os livros de pregação</div>
       </div>
-      <button class="btn btn-primary music-add-btn" onclick="openMensagemModal()">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
-        <span class="music-add-label">Nova mensagem</span>
-      </button>
+      <div class="mensagem-header-actions">
+        <button class="btn btn-ghost music-add-btn mensagem-import-btn" onclick="openImportarMensagensModal()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>
+          <span class="music-add-label">Importar do site</span>
+        </button>
+        <button class="btn btn-primary music-add-btn mensagem-add-btn" onclick="openMensagemModal()" aria-label="Nova mensagem" title="Nova mensagem">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+          <span class="music-add-label">Nova mensagem</span>
+        </button>
+      </div>
     </div>
     <div class="search-row">
       <div class="search-wrap">
@@ -1110,6 +1137,34 @@
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeMensagemModal()">Cancelar</button>
       <button class="btn btn-primary" id="mensagemSaveBtn" onclick="saveMensagem()">✓ Salvar mensagem</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: IMPORTAR MENSAGENS DO SITE -->
+<div class="modal-overlay" id="importarMensagensModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div><h2>Importar do site</h2><div class="add-song-subtitle">Mensagens de crentesdabiblia.com.br prontas para importar.</div></div>
+      <button class="modal-close" onclick="closeImportarMensagensModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <input class="form-input" id="importarMensagensSearch" type="search" placeholder="Buscar por título..." autocomplete="off" />
+      </div>
+      <div class="song-picker-list" id="importarMensagensList">
+        <div style="text-align:center;padding:24px;color:var(--text3)"><div class="spinner" style="margin:auto"></div></div>
+      </div>
+      <div class="importar-mensagens-pager">
+        <button class="btn btn-ghost btn-sm" id="importarMensagensPrevBtn" onclick="importarMensagensMudarPagina(-1)">‹ Anterior</button>
+        <span id="importarMensagensPagerInfo">Página 1</span>
+        <button class="btn btn-ghost btn-sm" id="importarMensagensNextBtn" onclick="importarMensagensMudarPagina(1)">Próxima ›</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <span class="selected-songs-count" id="importarMensagensCount"></span>
+      <button class="btn btn-ghost" onclick="closeImportarMensagensModal()">Cancelar</button>
+      <button class="btn btn-primary" id="importarMensagensConfirmBtn" onclick="confirmarImportarMensagens()" disabled>Importar selecionadas</button>
     </div>
   </div>
 </div>
@@ -1535,16 +1590,54 @@ function setDemo(demo) {
 /* =====================================================================
    DB LAYER — Supabase
    ===================================================================== */
+const searchTierCounts = {};
+function pgQuote(v) { return '"' + String(v).replace(/\\/g,'\\\\').replace(/"/g,'\\"') + '"'; }
+
+// Busca com prioridade: 1º título, 2º autor, 3º conteúdo (cada grupo sem repetir o anterior)
+async function dbListPrioritized(table, contentCol, term, page, extraKey, applyExtra) {
+  const base = head => {
+    const q = sb.from(table).select('*', head ? {count:'exact', head:true} : {count:'exact'});
+    return applyExtra ? applyExtra(q) : q;
+  };
+  const sortPage = (q, from, to) => q.order('titulo', {ascending:true}).order('id', {ascending:true}).range(from, to);
+  const start = page * PAGE_SIZE, end = start + PAGE_SIZE;
+
+  if (!term) {
+    const {data, count, error} = await sortPage(base(false), start, end - 1);
+    if (error) throw error;
+    return {content:data, totalElements:count, totalPages:Math.ceil(count/PAGE_SIZE), number:page};
+  }
+
+  const pat = '%' + term + '%';
+  const tiers = [
+    q => q.ilike('titulo', pat),
+    q => q.ilike('autor', pat).not('titulo', 'ilike', pat),
+    q => q.ilike(contentCol, pat).not('titulo', 'ilike', pat).or(`autor.is.null,autor.not.ilike.${pgQuote(pat)}`)
+  ];
+
+  const key = table + '|' + term + '|' + extraKey;
+  if (page === 0 || !searchTierCounts[key]) {
+    const results = await Promise.all(tiers.map(t => t(base(true))));
+    results.forEach(r => { if (r.error) throw r.error; });
+    searchTierCounts[key] = results.map(r => r.count || 0);
+  }
+  const counts = searchTierCounts[key];
+
+  const jobs = [];
+  let offset = 0;
+  counts.forEach((c, i) => {
+    const s = Math.max(start, offset), e = Math.min(end, offset + c);
+    if (s < e) jobs.push(sortPage(tiers[i](base(false)), s - offset, e - offset - 1));
+    offset += c;
+  });
+  const parts = await Promise.all(jobs);
+  parts.forEach(r => { if (r.error) throw r.error; });
+  const total = counts.reduce((a, b) => a + b, 0);
+  return {content:parts.flatMap(r => r.data || []), totalElements:total, totalPages:Math.ceil(total/PAGE_SIZE), number:page};
+}
+
 async function dbListMusicas(titulo, page, tom) {
-  let q = sb.from('musica').select('*', {count:'exact'});
-  if (titulo) q = q.or(`titulo.ilike.%${titulo}%,autor.ilike.%${titulo}%,letra.ilike.%${titulo}%`);
-  if (tom) q = q.eq('tom', tom);
-  const {data, count, error} = await q
-    .range(page * PAGE_SIZE, (page+1)*PAGE_SIZE - 1)
-    .order('titulo', {ascending:true})
-    .order('id', {ascending:true});
-  if (error) throw error;
-  return {content:data, totalElements:count, totalPages:Math.ceil(count/PAGE_SIZE), number:page};
+  return dbListPrioritized('musica', 'letra', titulo, page, tom || '', tom ? (q => q.eq('tom', tom)) : null);
 }
 async function dbGetMusica(id) {
   const {data,error} = await sb.from('musica').select('*').eq('id',id).single();
@@ -1563,14 +1656,7 @@ async function dbDeleteMusica(id) {
   if (error) throw error;
 }
 async function dbListMensagens(titulo, page) {
-  let q = sb.from('mensagem').select('*', {count:'exact'});
-  if (titulo) q = q.or(`titulo.ilike.%${titulo}%,autor.ilike.%${titulo}%,conteudo.ilike.%${titulo}%`);
-  const {data, count, error} = await q
-    .range(page * PAGE_SIZE, (page+1)*PAGE_SIZE - 1)
-    .order('titulo', {ascending:true})
-    .order('id', {ascending:true});
-  if (error) throw error;
-  return {content:data, totalElements:count, totalPages:Math.ceil(count/PAGE_SIZE), number:page};
+  return dbListPrioritized('mensagem', 'conteudo', titulo, page, '', null);
 }
 async function dbGetMensagem(id) {
   const {data,error} = await sb.from('mensagem').select('*').eq('id',id).single();
@@ -2880,50 +2966,45 @@ function closeMensagemModal(){document.getElementById('mensagemModal').classList
 /* =====================================================================
    CORREÇÃO DE PALAVRAS COLADAS (paste de PDF sem espaços)
    ===================================================================== */
-const PT_DICT=new Set(['a','ao','aos','aquela','aquelas','aquele','aqueles','aquilo','as','às','até','através','cada','com','como','contra','da','das','de','dele','deles','dela','delas','desde','deste','desta','destes','destas','disso','disto','do','dos','e','ela','elas','ele','eles','em','entre','era','eram','essa','essas','esse','esses','esta','está','estamos','estão','estar','estas','estava','estavam','este','esteja','estejam','estes','esteve','estive','estivemos','estiveram','estou','eu','foi','fomos','for','fora','foram','fosse','fossem','fui','há','haja','hajam','havia','hei','houve','houvemos','houver','houvera','houveram','isso','isto','já','lhe','lhes','lá','mais','mas','me','mesmo','mesma','mesmos','mesmas','meu','meus','minha','minhas','muito','muita','muitos','muitas','na','nas','nem','no','nos','nós','nossa','nossas','nosso','nossos','num','numa','não','o','os','ou','para','pela','pelas','pelo','pelos','por','qual','quando','que','quem','se','seja','sejam','sem','ser','será','serão','seu','seus','só','sua','suas','também','te','tem','tém','têm','temos','tendo','tenha','tenham','tenho','ter','terá','terão','teu','teus','teve','tinha','tinham','tive','tivemos','tiveram','tu','tua','tuas','tudo','um','uma','umas','uns','vai','vamos','você','vocês','vos','vosso','vossa','à','ainda','agora','então','assim','sobre','sob','após','antes','depois','onde','porque','porquê','pois','sim','não','todo','toda','todos','todas','outro','outra','outros','outras','algum','alguma','alguns','algumas','nenhum','nenhuma','cada','qualquer','quaisquer','tão','tanto','tanta','tantos','tantas','mais','menos','bem','mal','melhor','pior','grande','pequeno','pequena','novo','nova','velho','velha','bom','boa','mau','má','deus','senhor','jesus','cristo','espírito','santo','igreja','fé','graça','amor','vida','mundo','homem','homens','mulher','mulheres','povo','filho','filhos','filha','filhas','pai','mãe','irmão','irmãos','irmã','irmãs','coração','alma','palavra','palavras','verdade','luz','trevas','céu','céus','terra','reino','glória','poder','paz','esperança','oração','orações','orando','orar','ora','oro','vontade','caminho','porta','casa','tempo','dia','dias','noite','noites','hoje','amanhã','ontem','sempre','nunca','jamais','aqui','ali','lá','cá','todo','toda','gente','pessoa','pessoas','coisa','coisas','fazer','faz','fazem','fazendo','fez','fizeram','disse','disseram','diz','dizem','dizendo','dar','dá','dão','dando','deu','deram','ver','vê','vêem','vendo','viu','viram','saber','sabe','sabem','sabendo','soube','souberam','poder','pode','podem','podendo','pôde','puderam','querer','quer','querem','querendo','quis','quiseram','ir','vai','vão','indo','foi','foram','vir','vem','vêm','vindo','veio','vieram','chegar','chega','chegam','chegando','chegou','chegaram','falar','fala','falam','falando','falou','falaram','pensar','pensa','pensam','pensando','pensou','pensaram','crer','crê','creem','crendo','creu','creram','ouvir','ouve','ouvem','ouvindo','ouviu','ouviram','sentir','sente','sentem','sentindo','sentiu','sentiram','mão','mãos','nome','boca','mente','obra','obras','sangue','cruz','salvação','pecado','pecados','perdão','milagre','milagres','promessa','promessas','bênção','bênçãos','vitória','batalha','guerra','anjo','anjos','profeta','profetas','apóstolo','apóstolos','discípulo','discípulos','templo','altar','sacrifício','oferta','dízimo','jejum','adoração','louvor','cântico','hino','testemunho','poderoso','poderosa','fiel','fidelidade','misericórdia','bondade','justiça','santidade','pureza','humildade','obediência','desobediência','arrependimento','conversão','salvo','salva','salvos','salvas','batismo','ceia','comunhão','unção','nosso','nossos','família','famílias','irmão','servo','serva','servos','servas','rei','reis','rainha','povo','nação','nações','permanece','permaneces','permanecer','permanecem','permaneceu','permaneceram','compreende','compreendemos','compreender','compreendeu','compreenderam','entende','entendemos','entender','entendeu','entenderam','conhece','conhecemos','conhecer','conheceu','conheceram','ama','amamos','amar','amou','amaram','ajuda','ajudamos','ajudar','ajudou','ajudaram','peça','peçamos','pedimos','pedir','pediu','pediram','pergunta','perguntamos','perguntar','perguntou','perguntaram','responde','respondemos','responder','respondeu','responderam','aceita','aceitamos','aceitar','aceitou','aceitaram','recebe','recebemos','receber','recebeu','receberam','entrega','entregamos','entregar','entregou','entregaram','deixa','deixamos','deixar','deixou','deixaram','fica','ficamos','ficar','ficou','ficaram','continua','continuamos','continuar','continuou','continuaram','começa','começamos','começar','começou','começaram','termina','terminamos','terminar','terminou','terminaram','precisa','precisamos','precisar','precisou','precisaram','consegue','conseguimos','conseguir','conseguiu','conseguiram','vive','vivemos','viver','viveu','viveram','morre','morremos','morrer','morreu','morreram','nasce','nascemos','nascer','nasceu','nasceram','cresce','crescemos','crescer','cresceu','cresceram','muda','mudamos','mudar','mudou','mudaram','abre','abrimos','abrir','abriu','abriram','fecha','fechamos','fechar','fechou','fecharam','levanta','levantamos','levantar','levantou','levantaram','anda','andamos','andar','andou','andaram','corre','corremos','correr','correu','correram','olha','olhamos','olhar','olhou','olharam','mostra','mostramos','mostrar','mostrou','mostraram','encontra','encontramos','encontrar','encontrou','encontraram','procura','procuramos','procurar','procurou','procuraram','guarda','guardamos','guardar','guardou','guardaram','protege','protegemos','proteger','protegeu','protegeram','cuida','cuidamos','cuidar','cuidou','cuidaram','trabalha','trabalhamos','trabalhar','trabalhou','trabalharam','ensina','ensinamos','ensinar','ensinou','ensinaram','aprende','aprendemos','aprender','aprendeu','aprenderam','conta','contamos','contar','contou','contaram','lembra','lembramos','lembrar','lembrou','lembraram','esquece','esquecemos','esquecer','esqueceu','esqueceram','espera','esperamos','esperar','esperou','esperaram','deseja','desejamos','desejar','desejou','desejaram','decide','decidimos','decidir','decidiu','decidiram','escolhe','escolhemos','escolher','escolheu','escolheram','manda','mandamos','mandar','mandou','mandaram','envia','enviamos','enviar','enviou','enviaram','traz','trazemos','trazer','trouxe','trouxeram','leva','levamos','levar','levou','levaram','toma','tomamos','tomar','tomou','tomaram','põe','pomos','pôr','pôs','puseram','segue','seguimos','seguir','seguiu','seguiram','obedece','obedecemos','obedecer','obedeceu','obedeceram','governa','governamos','governar','governou','governaram','reina','reinamos','reinar','reinou','reinaram','julga','julgamos','julgar','julgou','julgaram','perdoa','perdoamos','perdoar','perdoou','perdoaram','abençoa','abençoamos','abençoar','abençoou','abençoaram','cura','curamos','curar','curou','curaram','salva','salvamos','salvar','salvou','salvaram','liberta','libertamos','libertar','libertou','libertaram','glorifica','glorificamos','glorificar','glorificou','glorificaram','louva','louvamos','louvar','louvou','louvaram','adora','adoramos','adorar','adorou','adoraram','confia','confiamos','confiar','confiou','confiaram','duvida','duvidamos','duvidar','duvidou','duvidaram','sou','são','somos','sabemos','honra','honras','honre','honres','honremos','honram','honramos','honrar','honrou','honraram','rogo','rogamos','rogar','rogou','rogaram']);
+const PT_DICT=new Set(['a','ao','aos','aquela','aquelas','aquele','aqueles','aquilo','as','às','até','através','cada','com','como','contra','da','das','de','dele','deles','dela','delas','desde','deste','desta','destes','destas','disso','disto','do','dos','e','ela','elas','ele','eles','em','entre','era','eram','essa','essas','esse','esses','esta','está','estamos','estão','estar','estas','estava','estavam','este','esteja','estejam','estes','esteve','estive','estivemos','estiveram','estou','eu','foi','fomos','for','fora','foram','fosse','fossem','fui','há','haja','hajam','havia','hei','houve','houvemos','houver','houvera','houveram','isso','isto','já','lhe','lhes','lá','mais','mas','me','mesmo','mesma','mesmos','mesmas','meu','meus','minha','minhas','muito','muita','muitos','muitas','na','nas','nem','no','nos','nós','nossa','nossas','nosso','nossos','num','numa','não','o','os','ou','para','pela','pelas','pelo','pelos','por','qual','quando','que','quem','se','seja','sejam','sem','ser','será','serão','seu','seus','só','sua','suas','também','te','tem','tém','têm','temos','tendo','tenha','tenham','tenho','ter','terá','terão','teu','teus','teve','tinha','tinham','tive','tivemos','tiveram','tu','tua','tuas','tudo','um','uma','umas','uns','vai','vamos','você','vocês','vos','vosso','vossa','à','ainda','agora','então','assim','sobre','sob','após','antes','depois','onde','porque','porquê','pois','sim','não','todo','toda','todos','todas','outro','outra','outros','outras','algum','alguma','alguns','algumas','nenhum','nenhuma','cada','qualquer','quaisquer','tão','tanto','tanta','tantos','tantas','mais','menos','bem','mal','melhor','pior','grande','pequeno','pequena','novo','nova','velho','velha','bom','boa','mau','má','deus','senhor','jesus','cristo','espírito','santo','igreja','fé','graça','amor','vida','mundo','homem','homens','mulher','mulheres','povo','filho','filhos','filha','filhas','pai','mãe','irmão','irmãos','irmã','irmãs','coração','alma','palavra','palavras','verdade','luz','trevas','céu','céus','terra','reino','glória','poder','paz','esperança','oração','orações','orando','orar','ora','oro','vontade','caminho','porta','casa','tempo','dia','dias','noite','noites','hoje','amanhã','ontem','sempre','nunca','jamais','aqui','ali','lá','cá','todo','toda','gente','pessoa','pessoas','coisa','coisas','fazer','faz','fazem','fazendo','fez','fizeram','disse','disseram','diz','dizem','dizendo','dar','dá','dão','dando','deu','deram','ver','vê','vêem','vendo','viu','viram','saber','sabe','sabem','sabendo','soube','souberam','poder','pode','podem','podendo','pôde','puderam','querer','quer','querem','querendo','quis','quiseram','ir','vai','vão','indo','foi','foram','vir','vem','vêm','vindo','veio','vieram','chegar','chega','chegam','chegando','chegou','chegaram','falar','fala','falam','falando','falou','falaram','pensar','pensa','pensam','pensando','pensou','pensaram','crer','crê','creem','crendo','creu','creram','ouvir','ouve','ouvem','ouvindo','ouviu','ouviram','sentir','sente','sentem','sentindo','sentiu','sentiram','mão','mãos','nome','boca','mente','obra','obras','sangue','cruz','salvação','pecado','pecados','perdão','milagre','milagres','promessa','promessas','bênção','bênçãos','vitória','batalha','guerra','anjo','anjos','profeta','profetas','apóstolo','apóstolos','discípulo','discípulos','templo','altar','sacrifício','oferta','dízimo','jejum','adoração','louvor','cântico','hino','testemunho','poderoso','poderosa','fiel','fidelidade','misericórdia','bondade','justiça','santidade','pureza','humildade','obediência','desobediência','arrependimento','conversão','salvo','salva','salvos','salvas','batismo','ceia','comunhão','unção','nosso','nossos','família','famílias','irmão','servo','serva','servos','servas','rei','reis','rainha','povo','nação','nações','permanece','permaneces','permanecer','permanecem','permaneceu','permaneceram','compreende','compreendemos','compreender','compreendeu','compreenderam','entende','entendemos','entender','entendeu','entenderam','conhece','conhecemos','conhecer','conheceu','conheceram','ama','amamos','amar','amou','amaram','ajuda','ajudamos','ajudar','ajudou','ajudaram','peça','peçamos','pedimos','pedir','pediu','pediram','pergunta','perguntamos','perguntar','perguntou','perguntaram','responde','respondemos','responder','respondeu','responderam','aceita','aceitamos','aceitar','aceitou','aceitaram','recebe','recebemos','receber','recebeu','receberam','entrega','entregamos','entregar','entregou','entregaram','deixa','deixamos','deixar','deixou','deixaram','fica','ficamos','ficar','ficou','ficaram','continua','continuamos','continuar','continuou','continuaram','começa','começamos','começar','começou','começaram','termina','terminamos','terminar','terminou','terminaram','precisa','precisamos','precisar','precisou','precisaram','consegue','conseguimos','conseguir','conseguiu','conseguiram','vive','vivemos','viver','viveu','viveram','morre','morremos','morrer','morreu','morreram','nasce','nascemos','nascer','nasceu','nasceram','cresce','crescemos','crescer','cresceu','cresceram','muda','mudamos','mudar','mudou','mudaram','abre','abrimos','abrir','abriu','abriram','fecha','fechamos','fechar','fechou','fecharam','levanta','levantamos','levantar','levantou','levantaram','anda','andamos','andar','andou','andaram','corre','corremos','correr','correu','correram','olha','olhamos','olhar','olhou','olharam','mostra','mostramos','mostrar','mostrou','mostraram','encontra','encontramos','encontrar','encontrou','encontraram','procura','procuramos','procurar','procurou','procuraram','guarda','guardamos','guardar','guardou','guardaram','protege','protegemos','proteger','protegeu','protegeram','cuida','cuidamos','cuidar','cuidou','cuidaram','trabalha','trabalhamos','trabalhar','trabalhou','trabalharam','ensina','ensinamos','ensinar','ensinou','ensinaram','aprende','aprendemos','aprender','aprendeu','aprenderam','conta','contamos','contar','contou','contaram','lembra','lembramos','lembrar','lembrou','lembraram','esquece','esquecemos','esquecer','esqueceu','esqueceram','espera','esperamos','esperar','esperou','esperaram','deseja','desejamos','desejar','desejou','desejaram','decide','decidimos','decidir','decidiu','decidiram','escolhe','escolhemos','escolher','escolheu','escolheram','manda','mandamos','mandar','mandou','mandaram','envia','enviamos','enviar','enviou','enviaram','traz','trazemos','trazer','trouxe','trouxeram','leva','levamos','levar','levou','levaram','toma','tomamos','tomar','tomou','tomaram','põe','pomos','pôr','pôs','puseram','segue','seguimos','seguir','seguiu','seguiram','obedece','obedecemos','obedecer','obedeceu','obedeceram','governa','governamos','governar','governou','governaram','reina','reinamos','reinar','reinou','reinaram','julga','julgamos','julgar','julgou','julgaram','perdoa','perdoamos','perdoar','perdoou','perdoaram','abençoa','abençoamos','abençoar','abençoou','abençoaram','cura','curamos','curar','curou','curaram','salva','salvamos','salvar','salvou','salvaram','liberta','libertamos','libertar','libertou','libertaram','glorifica','glorificamos','glorificar','glorificou','glorificaram','louva','louvamos','louvar','louvou','louvaram','adora','adoramos','adorar','adorou','adoraram','confia','confiamos','confiar','confiou','confiaram','duvida','duvidamos','duvidar','duvidou','duvidaram','sou','são','somos','sabemos','honra','honras','honre','honres','honremos','honram','honramos','honrar','honrou','honraram','rogo','rogamos','rogar','rogou','rogaram','dentro','fora','fechado','fechada','fechados','fechadas','aberto','aberta','abertos','abertas','creio','cremos','crês','lenço','lenços','envelope','envelopes','forma','formas','papel','papéis','carta','cartas','pacote','pacotes','embrulho','saco','sacola','caixa','caixas','ministra','ministramos','ministrar','ministrou','ministraram','ministrando','ministério','ministérios']);
 
-function segmentGluedWord(token,dict,maxWord=15,minWord=2){
+function segmentGluedWord(token,dict,maxWord=15,minWord=2,minRatio=0.5,minAvgWordLen=3){
   const n=token.length;
   const dp=new Array(n+1).fill(null);
-  dp[0]={cost:0,prev:-1,len:0,isWord:false};
+  dp[0]={cost:0,len:0,isWord:false};
   for(let i=1;i<=n;i++){
-    let best={cost:dp[i-1].cost+1,prev:i-1,len:1,isWord:false};
+    let best={cost:dp[i-1].cost+1,len:1,isWord:false};
     for(let L=Math.min(maxWord,i);L>=minWord;L--){
       const piece=token.slice(i-L,i).toLowerCase();
       if(dict.has(piece)){
         const cost=dp[i-L].cost;
-        if(cost<best.cost)best={cost,prev:i-L,len:L,isWord:true};
+        if(cost<best.cost)best={cost,len:L,isWord:true};
       }
     }
     dp[i]=best;
   }
-  const rawSegments=[];
+  const raw=[];
   let i=n;
-  while(i>0){
-    const step=dp[i];
-    rawSegments.push({text:token.slice(i-step.len,i),isWord:step.isWord});
-    i-=step.len;
-  }
-  rawSegments.reverse();
+  while(i>0){const step=dp[i];raw.push({text:token.slice(i-step.len,i),isWord:step.isWord});i-=step.len;}
+  raw.reverse();
   const merged=[];
-  for(const seg of rawSegments){
+  for(const seg of raw){
     if(!seg.isWord&&merged.length&&!merged[merged.length-1].isWord)merged[merged.length-1].text+=seg.text;
     else merged.push({...seg});
   }
   const wordSegs=merged.filter(s=>s.isWord);
   const recognized=wordSegs.reduce((sum,s)=>sum+s.text.length,0);
   const avgWordLen=wordSegs.length?recognized/wordSegs.length:0;
-  if(merged.length<2||recognized/token.length<0.5||avgWordLen<3)return null;
-  return merged.map(s=>s.text);
+  if(merged.length<2||recognized/token.length<minRatio||avgWordLen<minAvgWordLen)return null;
+  return merged.map(s=>s.text).join(' ');
 }
 
 function fixGluedWords(text){
   if(!text)return text;
   let out=text.replace(/([,.;:!?])([A-Za-zÀ-ÿ])/g,'$1 $2');
   out=out.replace(/\b[A-Za-zÀ-ÿ]{10,}\b/g,(token)=>{
-    const segments=segmentGluedWord(token,PT_DICT);
-    if(segments)return segments.join(' ');
-    return token;
+    const fixed=segmentGluedWord(token,PT_DICT);
+    return fixed&&fixed!==token?fixed:token;
   });
   return out;
 }
@@ -2948,6 +3029,139 @@ document.getElementById('mensagemConteudo').addEventListener('paste',(ev)=>{
   const pos=start+corrigido.length;
   conteudoEl.selectionStart=conteudoEl.selectionEnd=pos;
 });
+
+/* =====================================================================
+   IMPORTAR MENSAGENS DO SITE (crentesdabiblia.com.br via Edge Function)
+   ===================================================================== */
+let importarMensagensPage=1;
+let importarMensagensTotal=0;
+let importarMensagensItems=[];
+let importarMensagensSelected=new Map();
+let importarMensagensLoading=false;
+
+async function openImportarMensagensModal(){
+  importarMensagensPage=1;
+  importarMensagensSelected.clear();
+  document.getElementById('importarMensagensSearch').value='';
+  document.getElementById('importarMensagensModal').classList.add('open');
+  atualizarImportarMensagensFooter();
+  await carregarImportarMensagensPagina();
+  setTimeout(()=>document.getElementById('importarMensagensSearch').focus(),150);
+}
+function closeImportarMensagensModal(){
+  document.getElementById('importarMensagensModal').classList.remove('open');
+}
+
+async function carregarImportarMensagensPagina(){
+  if(importarMensagensLoading)return;
+  importarMensagensLoading=true;
+  const list=document.getElementById('importarMensagensList');
+  list.innerHTML='<div style="text-align:center;padding:24px;color:var(--text3)"><div class="spinner" style="margin:auto"></div></div>';
+  const titulo=document.getElementById('importarMensagensSearch').value.trim();
+  try{
+    const{data,error}=await sb.functions.invoke('import-mensagens',{body:{page:importarMensagensPage,titulo}});
+    if(error)throw error;
+    if(!data||!data.success)throw new Error((data&&data.error)||'Falha ao buscar mensagens');
+    importarMensagensItems=data.data||[];
+    importarMensagensTotal=data.total||0;
+    renderImportarMensagensList();
+  }catch(e){
+    list.innerHTML='<div style="text-align:center;padding:24px;color:var(--text3)">Não foi possível buscar as mensagens do site agora. Tente novamente em instantes.</div>';
+    toast('Erro ao buscar mensagens do site','error');
+  }finally{
+    importarMensagensLoading=false;
+    atualizarImportarMensagensPager();
+  }
+}
+
+function jaExisteMensagem(titulo){
+  const t=(titulo||'').trim().toLowerCase();
+  return cachedMensagens.some(m=>(m.titulo||'').trim().toLowerCase()===t);
+}
+
+function formatarDataImportacao(iso){
+  const d=new Date(iso+'T00:00:00');
+  if(isNaN(d))return iso;
+  return d.toLocaleDateString('pt-BR');
+}
+
+function renderImportarMensagensList(){
+  const list=document.getElementById('importarMensagensList');
+  if(!importarMensagensItems.length){
+    list.innerHTML='<div style="text-align:center;padding:24px;color:var(--text3);font-style:italic">Nenhuma mensagem encontrada.</div>';
+    return;
+  }
+  list.innerHTML=importarMensagensItems.map(item=>{
+    const existente=jaExisteMensagem(item.titulo);
+    const checked=importarMensagensSelected.has(item.id);
+    return `
+    <label class="song-picker-item ${checked?'selected':''} ${existente?'importar-item-existente':''}">
+      <input type="checkbox" ${existente?'disabled':''} ${checked?'checked':''} onchange="toggleImportarMensagem(${item.id},this.checked)">
+      <span class="song-picker-note">📄</span>
+      <div class="song-picker-body">
+        <div class="song-picker-title">${esc(item.titulo)}</div>
+        <div class="song-picker-sub">${item.data?esc(formatarDataImportacao(item.data)):''}${item.local?' • '+esc(item.local):''}</div>
+      </div>
+      ${existente?'<span class="tom-badge">Já cadastrada</span>':''}
+    </label>`;
+  }).join('');
+}
+
+function toggleImportarMensagem(id,checked){
+  const item=importarMensagensItems.find(i=>i.id===id);
+  if(!item)return;
+  if(checked)importarMensagensSelected.set(id,item);
+  else importarMensagensSelected.delete(id);
+  renderImportarMensagensList();
+  atualizarImportarMensagensFooter();
+}
+
+function atualizarImportarMensagensFooter(){
+  const count=importarMensagensSelected.size;
+  document.getElementById('importarMensagensCount').textContent=count?`${count} selecionada${count>1?'s':''}`:'';
+  document.getElementById('importarMensagensConfirmBtn').disabled=count===0;
+}
+
+function atualizarImportarMensagensPager(){
+  const totalPages=Math.max(1,Math.ceil(importarMensagensTotal/12));
+  document.getElementById('importarMensagensPagerInfo').textContent=`Página ${importarMensagensPage} de ${totalPages}`;
+  document.getElementById('importarMensagensPrevBtn').disabled=importarMensagensPage<=1;
+  document.getElementById('importarMensagensNextBtn').disabled=importarMensagensPage>=totalPages;
+}
+
+function importarMensagensMudarPagina(delta){
+  importarMensagensPage=Math.max(1,importarMensagensPage+delta);
+  carregarImportarMensagensPagina();
+}
+
+let importarMensagensSearchTimer;
+document.getElementById('importarMensagensSearch').addEventListener('input',()=>{
+  clearTimeout(importarMensagensSearchTimer);
+  importarMensagensSearchTimer=setTimeout(()=>{importarMensagensPage=1;carregarImportarMensagensPagina();},400);
+});
+
+async function confirmarImportarMensagens(){
+  const items=[...importarMensagensSelected.values()];
+  if(!items.length)return;
+  const btn=document.getElementById('importarMensagensConfirmBtn');
+  btn.disabled=true;
+  btn.textContent='Importando…';
+  let ok=0,fail=0;
+  for(const item of items){
+    try{
+      const conteudo=fixGluedWords(item.conteudo||'');
+      const body={titulo:item.titulo,autor:'William Marrion Branham',conteudo};
+      if(DEMO){DDATA.mensagens.push({id:(Math.max(0,...DDATA.mensagens.map(m=>m.id))+1),...body});}
+      else{await dbCreateMensagem(body);}
+      ok++;
+    }catch(e){fail++;}
+  }
+  btn.textContent='Importar selecionadas';
+  toast(fail?`${ok} importada(s), ${fail} falharam`:`${ok} ${ok>1?'mensagens importadas':'mensagem importada'}!`,fail?'error':'success');
+  importarMensagensSelected.clear();
+  closeImportarMensagensModal();
+  loadMensagens();
+}
 
 async function saveMensagem() {
   const id=document.getElementById('mensagemId').value;
