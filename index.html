@@ -2137,10 +2137,12 @@ async function dbGetOperadorAtual(){
   if(error)throw error;
   return data;
 }
-async function dbClaimOperador(){
-  const {data,error}=await sb.from('operador_atual')
+async function dbClaimOperador(force){
+  let q=sb.from('operador_atual')
     .update({device_id:MY_DEVICE_ID,desde:new Date().toISOString()})
-    .eq('id',1).is('device_id',null).select();
+    .eq('id',1);
+  if(!force)q=q.is('device_id',null);
+  const {data,error}=await q.select();
   if(error)throw error;
   return Boolean(data&&data.length>0);
 }
@@ -2322,8 +2324,9 @@ function renderPedidoComposerView(el){
         <button class="btn btn-teal pedido-action-btn" onclick="pedidoIniciar('Desmutar')">🔈 Desmutar instrumento</button>
       </div>`;
   }
-  const roleBox=operadorAtualDeviceId?'':`
+  const roleBox=`
     <div class="operador-role-box">
+      ${operadorAtualDeviceId?'<div class="operador-role-note">Outro aparelho está como operador de som</div>':''}
       <button class="btn btn-ghost btn-sm" onclick="tornarSeOperador()">🔔 Sou eu quem opera o som</button>
     </div>`;
   el.innerHTML=bodyHtml+roleBox;
@@ -2402,16 +2405,23 @@ async function concluirPedidoAtual(){
   }
 }
 
-async function tornarSeOperador(){
+function tornarSeOperador(){
+  if(operadorAtualDeviceId&&!isOperadorDevice){
+    openConfirm('Outro aparelho está como operador de som. Assumir o papel neste aparelho?',()=>assumirOperador(true));
+    return;
+  }
+  assumirOperador(false);
+}
+
+async function assumirOperador(force){
   try{
     if(DEMO){
-      if(demoOperadorDeviceId){toast('Já existe um operador definido.','info');return;}
       demoOperadorDeviceId=MY_DEVICE_ID;
       applyOperadorAtualState({device_id:MY_DEVICE_ID});
     }else{
-      const claimed=await dbClaimOperador();
+      const claimed=await dbClaimOperador(force);
       if(!claimed){
-        toast('Alguém já assumiu o papel de operador.','info');
+        toast('Não foi possível assumir o papel de operador.','info');
         await loadOperadorInicial();
         return;
       }
