@@ -727,6 +727,43 @@
     .pedido-chip-fone{background:rgba(20,184,166,.1);border-color:rgba(20,184,166,.3)}
     .pedido-chip-fone:hover{background:rgba(20,184,166,.22);border-color:var(--teal);color:#fff}
     @media(min-width:480px){.pedido-chip-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+    .pedido-action-btn{padding:12px}
+    .pedido-grupos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .pedido-grupo{display:flex;flex-direction:column;gap:8px;padding:10px;border-radius:12px;border:1px solid}
+    .pedido-grupo-label{text-align:center;font-size:.72rem;font-weight:800;letter-spacing:.8px;text-transform:uppercase}
+    .pedido-grupo-pa{background:rgba(139,108,234,.1);border-color:rgba(167,139,250,.38)}
+    .pedido-grupo-pa .pedido-grupo-label{color:#b79cff}
+    .pedido-grupo-retorno{background:rgba(102,153,217,.09);border-color:rgba(102,153,217,.34)}
+    .pedido-grupo-retorno .pedido-grupo-label{color:var(--accent2)}
+    .pedido-btn-pa{background:linear-gradient(135deg,#7c5ce0,#a78bfa);color:#fff;border:none}
+    .pedido-btn-pa:hover{filter:brightness(1.08)}
+    .pedido-chip-pa{background:rgba(139,108,234,.14);border-color:rgba(167,139,250,.35)}
+    .pedido-chip-pa:hover{background:rgba(139,108,234,.3);border-color:#a78bfa;color:#fff}
+    .pedido-step-pa{color:#b79cff}
+    #panel-operador #operadorContent{min-height:calc(100dvh - 130px - var(--safe-top) - var(--safe-bot))}
+    .pedidos-historico{max-width:420px;margin:22px auto 60px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px}
+    .pedidos-historico-head{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:8px}
+    .pedidos-historico-list{display:flex;flex-direction:column;gap:6px}
+    .hist-item{display:flex;align-items:flex-start;gap:8px;padding:7px 9px;border-radius:8px;background:rgba(255,255,255,.04);border:1px solid var(--border);font-size:.78rem}
+    .hist-item.hist-pa{border-left:3px solid #a78bfa}
+    .hist-item.hist-retorno{border-left:3px solid var(--accent2)}
+    .hist-icon{flex-shrink:0;line-height:1.3}
+    .hist-body{flex:1;min-width:0}
+    .hist-text{color:var(--text);font-weight:600;line-height:1.3}
+    .hist-time{flex-shrink:0;font-size:.7rem;color:var(--text3);font-variant-numeric:tabular-nums;line-height:1.5}
+    .hist-item.done,.hist-item.missed{opacity:.5;filter:grayscale(1)}
+    .hist-item.done .hist-text,.hist-item.missed .hist-text{font-weight:500}
+    .hist-tag{display:inline-block;margin-top:3px;font-size:.66rem;font-weight:700;color:var(--red)}
+    .hist-empty{font-size:.78rem;color:var(--text3);text-align:center;padding:6px 0;font-style:italic}
+    .pedidos-scroll-btn{position:fixed;left:50%;bottom:calc(8px + var(--safe-bot));transform:translateX(-50%);width:44px;height:26px;border-radius:13px;display:flex;align-items:center;justify-content:center;background:rgba(41,66,95,.85);border:1px solid rgba(102,153,217,.3);color:var(--text2);z-index:90;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+    .pedidos-scroll-btn svg{transition:transform .25s ease}
+    .pedidos-scroll-btn.at-history svg{transform:rotate(180deg)}
+    @media(min-width:1024px) and (min-height:521px){
+      #panel-operador #operadorContent{min-height:0}
+      .pedidos-historico{position:fixed;right:20px;bottom:20px;width:300px;max-width:none;margin:0;max-height:300px;display:flex;flex-direction:column;z-index:20}
+      .pedidos-historico-list{overflow-y:auto;min-height:0}
+      .pedidos-scroll-btn{display:none}
+    }
     @keyframes operadorPulse{0%,100%{box-shadow:0 0 0 0 rgba(224,82,82,.5)}50%{box-shadow:0 0 0 14px rgba(224,82,82,0)}}
     /* Celular deitado (operador acompanha com o telefone na horizontal): tudo precisa caber sem rolagem */
     @media(orientation:landscape) and (max-height:520px){
@@ -757,6 +794,9 @@
       #panel-operador .pedido-intro{margin:4px auto 8px;padding:8px 16px}
       #panel-operador .pedido-main-actions{flex-direction:row;flex-wrap:wrap;gap:6px}
       #panel-operador .pedido-action-btn{width:calc(50% - 3px);padding:8px 10px;font-size:.8rem}
+      #panel-operador .pedido-grupos{width:100%;gap:6px}
+      #panel-operador .pedido-grupo{gap:5px;padding:6px}
+      #panel-operador .pedido-grupo .pedido-action-btn{width:100%}
       #panel-operador .pedido-step-header{margin:2px auto 8px}
       #panel-operador .pedido-chip-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
       #panel-operador .pedido-chip{height:34px;font-size:.72rem}
@@ -983,6 +1023,13 @@
       </div>
     </div>
     <div id="operadorContent"></div>
+    <aside class="pedidos-historico" id="pedidosHistorico" aria-label="Pedidos recentes">
+      <div class="pedidos-historico-head">Pedidos</div>
+      <div class="pedidos-historico-list" id="pedidosHistoricoList"><div class="hist-empty">Nenhum pedido hoje</div></div>
+    </aside>
+    <button class="pedidos-scroll-btn" id="pedidosScrollBtn" onclick="togglePedidosHistorico()" aria-label="Ver pedidos">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+    </button>
   </div>
 
   <!-- PAINEL PLAYLISTS -->
@@ -1492,8 +1539,10 @@ let pedidosChannel = null;
 let operadorAtualDeviceId = null;
 let isOperadorDevice = false;
 let pedidosPendentes = [];
+let pedidosRecentes = [];
 let pedidoComposerStep = null;
 let pedidoComposerAcao = null;
+let pedidoComposerPA = false;
 let pedidoComposerInstrumento = null;
 let demoPedidos = [];
 let demoOperadorDeviceId = null;
@@ -2120,8 +2169,12 @@ const INSTRUMENTOS=[
   {id:'teclado',label:'Teclado',artigo:'do'},
   {id:'violao',label:'Violão',artigo:'do'},
   {id:'backing',label:'Backing Vocal',artigo:'do'},
-  {id:'mic_direcao',label:'Mic Direção',artigo:'do'},
+  {id:'mic_direcao',label:'Retorno Púlpito',artigo:'do'},
 ];
+const FONES_EXTRAS=[
+  {id:'sub',label:'Sub',artigo:'do'},
+];
+const FONES_OPCOES=[...INSTRUMENTOS,...FONES_EXTRAS];
 
 function getDeviceId(){
   let id=localStorage.getItem(DEVICE_ID_KEY);
@@ -2152,8 +2205,16 @@ async function dbReleaseOperador(){
     .eq('id',1).eq('device_id',MY_DEVICE_ID);
   if(error)throw error;
 }
-async function dbListPedidosPendentes(){
-  const {data,error}=await sb.from('pedidos_operador').select('*').eq('status','pendente').order('criado_em',{ascending:true});
+function inicioDoDia(offsetDias){
+  const d=new Date();
+  d.setHours(0,0,0,0);
+  d.setDate(d.getDate()+(offsetDias||0));
+  return d;
+}
+async function dbListPedidosRecentes(){
+  const {data,error}=await sb.from('pedidos_operador').select('*')
+    .gte('criado_em',inicioDoDia(-1).toISOString())
+    .order('criado_em',{ascending:false});
   if(error)throw error;
   return data||[];
 }
@@ -2204,15 +2265,63 @@ function applyOperadorAtualState(row){
 
 async function refreshPedidosPendentes(){
   try{
-    pedidosPendentes=DEMO
-      ?demoPedidos.filter(p=>p.status==='pendente').sort((a,b)=>new Date(a.criado_em)-new Date(b.criado_em))
-      :await dbListPedidosPendentes();
+    const desde=inicioDoDia(-1);
+    pedidosRecentes=DEMO
+      ?demoPedidos.filter(p=>new Date(p.criado_em)>=desde).sort((a,b)=>new Date(b.criado_em)-new Date(a.criado_em))
+      :await dbListPedidosRecentes();
+    const hoje=inicioDoDia(0);
+    pedidosPendentes=pedidosRecentes
+      .filter(p=>p.status==='pendente'&&new Date(p.criado_em)>=hoje)
+      .sort((a,b)=>new Date(a.criado_em)-new Date(b.criado_em));
   }catch(e){
+    pedidosRecentes=[];
     pedidosPendentes=[];
   }
   renderOperadorPanel();
   updateOperadorHomeBadge();
 }
+
+document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden&&sb&&!DEMO)refreshPedidosPendentes();
+});
+
+function renderPedidosHistorico(){
+  const list=document.getElementById('pedidosHistoricoList');
+  if(!list)return;
+  const hoje=inicioDoDia(0);
+  const hora=iso=>new Date(iso).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  const itens=pedidosRecentes.map(p=>{
+    const doHoje=new Date(p.criado_em)>=hoje;
+    if(!doHoje&&p.status!=='pendente')return null;
+    const pendente=p.status==='pendente';
+    const destino=/ no PA$/.test(p.texto)?'hist-pa':/ no fone /.test(p.texto)?'hist-retorno':'';
+    const estado=(!doHoje?'missed':pendente?'':'done')+' '+destino;
+    const tag=!doHoje?'<span class="hist-tag hist-tag-missed">Não concluído · ontem</span>':'';
+    return `<div class="hist-item ${estado}">
+      <span class="hist-icon">${tipoIcon(p.tipo)}</span>
+      <div class="hist-body"><div class="hist-text">${esc(p.texto)}</div>${tag}</div>
+      <span class="hist-time">${pendente||!doHoje?'':'✓ '}${hora(p.criado_em)}</span>
+    </div>`;
+  }).filter(Boolean);
+  list.innerHTML=itens.length?itens.join(''):'<div class="hist-empty">Nenhum pedido hoje</div>';
+}
+
+let pedidosHistoricoObserver=null;
+function initPedidosScrollBtn(){
+  const btn=document.getElementById('pedidosScrollBtn');
+  const box=document.getElementById('pedidosHistorico');
+  if(!btn||!box||!('IntersectionObserver' in window))return;
+  pedidosHistoricoObserver=new IntersectionObserver(entries=>{
+    btn.classList.toggle('at-history',entries[0].isIntersecting);
+  },{threshold:0.35});
+  pedidosHistoricoObserver.observe(box);
+}
+function togglePedidosHistorico(){
+  const btn=document.getElementById('pedidosScrollBtn');
+  if(btn.classList.contains('at-history'))window.scrollTo({top:0,behavior:'smooth'});
+  else window.scrollTo({top:document.documentElement.scrollHeight,behavior:'smooth'});
+}
+initPedidosScrollBtn();
 
 async function handlePedidoChange(payload){
   await refreshPedidosPendentes();
@@ -2258,6 +2367,7 @@ function renderOperadorPanel(){
   if(!el)return;
   if(isOperadorDevice)renderOperadorQueueView(el);
   else renderPedidoComposerView(el);
+  renderPedidosHistorico();
 }
 
 function renderOperadorQueueView(el){
@@ -2284,17 +2394,18 @@ function renderPedidoComposerView(el){
   let bodyHtml;
   if(pedidoComposerStep==='instrumento'){
     const acao=pedidoComposerAcao;
-    const titulo=`Qual instrumento ${acao.toLowerCase()}?`;
+    const sufixoPA=pedidoComposerPA?' no PA':'';
+    const titulo=`Qual instrumento ${acao.toLowerCase()}${sufixoPA}?`;
     bodyHtml=`
       <div class="pedido-step-header">
         <button class="letra-close" onclick="pedidoComposerVoltar()">←</button>
         <div>
-          <div class="pedido-step-breadcrumb">${acaoIcon(acao)} ${esc(acao)}</div>
+          <div class="pedido-step-breadcrumb${pedidoComposerPA?' pedido-step-pa':''}">${acaoIcon(acao)} ${esc(acao)}${sufixoPA}</div>
           <div class="pedido-step-title">${titulo}</div>
         </div>
       </div>
       <div class="pedido-chip-grid">
-        ${INSTRUMENTOS.map(i=>`<button class="pedido-chip" onclick="pedidoEscolherInstrumento('${i.id}')">${esc(i.label)}</button>`).join('')}
+        ${INSTRUMENTOS.filter(i=>!(pedidoComposerPA&&i.id==='mic_direcao')).map(i=>`<button class="pedido-chip${pedidoComposerPA?' pedido-chip-pa':''}" onclick="pedidoEscolherInstrumento('${i.id}')">${esc(i.label)}</button>`).join('')}
       </div>`;
   }else if(pedidoComposerStep==='fone'){
     const inst=pedidoComposerInstrumento;
@@ -2307,7 +2418,7 @@ function renderPedidoComposerView(el){
         </div>
       </div>
       <div class="pedido-chip-grid pedido-chip-grid-fone">
-        ${INSTRUMENTOS.map(i=>`<button class="pedido-chip pedido-chip-fone" onclick="pedidoEscolherFone('${i.id}')">🎧 ${esc(i.label)}</button>`).join('')}
+        ${FONES_OPCOES.map(i=>`<button class="pedido-chip pedido-chip-fone" onclick="pedidoEscolherFone('${i.id}')">🎧 ${esc(i.label)}</button>`).join('')}
       </div>`;
   }else{
     const pendCount=pedidosPendentes.length;
@@ -2318,8 +2429,18 @@ function renderPedidoComposerView(el){
         ${pendCount>0?`<div class="operador-sub">Já há ${pendCount} pedido${pendCount>1?'s':''} na fila</div>`:''}
       </div>
       <div class="pedido-main-actions">
-        <button class="btn btn-primary pedido-action-btn" onclick="pedidoIniciar('Aumentar')">🔊 Aumentar no retorno</button>
-        <button class="btn btn-primary pedido-action-btn" onclick="pedidoIniciar('Abaixar')">🔉 Abaixar no retorno</button>
+        <div class="pedido-grupos">
+          <div class="pedido-grupo pedido-grupo-pa">
+            <div class="pedido-grupo-label">PA</div>
+            <button class="btn pedido-action-btn pedido-btn-pa" onclick="pedidoIniciar('Aumentar',true)">🔊 Aumentar</button>
+            <button class="btn pedido-action-btn pedido-btn-pa" onclick="pedidoIniciar('Abaixar',true)">🔉 Abaixar</button>
+          </div>
+          <div class="pedido-grupo pedido-grupo-retorno">
+            <div class="pedido-grupo-label">Retorno</div>
+            <button class="btn btn-primary pedido-action-btn" onclick="pedidoIniciar('Aumentar')">🔊 Aumentar</button>
+            <button class="btn btn-primary pedido-action-btn" onclick="pedidoIniciar('Abaixar')">🔉 Abaixar</button>
+          </div>
+        </div>
         <button class="btn btn-danger pedido-action-btn" onclick="pedidoIniciar('Mutar')">🔇 Mutar instrumento</button>
         <button class="btn btn-teal pedido-action-btn" onclick="pedidoIniciar('Desmutar')">🔈 Desmutar instrumento</button>
       </div>`;
@@ -2332,8 +2453,9 @@ function renderPedidoComposerView(el){
   el.innerHTML=bodyHtml+roleBox;
 }
 
-function pedidoIniciar(acao){
+function pedidoIniciar(acao,pa){
   pedidoComposerAcao=acao;
+  pedidoComposerPA=Boolean(pa);
   pedidoComposerInstrumento=null;
   pedidoComposerStep='instrumento';
   renderOperadorPanel();
@@ -2345,6 +2467,7 @@ function pedidoComposerVoltar(){
   }else{
     pedidoComposerStep=null;
     pedidoComposerAcao=null;
+    pedidoComposerPA=false;
     pedidoComposerInstrumento=null;
   }
   renderOperadorPanel();
@@ -2354,7 +2477,9 @@ function pedidoEscolherInstrumento(id){
   const inst=INSTRUMENTOS.find(i=>i.id===id);
   if(!inst)return;
   pedidoComposerInstrumento=inst;
-  if(ACOES_DIRETAS.includes(pedidoComposerAcao)){
+  if(pedidoComposerPA){
+    finalizarPedido(`${pedidoComposerAcao} ${inst.label} no PA`,pedidoComposerAcao.toLowerCase());
+  }else if(ACOES_DIRETAS.includes(pedidoComposerAcao)){
     finalizarPedido(`${pedidoComposerAcao} ${inst.label}`,pedidoComposerAcao.toLowerCase());
   }else{
     pedidoComposerStep='fone';
@@ -2363,7 +2488,7 @@ function pedidoEscolherInstrumento(id){
 }
 
 function pedidoEscolherFone(id){
-  const fone=INSTRUMENTOS.find(i=>i.id===id);
+  const fone=FONES_OPCOES.find(i=>i.id===id);
   if(!fone||!pedidoComposerInstrumento)return;
   const acao=pedidoComposerAcao;
   const texto=`${acao} ${pedidoComposerInstrumento.label} no fone ${fone.artigo} ${fone.label}`;
@@ -2373,6 +2498,7 @@ function pedidoEscolherFone(id){
 async function finalizarPedido(texto,tipo){
   pedidoComposerStep=null;
   pedidoComposerAcao=null;
+  pedidoComposerPA=false;
   pedidoComposerInstrumento=null;
   try{
     if(DEMO){
