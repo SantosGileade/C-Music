@@ -4795,6 +4795,26 @@ if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
   window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 }
 
+/* Atualização automática: o iPhone/Android mantêm o app aberto em segundo plano sem recarregar.
+   Ao abrir/voltar, compara a versão em uso com a publicada e recarrega sozinho se for diferente. */
+const APP_BUILD='1792613405997';
+async function verificarNovaVersao(){
+  if(APP_BUILD.startsWith('__')||!/^https?:$/.test(location.protocol)||location.hash==='#telao')return;
+  if(document.querySelector('.modal-overlay.open'))return;
+  try{
+    const r=await fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'});
+    const m=(await r.text()).match(/const APP_BUILD='([^']+)'/);
+    if(!m||m[1]===APP_BUILD)return;
+    const ultima=JSON.parse(sessionStorage.getItem('nexos_reload')||'null');
+    if(ultima&&ultima.build===m[1]&&Date.now()-ultima.t<120000)return;
+    sessionStorage.setItem('nexos_reload',JSON.stringify({build:m[1],t:Date.now()}));
+    location.reload();
+  }catch(e){}
+}
+setTimeout(verificarNovaVersao,2500);
+setInterval(()=>{if(!document.hidden)verificarNovaVersao();},5*60000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)verificarNovaVersao();});
+
 (async()=>{
   if(location.hash==='#telao'){
     initTelaoMode();
