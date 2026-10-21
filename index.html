@@ -2351,7 +2351,7 @@ function renderPedidosHistorico(){
       <span class="hist-icon">${tipoIcon(p.tipo)}</span>
       <div class="hist-body"><div class="hist-text">${esc(p.texto)}</div>${tag}</div>
       <span class="hist-time">${pendente||!doHoje?'':'✓ '}${hora(p.criado_em)}</span>
-      ${pendente&&doHoje?`<button class="hist-cancel" title="Cancelar pedido" aria-label="Cancelar pedido" onclick="cancelarPedido(${p.id})">✕</button>`:''}
+      ${pendente&&doHoje&&!isOperadorDevice?`<button class="hist-cancel" title="Cancelar pedido" aria-label="Cancelar pedido" onclick="cancelarPedido(${p.id})">✕</button>`:''}
     </div>`;
   }).filter(Boolean);
   list.innerHTML=itens.length?itens.join(''):'<div class="hist-empty">Nenhum pedido hoje</div>';
