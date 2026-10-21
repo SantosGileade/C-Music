@@ -15,8 +15,10 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET' || new URL(req.url).origin !== self.location.origin) return;
+  // Páginas sempre vêm da rede, ignorando o cache do navegador (que no GitHub Pages dura 10 min)
+  const rede = req.mode === 'navigate' ? fetch(req.url, { cache: 'no-store' }) : fetch(req);
   event.respondWith(
-    fetch(req)
+    rede
       .then((res) => {
         if (res.ok) {
           const copy = res.clone();
