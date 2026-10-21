@@ -747,6 +747,8 @@
     .hist-item{display:flex;align-items:flex-start;gap:8px;padding:7px 9px;border-radius:8px;background:rgba(255,255,255,.04);border:1px solid var(--border);font-size:.78rem}
     .hist-item.hist-pa{border-left:3px solid #a78bfa}
     .hist-item.hist-retorno{border-left:3px solid var(--accent2)}
+    .hist-cancel{flex-shrink:0;width:20px;height:20px;border-radius:50%;background:transparent;border:1px solid transparent;color:var(--text3);font-size:.62rem;line-height:1;display:flex;align-items:center;justify-content:center;opacity:.6;transition:var(--transition)}
+    .hist-cancel:hover{opacity:1;color:var(--red);border-color:rgba(224,82,82,.4)}
     .hist-icon{flex-shrink:0;line-height:1.3}
     .hist-body{flex:1;min-width:0}
     .hist-text{color:var(--text);font-weight:600;line-height:1.3}
@@ -800,6 +802,17 @@
       #panel-operador .pedido-step-header{margin:2px auto 8px}
       #panel-operador .pedido-chip-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
       #panel-operador .pedido-chip{height:34px;font-size:.72rem}
+
+      /* Duas colunas: pedido/ações à esquerda, quadro de pedidos sempre visível à direita */
+      #panel-operador.active{display:grid;grid-template-columns:minmax(0,1fr) minmax(230px,36%);grid-template-areas:"head head" "main side";column-gap:14px;align-items:start}
+      #panel-operador .panel-header{grid-area:head}
+      #panel-operador #operadorContent{grid-area:main;min-height:0}
+      #panel-operador .pedidos-historico{grid-area:side;position:static;width:auto;max-width:none;margin:0;max-height:calc(100dvh - 118px - var(--safe-top) - var(--safe-bot));display:flex;flex-direction:column}
+      #panel-operador .pedidos-historico-list{overflow-y:auto;min-height:0}
+      #panel-operador .pedidos-scroll-btn{display:none}
+      #panel-operador .operador-shell{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:10px 16px;padding:14px 18px}
+      #panel-operador .operador-title{font-size:1.5rem;line-height:1.2}
+      #panel-operador .operador-resolve-btn{grid-column:1 / -1;width:100%;padding:14px;font-size:1rem}
     }
   </style>
 </head>
@@ -2169,9 +2182,9 @@ const INSTRUMENTOS=[
   {id:'teclado',label:'Teclado',artigo:'do'},
   {id:'violao',label:'Violão',artigo:'do'},
   {id:'backing',label:'Backing Vocal',artigo:'do'},
-  {id:'mic_direcao',label:'Retorno Púlpito',artigo:'do'},
 ];
 const FONES_EXTRAS=[
+  {id:'mic_direcao',label:'Retorno Púlpito',artigo:'do'},
   {id:'sub',label:'Sub',artigo:'do'},
 ];
 const FONES_OPCOES=[...INSTRUMENTOS,...FONES_EXTRAS];
@@ -2222,6 +2235,10 @@ async function dbCriarPedido(texto,tipo){
   const {error}=await sb.from('pedidos_operador').insert({texto,tipo,status:'pendente'});
   if(error)throw error;
 }
+async function dbCancelarPedido(id){
+  const {error}=await sb.from('pedidos_operador').update({status:'cancelado'}).eq('id',id);
+  if(error)throw error;
+}
 async function dbConcluirPedido(id){
   const {error}=await sb.from('pedidos_operador').update({status:'atendido',atendido_em:new Date().toISOString()}).eq('id',id);
   if(error)throw error;
@@ -2234,15 +2251,16 @@ function startOperadorRealtime(){
       .on('postgres_changes',{event:'*',schema:'public',table:'operador_atual'},payload=>{
         applyOperadorAtualState(payload.new);
       })
-      .subscribe();
+      .subscribe(status=>{if(status==='SUBSCRIBED')pollOperadorAtual();});
   }
   if(!pedidosChannel){
     pedidosChannel=sb.channel('pedidos-operador')
       .on('postgres_changes',{event:'*',schema:'public',table:'pedidos_operador'},payload=>{
         handlePedidoChange(payload);
       })
-      .subscribe();
+      .subscribe(status=>{if(status==='SUBSCRIBED')refreshPedidosPendentes();});
   }
+  iniciarAtualizacaoPeriodica();
 }
 
 async function loadOperadorInicial(){
@@ -2263,6 +2281,9 @@ function applyOperadorAtualState(row){
   updateOperadorHomeBadge();
 }
 
+let pedidosConhecidosIds=null;
+let pedidosAssinatura='';
+
 async function refreshPedidosPendentes(){
   try{
     const desde=inicioDoDia(-1);
@@ -2274,16 +2295,44 @@ async function refreshPedidosPendentes(){
       .filter(p=>p.status==='pendente'&&new Date(p.criado_em)>=hoje)
       .sort((a,b)=>new Date(a.criado_em)-new Date(b.criado_em));
   }catch(e){
-    pedidosRecentes=[];
-    pedidosPendentes=[];
+    return;
   }
-  renderOperadorPanel();
+  const novos=pedidosConhecidosIds?pedidosPendentes.filter(p=>!pedidosConhecidosIds.has(p.id)):[];
+  pedidosConhecidosIds=new Set(pedidosPendentes.map(p=>p.id));
+  if(novos.length)onNovoPedido(novos[novos.length-1]);
+  const assinatura=inicioDoDia(0).getTime()+'|'+pedidosRecentes.map(p=>p.id+':'+p.status).join(',');
+  if(assinatura!==pedidosAssinatura){
+    pedidosAssinatura=assinatura;
+    renderOperadorPanel();
+  }
   updateOperadorHomeBadge();
 }
 
-document.addEventListener('visibilitychange',()=>{
-  if(!document.hidden&&sb&&!DEMO)refreshPedidosPendentes();
-});
+async function pollOperadorAtual(){
+  try{
+    const row=await dbGetOperadorAtual();
+    if((row?.device_id||null)!==operadorAtualDeviceId)applyOperadorAtualState(row);
+  }catch(e){}
+}
+
+// Rede de segurança: se a conexão em tempo real cair (celular em segundo plano, Wi-Fi instável),
+// o app volta a buscar sozinho, sem precisar atualizar a página.
+let pollTick=0;
+function iniciarAtualizacaoPeriodica(){
+  setInterval(()=>{
+    if(document.hidden||!sb||DEMO)return;
+    refreshPedidosPendentes();
+    if(++pollTick%5===0)pollOperadorAtual();
+  },6000);
+}
+function ressincronizarOperador(){
+  if(!sb||DEMO)return;
+  refreshPedidosPendentes();
+  pollOperadorAtual();
+}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)ressincronizarOperador();});
+window.addEventListener('online',ressincronizarOperador);
+window.addEventListener('focus',ressincronizarOperador);
 
 function renderPedidosHistorico(){
   const list=document.getElementById('pedidosHistoricoList');
@@ -2291,6 +2340,7 @@ function renderPedidosHistorico(){
   const hoje=inicioDoDia(0);
   const hora=iso=>new Date(iso).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
   const itens=pedidosRecentes.map(p=>{
+    if(p.status==='cancelado')return null;
     const doHoje=new Date(p.criado_em)>=hoje;
     if(!doHoje&&p.status!=='pendente')return null;
     const pendente=p.status==='pendente';
@@ -2301,9 +2351,28 @@ function renderPedidosHistorico(){
       <span class="hist-icon">${tipoIcon(p.tipo)}</span>
       <div class="hist-body"><div class="hist-text">${esc(p.texto)}</div>${tag}</div>
       <span class="hist-time">${pendente||!doHoje?'':'✓ '}${hora(p.criado_em)}</span>
+      ${pendente&&doHoje?`<button class="hist-cancel" title="Cancelar pedido" aria-label="Cancelar pedido" onclick="cancelarPedido(${p.id})">✕</button>`:''}
     </div>`;
   }).filter(Boolean);
   list.innerHTML=itens.length?itens.join(''):'<div class="hist-empty">Nenhum pedido hoje</div>';
+}
+
+function cancelarPedido(id){
+  const p=pedidosRecentes.find(x=>x.id===id);
+  openConfirm(`Cancelar o pedido "${p?p.texto:''}"?`,async()=>{
+    try{
+      if(DEMO){
+        const item=demoPedidos.find(x=>x.id===id);
+        if(item)item.status='cancelado';
+      }else{
+        await dbCancelarPedido(id);
+      }
+      await refreshPedidosPendentes();
+      toast('Pedido cancelado','info');
+    }catch(e){
+      toast('Não foi possível cancelar o pedido','error');
+    }
+  });
 }
 
 let pedidosHistoricoObserver=null;
@@ -2323,11 +2392,8 @@ function togglePedidosHistorico(){
 }
 initPedidosScrollBtn();
 
-async function handlePedidoChange(payload){
+async function handlePedidoChange(){
   await refreshPedidosPendentes();
-  if(payload.eventType==='INSERT'&&payload.new?.status==='pendente'){
-    onNovoPedido(payload.new);
-  }
 }
 
 function onNovoPedido(pedido){
@@ -2405,7 +2471,7 @@ function renderPedidoComposerView(el){
         </div>
       </div>
       <div class="pedido-chip-grid">
-        ${INSTRUMENTOS.filter(i=>!(pedidoComposerPA&&i.id==='mic_direcao')).map(i=>`<button class="pedido-chip${pedidoComposerPA?' pedido-chip-pa':''}" onclick="pedidoEscolherInstrumento('${i.id}')">${esc(i.label)}</button>`).join('')}
+        ${INSTRUMENTOS.map(i=>`<button class="pedido-chip${pedidoComposerPA?' pedido-chip-pa':''}" onclick="pedidoEscolherInstrumento('${i.id}')">${esc(i.label)}</button>`).join('')}
       </div>`;
   }else if(pedidoComposerStep==='fone'){
     const inst=pedidoComposerInstrumento;
@@ -2506,6 +2572,7 @@ async function finalizarPedido(texto,tipo){
       await refreshPedidosPendentes();
     }else{
       await dbCriarPedido(texto,tipo);
+      await refreshPedidosPendentes();
     }
     toast('Pedido enviado ao operador!','success');
   }catch(e){
@@ -4724,6 +4791,10 @@ window.addEventListener('popstate',()=>{
 /* =====================================================================
    INIT
    ===================================================================== */
+if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+
 (async()=>{
   if(location.hash==='#telao'){
     initTelaoMode();
