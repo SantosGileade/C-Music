@@ -2351,7 +2351,7 @@ function renderPedidosHistorico(){
       <span class="hist-icon">${tipoIcon(p.tipo)}</span>
       <div class="hist-body"><div class="hist-text">${esc(p.texto)}</div>${tag}</div>
       <span class="hist-time">${pendente||!doHoje?'':'✓ '}${hora(p.criado_em)}</span>
-      ${pendente&&doHoje?`<button class="hist-cancel" title="Cancelar pedido" aria-label="Cancelar pedido" onclick="cancelarPedido(${p.id})">✕</button>`:''}
+      ${pendente&&doHoje&&!isOperadorDevice?`<button class="hist-cancel" title="Cancelar pedido" aria-label="Cancelar pedido" onclick="cancelarPedido(${p.id})">✕</button>`:''}
     </div>`;
   }).filter(Boolean);
   list.innerHTML=itens.length?itens.join(''):'<div class="hist-empty">Nenhum pedido hoje</div>';
@@ -4797,7 +4797,7 @@ if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
 
 /* Atualização automática: o iPhone/Android mantêm o app aberto em segundo plano sem recarregar.
    Ao abrir/voltar, compara a versão em uso com a publicada e recarrega sozinho se for diferente. */
-const APP_BUILD='1792613405997';
+const APP_BUILD='1792614137260';
 async function verificarNovaVersao(){
   if(APP_BUILD.startsWith('__')||!/^https?:$/.test(location.protocol)||location.hash==='#telao')return;
   if(document.querySelector('.modal-overlay.open'))return;
