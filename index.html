@@ -4981,7 +4981,7 @@ async function dbBackingSalvarCategorias(lista,removidos){
   }
 }
 async function dbBackingIds(){
-  const {data,error}=await sb.from('backing_musica').select('musica_id');
+  const {data,error}=await sb.from('backing_musica').select('musica_id,linhas');
   if(error)throw error;
   return data||[];
 }
@@ -5041,6 +5041,10 @@ function backingReconcile(saved,letra){
 }
 
 function backingCat(id){return backingCats.find(c=>c.id===id)||null;}
+// "Tem vozes" = pelo menos um trecho visível com uma categoria existente
+function backingTemVozes(linhas){
+  return Array.isArray(linhas)&&linhas.some(l=>l.k==='l'&&!l.x&&l.v&&backingCat(l.v));
+}
 function backingEhContracanto(cat){
   return Boolean(cat)&&/contracanto/i.test(String(cat.nome||'').normalize('NFD').replace(/[̀-ͯ]/g,''));
 }
@@ -5080,7 +5084,7 @@ function backingOnEnter(navOpts){
 
 async function carregarBackingBase(){
   try{backingCats=await dbBackingCategorias();}catch(e){backingCats=[];}
-  try{backingIdsComVozes=new Set((await dbBackingIds()).map(r=>r.musica_id));}catch(e){backingIdsComVozes=new Set();}
+  try{backingIdsComVozes=new Set((await dbBackingIds()).filter(r=>backingTemVozes(r.linhas)).map(r=>r.musica_id));}catch(e){backingIdsComVozes=new Set();}
 }
 
 async function loadBackingMusicas(reset){
@@ -5123,7 +5127,7 @@ function renderBackingList(){
     <div class="backing-song">
       <div class="backing-song-main" onclick="openBackingView(${m.id})">
         <div class="backing-song-title" title="${esc(m.titulo)}">${esc(m.titulo)}</div>
-        <div class="backing-song-sub">${m.autor?`<span>${esc(m.autor)}</span>`:''}${backingIdsComVozes.has(m.id)?'<span class="backing-tag">🎨 vozes</span>':''}</div>
+        <div class="backing-song-sub">${m.autor?`<span>${esc(m.autor)}</span>`:''}${backingIdsComVozes.has(m.id)?`<span class="backing-tag"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4"/></svg>vozes</span>`:''}</div>
       </div>
       ${m.tom?`<span class="tom-badge">${esc(m.tom)}</span>`:''}
       ${lider?`<button class="btn backing-edit-btn" title="Editar vozes" onclick="openBackingEdit(${m.id})">${ICON_EDIT}</button>`:''}
@@ -5146,7 +5150,7 @@ async function backingCarregarMusica(id){
   if(!backingCats.length){try{backingCats=await dbBackingCategorias();}catch(e){}}
   let saved=null,erro=false;
   try{const row=await dbBackingGet(id);saved=row&&row.linhas;}catch(e){erro=true;}
-  return {musica:m,linhas:backingReconcile(saved,m.letra),temVozes:Array.isArray(saved)&&saved.length>0,erro};
+  return {musica:m,linhas:backingReconcile(saved,m.letra),temVozes:backingTemVozes(saved),erro};
 }
 
 /* ---------- leitura (Cantor e Líder) ---------- */
@@ -5283,7 +5287,8 @@ async function salvarBackingEdit(){
   btn.disabled=true;btn.textContent='Salvando…';
   try{
     await dbBackingSalvar(backingEdit.musica.id,linhas);
-    backingIdsComVozes.add(backingEdit.musica.id);
+    if(backingTemVozes(linhas))backingIdsComVozes.add(backingEdit.musica.id);
+    else backingIdsComVozes.delete(backingEdit.musica.id);
     toast('Vozes salvas!','success');
     closeBackingEdit();
     renderBackingList();
