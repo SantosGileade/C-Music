@@ -591,7 +591,13 @@
     .be-search{padding:0 20px 10px}
     .be-search .form-input{height:42px}
     .be-list{flex:1;min-height:120px;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 20px 8px;display:flex;flex-direction:column;gap:6px}
-    .be-row{display:flex;align-items:center;gap:10px;padding:7px 8px 7px 10px;border-radius:9px;background:rgba(10,25,42,.5);border:1px solid rgba(102,153,217,.16);border-left:4px solid var(--vc,rgba(255,255,255,.14))}
+    .be-nota{display:none;flex:1 1 100%;height:36px;border-radius:8px;background:rgba(10,25,42,.7);border:1px solid var(--vc,var(--border));color:var(--text);font-size:.82rem;padding:0 10px}
+    .be-nota::placeholder{color:var(--text3)}
+    .be-row.tem-nota .be-nota{display:block}
+    .bv-nota{display:flex;align-items:flex-start;gap:7px;margin:0 0 5px;color:var(--vc);font-weight:700;line-height:1.35}
+    .bv-seta{flex-shrink:0}
+    .bv-text-ref{opacity:.7}
+    .be-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:7px 8px 7px 10px;border-radius:9px;background:rgba(10,25,42,.5);border:1px solid rgba(102,153,217,.16);border-left:4px solid var(--vc,rgba(255,255,255,.14))}
     .be-text{flex:1;min-width:0;font-size:.86rem;line-height:1.3;color:var(--text)}
     .be-row.oculta .be-text{text-decoration:line-through;opacity:.4}
     .be-row.oculta .be-sel{opacity:.4;pointer-events:none}
@@ -5035,6 +5041,9 @@ function backingReconcile(saved,letra){
 }
 
 function backingCat(id){return backingCats.find(c=>c.id===id)||null;}
+function backingEhContracanto(cat){
+  return Boolean(cat)&&/contracanto/i.test(String(cat.nome||'').normalize('NFD').replace(/[̀-ͯ]/g,''));
+}
 
 /* ---------- acesso e lista ---------- */
 function openBackingAccess(){
@@ -5170,9 +5179,11 @@ function renderBackingView(){
     if(l.x)return;
     const cat=l.v?backingCat(l.v):null;
     const dim=backingDestaque&&(!cat||cat.id!==backingDestaque);
+    const nota=backingEhContracanto(cat)&&l.c&&l.c.trim()?l.c.trim():'';
     html+=`<div class="bv-line${dim?' dim':''}"${cat?` style="--vc:${esc(cat.cor)}"`:''}>
       ${cat?`<span class="bv-pill">${esc(cat.nome)}</span>`:''}
-      <div class="bv-text" style="font-size:${backingFont}px">${esc(l.t)}</div>
+      ${nota?`<div class="bv-nota" style="font-size:${Math.max(13,backingFont-2)}px"><span class="bv-seta">➜</span>${esc(nota)}</div>`:''}
+      <div class="bv-text${nota?' bv-text-ref':''}" style="font-size:${backingFont}px">${esc(l.t)}</div>
     </div>`;
     ultimoGap=false;
   });
@@ -5226,10 +5237,11 @@ function renderBackingEdit(){
     }else{
       if(busca&&!it.t.toLowerCase().includes(busca))return;
       const cat=it.v?backingCat(it.v):null;
-      html+=`<div class="be-row${it.x?' oculta':''}"${cat?` style="--vc:${esc(cat.cor)}"`:''}>
+      html+=`<div class="be-row${it.x?' oculta':''}${backingEhContracanto(cat)?' tem-nota':''}"${cat?` style="--vc:${esc(cat.cor)}"`:''}>
         <div class="be-text">${esc(it.t)}</div>
         <select class="be-sel" onchange="backingEditVoz(${i},this.value,this)">${opts(it.v)}</select>
         <button class="be-icon" title="${it.x?'Mostrar este trecho':'Ocultar este trecho (só no backing)'}" onclick="backingEditOcultar(${i})">${it.x?'↺':ICON_DELETE}</button>
+        <input class="be-nota" type="text" maxlength="120" placeholder="Qual contracanto cantar? (opcional)" value="${esc(it.c||'')}" oninput="backingEdit.linhas[${i}].c=this.value">
       </div>`;
     }
   });
@@ -5244,6 +5256,7 @@ function backingEditVoz(i,val,sel){
   const cat=it.v?backingCat(it.v):null;
   const row=sel.closest('.be-row');
   if(cat)row.style.setProperty('--vc',cat.cor);else row.style.removeProperty('--vc');
+  row.classList.toggle('tem-nota',backingEhContracanto(cat));
 }
 function backingEditOcultar(i){
   const it=backingEdit.linhas[i];
@@ -5266,7 +5279,7 @@ async function salvarBackingEdit(){
   const btn=document.getElementById('backingEditSalvarBtn');
   const linhas=backingEdit.linhas
     .filter(it=>!(it.k==='s'&&!(it.t||'').trim()))
-    .map(it=>it.k==='s'?{k:'s',t:it.t.trim()}:it.k==='b'?{k:'b'}:{k:'l',t:it.t,v:backingCat(it.v)?it.v:null,...(it.x?{x:1}:{})});
+    .map(it=>it.k==='s'?{k:'s',t:it.t.trim()}:it.k==='b'?{k:'b'}:{k:'l',t:it.t,v:backingCat(it.v)?it.v:null,...(it.x?{x:1}:{}),...(backingEhContracanto(backingCat(it.v))&&(it.c||'').trim()?{c:it.c.trim()}:{})});
   btn.disabled=true;btn.textContent='Salvando…';
   try{
     await dbBackingSalvar(backingEdit.musica.id,linhas);
@@ -5372,7 +5385,7 @@ if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
 
 /* Atualização automática: o iPhone/Android mantêm o app aberto em segundo plano sem recarregar.
    Ao abrir/voltar, compara a versão em uso com a publicada e recarrega sozinho se for diferente. */
-const APP_BUILD='1793071370126';
+const APP_BUILD='1793131050681';
 async function verificarNovaVersao(){
   if(APP_BUILD.startsWith('__')||!/^https?:$/.test(location.protocol)||location.hash==='#telao')return;
   if(document.querySelector('.modal-overlay.open'))return;
