@@ -554,7 +554,62 @@
     .home-actions .home-card-title{font-size:1.15rem}
     .home-actions .home-card-desc{font-size:.88rem;line-height:1.4}
     .home-actions .home-card-arrow{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(102,153,217,.12);color:var(--home-color,var(--accent));font-weight:700}
-    .backing-empty{max-width:420px;margin:40px auto;text-align:center;padding:40px 24px;border:1px dashed var(--border);border-radius:var(--radius);color:var(--text3);font-style:italic}
+    /* ===== BACKING VOCAL ===== */
+    .backing-empty{text-align:center;padding:36px 24px;color:var(--text3);font-style:italic}
+    .backing-list{background:linear-gradient(145deg,rgba(31,55,86,.88),rgba(22,42,67,.9));border:1px solid rgba(102,153,217,.22);border-radius:var(--radius);overflow:hidden}
+    .backing-song{display:flex;align-items:center;gap:11px;padding:12px 14px;border-bottom:1px solid rgba(102,153,217,.18)}
+    .backing-song:last-child{border-bottom:none}
+    .backing-song-main{flex:1;min-width:0;cursor:pointer}
+    .backing-song-main:hover .backing-song-title{color:var(--accent2)}
+    .backing-song-title{font-weight:600;font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .backing-song-sub{font-size:.75rem;color:var(--text3);margin-top:2px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+    .backing-tag{display:inline-flex;align-items:center;gap:4px;padding:1px 7px;border-radius:99px;font-size:.66rem;font-weight:700;color:#b79cff;background:rgba(139,92,246,.16);border:1px solid rgba(139,92,246,.35)}
+    .backing-edit-btn svg{width:17px;height:17px}
+    .backing-edit-btn{width:36px;height:36px;padding:0;justify-content:center;border-radius:10px;flex-shrink:0;color:#a9c1ef;background:rgba(22,42,67,.68);border:1px solid rgba(102,153,217,.22)}
+    #backingViewScreen{display:none;position:fixed;inset:0;z-index:300;background:#07101c;flex-direction:column}
+    #backingViewScreen.open{display:flex}
+    .bv-legend{display:flex;flex-wrap:wrap;gap:8px;padding:10px 18px;background:rgba(10,22,38,.9);border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0}
+    .bv-legend:empty{display:none}
+    .bv-chip{display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border-radius:99px;font-size:.78rem;font-weight:600;color:var(--text2);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);cursor:pointer;transition:var(--transition)}
+    .bv-chip i{width:11px;height:11px;border-radius:50%;background:var(--vc);display:inline-block;flex-shrink:0}
+    .bv-chip.on{color:#fff;border-color:var(--vc);background:rgba(255,255,255,.1)}
+    .bv-body{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+    .bv-aviso{font-size:.8rem;color:var(--text3);text-align:center;padding:10px 12px;border:1px dashed rgba(255,255,255,.14);border-radius:10px}
+    .bv-section{display:flex;align-items:center;gap:10px;margin-top:8px;font-size:.74rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#7aaade}
+    .bv-section i{flex:1;max-width:70px;height:1px;background:rgba(122,170,222,.35)}
+    .bv-gap{height:6px}
+    .bv-line{border-left:4px solid var(--vc,rgba(255,255,255,.12));padding:1px 0 1px 12px;border-radius:2px;transition:opacity .2s ease}
+    .bv-line.dim{opacity:.22}
+    .bv-pill{display:inline-block;margin-bottom:5px;padding:2px 9px;border-radius:99px;font-size:.66rem;font-weight:700;color:#fff;background:var(--vc);letter-spacing:.2px}
+    .bv-text{color:#fff;line-height:1.45;font-weight:500}
+    .be-modal{max-width:660px;display:flex;flex-direction:column;overflow:hidden;padding-bottom:0}
+    @media(min-width:600px){.be-modal{max-height:90dvh}}
+    .be-top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 20px 10px}
+    .be-legend{display:flex;flex-wrap:wrap;gap:6px 12px}
+    .be-legend span{display:inline-flex;align-items:center;gap:6px;font-size:.76rem;color:var(--text2)}
+    .be-legend i,.be-dot{width:11px;height:11px;border-radius:50%;background:var(--vc);display:inline-block;flex-shrink:0}
+    .be-search{padding:0 20px 10px}
+    .be-search .form-input{height:42px}
+    .be-list{flex:1;min-height:120px;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 20px 8px;display:flex;flex-direction:column;gap:6px}
+    .be-row{display:flex;align-items:center;gap:10px;padding:7px 8px 7px 10px;border-radius:9px;background:rgba(10,25,42,.5);border:1px solid rgba(102,153,217,.16);border-left:4px solid var(--vc,rgba(255,255,255,.14))}
+    .be-text{flex:1;min-width:0;font-size:.86rem;line-height:1.3;color:var(--text)}
+    .be-row.oculta .be-text{text-decoration:line-through;opacity:.4}
+    .be-row.oculta .be-sel{opacity:.4;pointer-events:none}
+    .be-sel{flex-shrink:0;width:150px;height:36px;border-radius:8px;background:var(--card);border:1px solid var(--border);color:var(--text);font-size:.8rem;padding:0 8px}
+    .be-icon{width:30px;height:30px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--text3);background:transparent;border:1px solid transparent}
+    .be-icon:hover{color:var(--red);border-color:rgba(224,82,82,.35)}
+    .be-icon svg{width:15px;height:15px}
+    .be-section{border-left-color:#7aaade;background:rgba(122,170,222,.08)}
+    .be-section input{flex:1;min-width:0;background:transparent;border:none;color:#9fc3ef;font-weight:700;font-size:.8rem;letter-spacing:.6px;text-transform:uppercase;padding:4px 2px}
+    .be-section input:focus{outline:none}
+    .be-gap{display:flex;justify-content:center;padding:1px 0}
+    .be-add-sec{font-size:.68rem;font-weight:600;color:var(--text3);padding:2px 10px;border-radius:99px;border:1px dashed rgba(102,153,217,.25);background:transparent;opacity:.7}
+    .be-add-sec:hover{opacity:1;color:var(--accent2)}
+    @media(max-width:520px){.be-sel{width:118px;font-size:.74rem}.be-top{align-items:flex-start;flex-direction:column}}
+    .bc-list{display:flex;flex-direction:column;gap:8px}
+    .bc-row{display:flex;align-items:center;gap:10px}
+    .bc-row input[type=color]{width:42px;height:38px;padding:2px;border-radius:8px;border:1px solid var(--border);background:var(--card);flex-shrink:0;cursor:pointer}
+    .bc-row .form-input{flex:1;height:38px}
     .home-hero-secret{-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
     .home-actions .home-card-soon{cursor:default;opacity:.55;border-style:dashed;pointer-events:none;background:linear-gradient(105deg,rgba(42,63,89,.5),rgba(27,43,70,.4))}
     .home-actions .home-card-soon::before{background:repeating-linear-gradient(135deg,#8a96a8 0 6px,transparent 6px 12px)}
@@ -857,7 +912,7 @@
     <div class="home-shell">
       <div class="home-hero">
         <div class="home-hero-icon">🎵</div>
-        <div class="home-hero-title home-hero-secret" onclick="switchPanel('backing')">Nexos</div>
+        <div class="home-hero-title home-hero-secret" onclick="openBackingAccess()">Nexos</div>
         <div class="home-hero-sub">O que você vai fazer hoje?</div>
       </div>
       <div class="home-actions">
@@ -1070,12 +1125,18 @@
     <div class="panel-header">
       <div>
         <div class="panel-title">🎤 <span>Backing Vocal</span></div>
-        <div style="font-size:.79rem;color:var(--text3);margin-top:2px">Organização do backing vocal</div>
+        <div style="font-size:.79rem;color:var(--text3);margin-top:2px" id="backingSubtitle"></div>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="backingRoleBtn" onclick="openBackingRoleModal()"></button>
+    </div>
+    <div class="search-row">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input class="search-input" type="search" id="backingSearch" placeholder="Buscar por título, autor ou letra..." autocomplete="off" />
       </div>
     </div>
-    <div id="backingContent">
-      <div class="backing-empty">Tela em construção</div>
-    </div>
+    <div class="backing-list" id="backingList"></div>
+    <div id="backingVerMais" style="display:none;justify-content:center;padding:18px 0"><div class="spinner"></div></div>
   </div>
 
   <!-- PAINEL PLAYLISTS -->
@@ -1358,6 +1419,89 @@
       <button class="btn btn-primary" id="addToPlaylistConfirmBtn" onclick="confirmAddToPlaylist()">Adicionar</button>
     </div>
   </div>
+</div>
+
+<!-- MODAL: BACKING VOCAL — CANTOR OU LÍDER -->
+<div class="modal-overlay" id="backingRoleModal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header"><h2>Você é...</h2><button class="modal-close" onclick="closeBackingRoleModal()">✕</button></div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:10px;padding-bottom:20px">
+      <button class="home-card" style="--home-color:#3b9cf5" onclick="selectBackingRole('cantor')">
+        <div class="home-card-icon" style="background:linear-gradient(135deg,#3b9cf5,#14b8a6)">🎙️</div>
+        <div class="home-card-body">
+          <div class="home-card-title">Cantor</div>
+          <div class="home-card-desc">Ver a letra com as vozes de cada trecho</div>
+        </div>
+        <div class="home-card-arrow">›</div>
+      </button>
+      <button class="home-card" style="--home-color:#8b5cf6" onclick="selectBackingRole('lider')">
+        <div class="home-card-icon" style="background:linear-gradient(135deg,#8b5cf6,#f5a623)">⭐</div>
+        <div class="home-card-body">
+          <div class="home-card-title">Líder</div>
+          <div class="home-card-desc">Definir as vozes e cores de cada música</div>
+        </div>
+        <div class="home-card-arrow">›</div>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: BACKING VOCAL — EDITAR VOZES DA MÚSICA -->
+<div class="modal-overlay" id="backingEditModal">
+  <div class="modal be-modal">
+    <div class="modal-header">
+      <div>
+        <h2 id="backingEditTitulo">Editar cores e vozes da música</h2>
+        <div class="add-song-subtitle">Defina qual voz canta cada trecho. A letra original não é alterada.</div>
+      </div>
+      <button class="modal-close" onclick="closeBackingEdit()">✕</button>
+    </div>
+    <div class="be-top">
+      <div class="be-legend" id="backingEditLegend"></div>
+      <button class="btn btn-ghost btn-sm" onclick="openBackingCatModal()">✎ Categorias</button>
+    </div>
+    <div class="be-search"><input class="form-input" id="backingEditBusca" type="search" placeholder="Buscar trecho da música..." autocomplete="off" /></div>
+    <div class="be-list" id="backingEditList"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeBackingEdit()">Cancelar</button>
+      <button class="btn btn-primary" id="backingEditSalvarBtn" onclick="salvarBackingEdit()">✓ Salvar alterações</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: BACKING VOCAL — EDITAR CATEGORIAS -->
+<div class="modal-overlay" id="backingCatModal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <div><h2>Categorias de voz</h2><div class="add-song-subtitle">Nome e cor de cada voz. Valem para todas as músicas.</div></div>
+      <button class="modal-close" onclick="closeBackingCatModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="backingCatList" class="bc-list"></div>
+      <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="backingCatAdicionar()">＋ Nova categoria</button>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeBackingCatModal()">Cancelar</button>
+      <button class="btn btn-primary" id="backingCatSalvarBtn" onclick="salvarBackingCats()">✓ Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- BACKING VOCAL — LEITURA DA MÚSICA COM AS VOZES -->
+<div id="backingViewScreen">
+  <div class="letra-header">
+    <button class="letra-close" onclick="closeBackingView()">←</button>
+    <div class="letra-header-info">
+      <div class="letra-header-title" id="bvTitulo">—</div>
+      <div class="letra-header-meta"><span id="bvAutor"></span></div>
+    </div>
+    <div class="letra-controls">
+      <button class="letra-font-btn" onclick="changeBackingFont(-2)" title="Diminuir letra">A−</button>
+      <button class="letra-font-btn" onclick="changeBackingFont(2)" title="Aumentar letra">A+</button>
+    </div>
+  </div>
+  <div class="bv-legend" id="bvLegend"></div>
+  <div class="letra-body"><div id="bvBody" class="bv-body"></div></div>
 </div>
 
 <!-- MODAL: ESCOLHA MÚSICAS/PLAYLISTS -->
@@ -2765,6 +2909,7 @@ function switchPanel(name, navOpts) {
     loadMensagens();
   }
   if(name==='operador') renderOperadorPanel();
+  if(name==='backing') backingOnEnter(navOpts);
   if(name==='home'){
     loadHomeStats();
     refreshUpdateBadge();
@@ -2779,7 +2924,7 @@ document.addEventListener('keydown',e=>{
   if(document.getElementById('letraScreen').classList.contains('open')){closeLetra();return;}
   if(document.getElementById('recentUpdatesScreen').classList.contains('open')){closeRecentUpdatesScreen();return;}
   if(document.getElementById('mensagemScreen').classList.contains('open')){closeMensagemView();return;}
-  ['musicaModal','mensagemModal','toneFilterModal','playlistModal','addSongModal','addToPlaylistModal','confirmModal','musicasChoiceModal','datashowChoiceModal'].forEach(id=>{
+  ['musicaModal','mensagemModal','toneFilterModal','playlistModal','addSongModal','addToPlaylistModal','confirmModal','musicasChoiceModal','datashowChoiceModal','importarMensagensModal','backingEditModal','backingCatModal'].forEach(id=>{
     document.getElementById(id).classList.remove('open');
   });
 });
@@ -2798,7 +2943,7 @@ function appBackSwipeStart(event){
   const touch=event.touches[0];
   const letraOpen=document.getElementById('letraScreen').classList.contains('open');
   const recentOpen=document.getElementById('recentUpdatesScreen').classList.contains('open');
-  const mensagemOpen=document.getElementById('mensagemScreen').classList.contains('open');
+  const mensagemOpen=document.getElementById('mensagemScreen').classList.contains('open')||document.getElementById('backingViewScreen').classList.contains('open');
   const modalOpen=document.querySelector('.modal-overlay.open');
   appSwipePanel=document.querySelector('.panel.active');
   appSwipeActive=Boolean(
@@ -4796,6 +4941,397 @@ function apStopRealtime() {
 /* =====================================================================
    ROTEAMENTO (URL por tela — permite usar o "voltar" do navegador no PC)
    ===================================================================== */
+/* =====================================================================
+   BACKING VOCAL (tela oculta) — Cantor: só visualiza | Líder: define as vozes
+   ===================================================================== */
+let backingRole=null;
+let backingCats=[];
+let backingIdsComVozes=new Set();
+let backingItems=[];
+let backingPage=0,backingTotal=0,backingHasMore=false,backingLoading=false,backingLoaded=false;
+let backingFont=18;
+let backingView=null;
+let backingDestaque=null;
+let backingEdit=null;
+let backingCatEdit=null;
+
+async function dbBackingCategorias(){
+  const {data,error}=await sb.from('backing_categoria').select('*').order('ordem').order('id');
+  if(error)throw error;
+  return data||[];
+}
+async function dbBackingSalvarCategorias(lista,removidos){
+  if(removidos.length){
+    const {error}=await sb.from('backing_categoria').delete().in('id',removidos);
+    if(error)throw error;
+  }
+  for(let i=0;i<lista.length;i++){
+    const c=lista[i];
+    const body={nome:c.nome,cor:c.cor,ordem:i+1};
+    const {error}=c.id
+      ?await sb.from('backing_categoria').update(body).eq('id',c.id)
+      :await sb.from('backing_categoria').insert(body);
+    if(error)throw error;
+  }
+}
+async function dbBackingIds(){
+  const {data,error}=await sb.from('backing_musica').select('musica_id');
+  if(error)throw error;
+  return data||[];
+}
+async function dbBackingGet(musicaId){
+  const {data,error}=await sb.from('backing_musica').select('*').eq('musica_id',musicaId).maybeSingle();
+  if(error)throw error;
+  return data;
+}
+async function dbBackingSalvar(musicaId,linhas){
+  const {error}=await sb.from('backing_musica').upsert({musica_id:musicaId,linhas,atualizado_em:new Date().toISOString()},{onConflict:'musica_id'});
+  if(error)throw error;
+}
+
+function backingParse(letra){
+  const out=[];
+  String(letra||'').replace(/\r\n?/g,'\n').split('\n').forEach(raw=>{
+    const t=raw.trim();
+    if(!t){if(out.length&&out[out.length-1].k!=='b')out.push({k:'b'});}
+    else out.push({k:'l',t});
+  });
+  while(out.length&&out[out.length-1].k==='b')out.pop();
+  return out;
+}
+
+// Alinha a cópia do backing com a letra original atual, sem perder as vozes já marcadas
+function backingReconcile(saved,letra){
+  const fresh=backingParse(letra);
+  if(!Array.isArray(saved)||!saved.length)return fresh;
+  const base=[],anchors=[];
+  saved.forEach(it=>{if(it.k==='s')anchors.push({it,before:base.length});else base.push(it);});
+  const key=it=>it.k==='b'?'\n':it.t;
+  const n=base.length,m=fresh.length;
+  const dp=Array.from({length:n+1},()=>new Array(m+1).fill(0));
+  for(let i=n-1;i>=0;i--)for(let j=m-1;j>=0;j--){
+    dp[i][j]=key(base[i])===key(fresh[j])?dp[i+1][j+1]+1:Math.max(dp[i+1][j],dp[i][j+1]);
+  }
+  const matchFresh=new Array(m).fill(-1),matchBase=new Array(n).fill(-1);
+  let i=0,j=0;
+  while(i<n&&j<m){
+    if(key(base[i])===key(fresh[j])){matchFresh[j]=i;matchBase[i]=j;i++;j++;}
+    else if(dp[i+1][j]>=dp[i][j+1])i++;
+    else j++;
+  }
+  const headBefore=Array.from({length:m+1},()=>[]);
+  anchors.forEach(a=>{
+    let target=m;
+    for(let b=a.before;b<n;b++){if(matchBase[b]>=0){target=matchBase[b];break;}}
+    headBefore[target].push(a.it);
+  });
+  const out=[];
+  for(let k=0;k<m;k++){
+    out.push(...headBefore[k]);
+    out.push(matchFresh[k]>=0?{...base[matchFresh[k]]}:fresh[k]);
+  }
+  out.push(...headBefore[m]);
+  return out;
+}
+
+function backingCat(id){return backingCats.find(c=>c.id===id)||null;}
+
+/* ---------- acesso e lista ---------- */
+function openBackingAccess(){
+  backingRole=null;
+  document.getElementById('backingRoleModal').classList.add('open');
+}
+function openBackingRoleModal(){document.getElementById('backingRoleModal').classList.add('open');}
+function closeBackingRoleModal(){
+  document.getElementById('backingRoleModal').classList.remove('open');
+  if(!backingRole&&document.querySelector('.panel.active')?.id==='panel-backing')switchPanel('home');
+}
+function selectBackingRole(role){
+  backingRole=role;
+  document.getElementById('backingRoleModal').classList.remove('open');
+  if(document.querySelector('.panel.active')?.id!=='panel-backing')switchPanel('backing');
+  else backingOnEnter({});
+}
+document.getElementById('backingRoleModal').addEventListener('click',e=>{if(e.target.id==='backingRoleModal')closeBackingRoleModal();});
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape')return;
+  if(document.getElementById('backingViewScreen').classList.contains('open')){closeBackingView();return;}
+  if(document.getElementById('backingRoleModal').classList.contains('open'))closeBackingRoleModal();
+});
+
+function backingOnEnter(navOpts){
+  if(!backingRole){openBackingRoleModal();return;}
+  const lider=backingRole==='lider';
+  document.getElementById('backingRoleBtn').textContent=(lider?'⭐ Líder':'🎙️ Cantor')+' ⇄';
+  document.getElementById('backingSubtitle').textContent=lider?'Defina as vozes de cada música':'Veja as vozes de cada música';
+  if(navOpts&&navOpts.fromPopstate&&backingLoaded){renderBackingList();return;}
+  document.getElementById('backingSearch').value='';
+  loadBackingMusicas(true);
+}
+
+async function carregarBackingBase(){
+  try{backingCats=await dbBackingCategorias();}catch(e){backingCats=[];}
+  try{backingIdsComVozes=new Set((await dbBackingIds()).map(r=>r.musica_id));}catch(e){backingIdsComVozes=new Set();}
+}
+
+async function loadBackingMusicas(reset){
+  if(backingLoading)return;
+  backingLoading=true;
+  const list=document.getElementById('backingList');
+  const term=document.getElementById('backingSearch').value.trim();
+  try{
+    if(reset){
+      backingPage=0;
+      list.innerHTML='<div style="text-align:center;padding:36px"><div class="spinner" style="margin:auto"></div></div>';
+      document.getElementById('backingVerMais').style.display='none';
+      await carregarBackingBase();
+    }else{
+      backingPage++;
+    }
+    const data=await dbListMusicas(term,backingPage,'');
+    backingItems=reset?data.content:[...backingItems,...data.content];
+    backingTotal=data.totalElements;
+    backingHasMore=backingItems.length<backingTotal;
+    backingLoaded=true;
+    renderBackingList();
+  }catch(e){
+    if(!reset)backingPage--;
+    else list.innerHTML='<div class="backing-empty" style="color:var(--red)">Erro ao carregar. Verifique a conexão.</div>';
+  }finally{
+    backingLoading=false;
+  }
+}
+
+function renderBackingList(){
+  const list=document.getElementById('backingList');
+  if(!backingItems.length){
+    list.innerHTML='<div class="backing-empty">Nenhuma música encontrada.</div>';
+    document.getElementById('backingVerMais').style.display='none';
+    return;
+  }
+  const lider=backingRole==='lider';
+  list.innerHTML=backingItems.map(m=>`
+    <div class="backing-song">
+      <div class="backing-song-main" onclick="openBackingView(${m.id})">
+        <div class="backing-song-title" title="${esc(m.titulo)}">${esc(m.titulo)}</div>
+        <div class="backing-song-sub">${m.autor?`<span>${esc(m.autor)}</span>`:''}${backingIdsComVozes.has(m.id)?'<span class="backing-tag">🎨 vozes</span>':''}</div>
+      </div>
+      ${m.tom?`<span class="tom-badge">${esc(m.tom)}</span>`:''}
+      ${lider?`<button class="btn backing-edit-btn" title="Editar vozes" onclick="openBackingEdit(${m.id})">${ICON_EDIT}</button>`:''}
+    </div>`).join('');
+  document.getElementById('backingVerMais').style.display=backingHasMore?'flex':'none';
+}
+
+let backingSearchTimer;
+document.getElementById('backingSearch').addEventListener('input',()=>{
+  clearTimeout(backingSearchTimer);
+  backingSearchTimer=setTimeout(()=>loadBackingMusicas(true),380);
+});
+new IntersectionObserver(entries=>{
+  if(entries.some(en=>en.isIntersecting)&&backingHasMore&&!backingLoading)loadBackingMusicas(false);
+},{rootMargin:'300px 0px'}).observe(document.getElementById('backingVerMais'));
+
+/* ---------- carregar uma música com as vozes ---------- */
+async function backingCarregarMusica(id){
+  const m=await dbGetMusica(id);
+  if(!backingCats.length){try{backingCats=await dbBackingCategorias();}catch(e){}}
+  let saved=null,erro=false;
+  try{const row=await dbBackingGet(id);saved=row&&row.linhas;}catch(e){erro=true;}
+  return {musica:m,linhas:backingReconcile(saved,m.letra),temVozes:Array.isArray(saved)&&saved.length>0,erro};
+}
+
+/* ---------- leitura (Cantor e Líder) ---------- */
+async function openBackingView(id){
+  let dados;
+  try{dados=await backingCarregarMusica(id);}
+  catch(e){toast('Erro ao abrir a música','error');return;}
+  backingView=dados;
+  backingDestaque=null;
+  document.getElementById('bvTitulo').textContent=dados.musica.titulo||'—';
+  document.getElementById('bvAutor').textContent=dados.musica.autor||'';
+  renderBackingView();
+  document.getElementById('backingViewScreen').classList.add('open');
+  document.body.style.overflow='hidden';
+  const hash='#bvoz-'+id;
+  if(location.hash!==hash)history.pushState({overlay:'backing',id},'',hash);
+}
+
+function renderBackingView(){
+  if(!backingView)return;
+  const {linhas,temVozes}=backingView;
+  const usadas=[...new Set(linhas.filter(l=>l.k==='l'&&!l.x&&l.v).map(l=>l.v))].map(backingCat).filter(Boolean);
+  document.getElementById('bvLegend').innerHTML=usadas.map(c=>
+    `<button class="bv-chip${backingDestaque===c.id?' on':''}" style="--vc:${esc(c.cor)}" onclick="toggleBackingDestaque(${c.id})"><i></i>${esc(c.nome)}</button>`).join('');
+  let html=temVozes?'':'<div class="bv-aviso">As vozes desta música ainda não foram definidas pelo líder.</div>';
+  let ultimoGap=true;
+  linhas.forEach(l=>{
+    if(l.k==='b'){if(!ultimoGap)html+='<div class="bv-gap"></div>';ultimoGap=true;return;}
+    if(l.k==='s'){if(l.t&&l.t.trim())html+=`<div class="bv-section"><span>${esc(l.t)}</span><i></i></div>`;ultimoGap=false;return;}
+    if(l.x)return;
+    const cat=l.v?backingCat(l.v):null;
+    const dim=backingDestaque&&(!cat||cat.id!==backingDestaque);
+    html+=`<div class="bv-line${dim?' dim':''}"${cat?` style="--vc:${esc(cat.cor)}"`:''}>
+      ${cat?`<span class="bv-pill">${esc(cat.nome)}</span>`:''}
+      <div class="bv-text" style="font-size:${backingFont}px">${esc(l.t)}</div>
+    </div>`;
+    ultimoGap=false;
+  });
+  document.getElementById('bvBody').innerHTML=html;
+}
+function toggleBackingDestaque(id){backingDestaque=backingDestaque===id?null:id;renderBackingView();}
+function changeBackingFont(d){backingFont=Math.max(13,Math.min(40,backingFont+d));renderBackingView();}
+function hideBackingViewOverlay(){document.getElementById('backingViewScreen').classList.remove('open');document.body.style.overflow='';}
+function closeBackingView(){
+  hideBackingViewOverlay();
+  if(location.hash.indexOf('#bvoz-')===0)history.back();
+}
+
+/* ---------- edição das vozes (Líder) ---------- */
+async function openBackingEdit(id){
+  let dados;
+  try{dados=await backingCarregarMusica(id);}
+  catch(e){toast('Erro ao abrir a música','error');return;}
+  if(!backingCats.length){
+    toast('As categorias de voz ainda não existem no banco. Rode o SQL do backing vocal no Supabase.','error');
+    return;
+  }
+  backingEdit={musica:dados.musica,linhas:dados.linhas,busca:''};
+  document.getElementById('backingEditTitulo').textContent='Vozes — '+(dados.musica.titulo||'');
+  document.getElementById('backingEditBusca').value='';
+  renderBackingEdit();
+  document.getElementById('backingEditModal').classList.add('open');
+}
+function closeBackingEdit(){document.getElementById('backingEditModal').classList.remove('open');backingEdit=null;}
+
+function renderBackingEditLegend(){
+  document.getElementById('backingEditLegend').innerHTML=backingCats.map(c=>`<span style="--vc:${esc(c.cor)}"><i></i>${esc(c.nome)}</span>`).join('');
+}
+
+function renderBackingEdit(){
+  if(!backingEdit)return;
+  renderBackingEditLegend();
+  const list=document.getElementById('backingEditList');
+  const keep=list.scrollTop;
+  const busca=backingEdit.busca.trim().toLowerCase();
+  const opts=v=>'<option value="">Sem voz</option>'+backingCats.map(c=>`<option value="${c.id}"${c.id===v?' selected':''}>${esc(c.nome)}</option>`).join('');
+  let html='';
+  if(!busca&&!(backingEdit.linhas[0]&&backingEdit.linhas[0].k==='s'))html+='<div class="be-gap"><button class="be-add-sec" onclick="backingEditAddSecao(-1)">＋ seção</button></div>';
+  backingEdit.linhas.forEach((it,i)=>{
+    if(it.k==='s'){
+      if(busca)return;
+      html+=`<div class="be-row be-section"><input value="${esc(it.t)}" placeholder="Nome da seção (ex.: Refrão)" oninput="backingEdit.linhas[${i}].t=this.value"><button class="be-icon" title="Remover seção" onclick="backingEditRemoverSecao(${i})">${ICON_DELETE}</button></div>`;
+    }else if(it.k==='b'){
+      if(busca)return;
+      html+=`<div class="be-gap"><button class="be-add-sec" onclick="backingEditAddSecao(${i})">＋ seção</button></div>`;
+    }else{
+      if(busca&&!it.t.toLowerCase().includes(busca))return;
+      const cat=it.v?backingCat(it.v):null;
+      html+=`<div class="be-row${it.x?' oculta':''}"${cat?` style="--vc:${esc(cat.cor)}"`:''}>
+        <div class="be-text">${esc(it.t)}</div>
+        <select class="be-sel" onchange="backingEditVoz(${i},this.value,this)">${opts(it.v)}</select>
+        <button class="be-icon" title="${it.x?'Mostrar este trecho':'Ocultar este trecho (só no backing)'}" onclick="backingEditOcultar(${i})">${it.x?'↺':ICON_DELETE}</button>
+      </div>`;
+    }
+  });
+  list.innerHTML=html;
+  list.scrollTop=keep;
+}
+document.getElementById('backingEditBusca').addEventListener('input',e=>{if(backingEdit){backingEdit.busca=e.target.value;renderBackingEdit();}});
+
+function backingEditVoz(i,val,sel){
+  const it=backingEdit.linhas[i];
+  it.v=val?parseInt(val,10):null;
+  const cat=it.v?backingCat(it.v):null;
+  const row=sel.closest('.be-row');
+  if(cat)row.style.setProperty('--vc',cat.cor);else row.style.removeProperty('--vc');
+}
+function backingEditOcultar(i){
+  const it=backingEdit.linhas[i];
+  if(it.x)delete it.x;else it.x=1;
+  renderBackingEdit();
+}
+function backingEditAddSecao(i){
+  backingEdit.linhas.splice(i+1,0,{k:'s',t:''});
+  renderBackingEdit();
+  const inputs=document.querySelectorAll('#backingEditList .be-section input');
+  for(const inp of inputs){if(!inp.value){inp.focus();inp.scrollIntoView({block:'center'});break;}}
+}
+function backingEditRemoverSecao(i){
+  backingEdit.linhas.splice(i,1);
+  renderBackingEdit();
+}
+
+async function salvarBackingEdit(){
+  if(!backingEdit)return;
+  const btn=document.getElementById('backingEditSalvarBtn');
+  const linhas=backingEdit.linhas
+    .filter(it=>!(it.k==='s'&&!(it.t||'').trim()))
+    .map(it=>it.k==='s'?{k:'s',t:it.t.trim()}:it.k==='b'?{k:'b'}:{k:'l',t:it.t,v:backingCat(it.v)?it.v:null,...(it.x?{x:1}:{})});
+  btn.disabled=true;btn.textContent='Salvando…';
+  try{
+    await dbBackingSalvar(backingEdit.musica.id,linhas);
+    backingIdsComVozes.add(backingEdit.musica.id);
+    toast('Vozes salvas!','success');
+    closeBackingEdit();
+    renderBackingList();
+  }catch(e){
+    toast('Não foi possível salvar. As tabelas do backing já foram criadas no Supabase?','error');
+  }finally{
+    btn.disabled=false;btn.textContent='✓ Salvar alterações';
+  }
+}
+
+/* ---------- categorias (Líder) ---------- */
+function openBackingCatModal(){
+  backingCatEdit={lista:backingCats.map(c=>({...c})),removidos:[]};
+  renderBackingCatModal();
+  document.getElementById('backingCatModal').classList.add('open');
+}
+function closeBackingCatModal(){document.getElementById('backingCatModal').classList.remove('open');backingCatEdit=null;}
+function renderBackingCatModal(){
+  document.getElementById('backingCatList').innerHTML=backingCatEdit.lista.map((c,i)=>`
+    <div class="bc-row">
+      <input type="color" value="${esc(c.cor)}" oninput="backingCatEdit.lista[${i}].cor=this.value">
+      <input class="form-input" type="text" value="${esc(c.nome)}" placeholder="Nome da voz" maxlength="30" oninput="backingCatEdit.lista[${i}].nome=this.value">
+      <button class="be-icon" title="Remover categoria" onclick="backingCatRemover(${i})">${ICON_DELETE}</button>
+    </div>`).join('')||'<div class="backing-empty" style="padding:14px">Nenhuma categoria.</div>';
+}
+function backingCatAdicionar(){
+  const usadas=backingCatEdit.lista.map(c=>c.cor.toLowerCase());
+  const cor=BACKING_CORES.find(c=>!usadas.includes(c))||BACKING_CORES[0];
+  backingCatEdit.lista.push({nome:'',cor});
+  renderBackingCatModal();
+  const inputs=document.querySelectorAll('#backingCatList .form-input');
+  if(inputs.length)inputs[inputs.length-1].focus();
+}
+const BACKING_CORES=['#3b9cf5','#8b5cf6','#14b8a6','#f5a623','#ef4f6a','#84cc16','#ec4899','#22d3ee'];
+function backingCatRemover(i){
+  const c=backingCatEdit.lista[i];
+  openConfirm(`Remover a categoria "${c.nome||'sem nome'}"? Os trechos que usavam essa voz ficam sem voz.`,()=>{
+    if(c.id)backingCatEdit.removidos.push(c.id);
+    backingCatEdit.lista.splice(i,1);
+    renderBackingCatModal();
+  });
+}
+async function salvarBackingCats(){
+  if(!backingCatEdit)return;
+  const lista=backingCatEdit.lista;
+  if(lista.some(c=>!(c.nome||'').trim())){toast('Dê um nome para todas as categorias','error');return;}
+  const btn=document.getElementById('backingCatSalvarBtn');
+  btn.disabled=true;btn.textContent='Salvando…';
+  try{
+    await dbBackingSalvarCategorias(lista.map(c=>({...c,nome:c.nome.trim()})),backingCatEdit.removidos);
+    backingCats=await dbBackingCategorias();
+    toast('Categorias salvas!','success');
+    closeBackingCatModal();
+    renderBackingEdit();
+  }catch(e){
+    toast('Não foi possível salvar as categorias','error');
+  }finally{
+    btn.disabled=false;btn.textContent='✓ Salvar';
+  }
+}
+
 const VALID_PANELS=['home','musicas','playlists','apresentacao','mensagens','operador','backing'];
 
 window.addEventListener('popstate',()=>{
@@ -4814,9 +5350,15 @@ window.addEventListener('popstate',()=>{
     if(id)openMensagemView(id);
     return;
   }
+  if(hash.indexOf('#bvoz-')===0){
+    const id=parseInt(hash.slice(6),10);
+    if(id)openBackingView(id);
+    return;
+  }
   hideLetraOverlay();
   hideRecentUpdatesOverlay();
   hideMensagemOverlay();
+  hideBackingViewOverlay();
   const name=hash.slice(1);
   switchPanel(VALID_PANELS.includes(name)?name:'home',{fromPopstate:true});
 });
