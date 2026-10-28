@@ -426,7 +426,7 @@
     .selected-song-chip{display:flex;align-items:center;gap:6px;min-width:max-content;padding:6px 9px;border-radius:8px;background:rgba(41,66,95,.55);border:1px solid rgba(102,153,217,.14);font-size:.73rem;color:var(--text2)}
     #addSongConfirmBtn:disabled{opacity:.45;cursor:not-allowed}
     #importarMensagensModal .modal{max-width:680px;background:#172a40;border-color:rgba(102,153,217,.22)}
-    #importarMensagensModal .song-picker-list{max-height:min(46dvh,420px);border:1px solid rgba(102,153,217,.18);border-radius:12px;background:rgba(10,25,42,.36);overflow:hidden auto}
+    #importarMensagensModal .song-picker-list{max-height:min(56dvh,500px);border:1px solid rgba(102,153,217,.18);border-radius:12px;background:rgba(10,25,42,.36);overflow:hidden auto}
     #importarMensagensModal .song-picker-item{margin:0;padding:11px 13px;border-radius:0;border-bottom:1px solid rgba(102,153,217,.13)}
     #importarMensagensModal .song-picker-item:last-child{border-bottom:none}
     #importarMensagensModal .song-picker-item:hover{background:rgba(102,153,217,.08)}
@@ -435,8 +435,6 @@
     #importarMensagensModal .importar-item-existente{opacity:.45}
     #importarMensagensModal .importar-item-existente input[type=checkbox]{cursor:not-allowed}
     #importarMensagensConfirmBtn:disabled{opacity:.45;cursor:not-allowed}
-    .importar-mensagens-pager{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;font-size:.78rem;color:var(--text3)}
-    .importar-mensagens-pager button:disabled{opacity:.35;cursor:not-allowed}
     #addToPlaylistModal .modal{max-width:620px;background:#172a40;border-color:rgba(102,153,217,.22)}
     .playlist-target-song{display:flex;align-items:center;gap:9px;margin-bottom:12px;padding:9px 11px;border-radius:10px;background:rgba(10,25,42,.32);border:1px solid rgba(102,153,217,.14);font-size:.8rem;color:var(--text2)}
     #addToPlaylistModal .song-picker-list{max-height:min(44dvh,390px);display:flex;flex-direction:column;gap:8px}
@@ -616,16 +614,12 @@
     .bc-row{display:flex;align-items:center;gap:10px}
     .bc-row input[type=color]{width:42px;height:38px;padding:2px;border-radius:8px;border:1px solid var(--border);background:var(--card);flex-shrink:0;cursor:pointer}
     .bc-row .form-input{flex:1;height:38px}
-    .home-hero-secret{-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
-    .home-actions .home-card-soon{cursor:default;opacity:.55;border-style:dashed;pointer-events:none;background:linear-gradient(105deg,rgba(42,63,89,.5),rgba(27,43,70,.4))}
-    .home-actions .home-card-soon::before{background:repeating-linear-gradient(135deg,#8a96a8 0 6px,transparent 6px 12px)}
-    .home-actions .home-card-soon .home-card-icon{filter:grayscale(.6)}
-    .home-actions .home-card-soon{padding:12px 18px}
-    .home-actions .home-card-soon .home-card-icon{width:46px;height:46px;font-size:1.35rem}
-    .home-actions .home-card-soon .home-card-title{margin-bottom:5px}
+    .backing-pin-input{text-align:center;font-size:1.8rem!important;letter-spacing:.6em;padding-left:.6em;height:56px;max-width:220px;margin:0 auto}
+    .backing-pin-erro{min-height:20px;margin-top:10px;font-size:.8rem;font-weight:600;color:var(--red)}
+    .backing-pin-input.shake{animation:pinShake .35s ease}
+    @keyframes pinShake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
     .home-shell{scrollbar-width:none}
     .home-shell::-webkit-scrollbar{display:none}
-    .home-soon-pill{display:inline-block;padding:3px 9px;border-radius:99px;font-size:.66rem;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--text2);background:rgba(138,150,168,.16);border:1px solid rgba(138,150,168,.35);white-space:nowrap}
     .home-stats{margin-top:auto;display:grid;grid-template-columns:1fr 1.25fr 1fr;background:rgba(25,42,69,.72);border:1px solid var(--border);border-radius:18px;padding:16px 8px}
     .home-stat{min-width:0;text-align:center;padding:2px 10px}
     .home-stat+.home-stat{border-left:1px solid var(--border)}
@@ -918,7 +912,7 @@
     <div class="home-shell">
       <div class="home-hero">
         <div class="home-hero-icon">🎵</div>
-        <div class="home-hero-title home-hero-secret" onclick="openBackingAccess()">Nexos</div>
+        <div class="home-hero-title">Nex<span>os</span></div>
         <div class="home-hero-sub">O que você vai fazer hoje?</div>
       </div>
       <div class="home-actions">
@@ -949,13 +943,14 @@
           </div>
           <div class="home-card-arrow">›</div>
         </button>
-        <div class="home-card home-card-soon" style="--home-color:#8a96a8" aria-disabled="true">
-          <div class="home-card-icon">🛠️</div>
+        <button class="home-card" style="--home-color:#8b5cf6" onclick="openBackingAccess()">
+          <div class="home-card-icon" style="background:linear-gradient(135deg,#8b5cf6,#3b9cf5)">🎤</div>
           <div class="home-card-body">
-            <div class="home-card-title">Nova tela</div>
-            <div class="home-soon-pill">Em desenvolvimento</div>
+            <div class="home-card-title">Backing Vocal</div>
+            <div class="home-card-desc">Veja as vozes de cada música do louvor</div>
           </div>
-        </div>
+          <div class="home-card-arrow">›</div>
+        </button>
       </div>
       <div class="home-stats">
         <div class="home-stat">
@@ -1315,11 +1310,6 @@
       <div class="song-picker-list" id="importarMensagensList">
         <div style="text-align:center;padding:24px;color:var(--text3)"><div class="spinner" style="margin:auto"></div></div>
       </div>
-      <div class="importar-mensagens-pager">
-        <button class="btn btn-ghost btn-sm" id="importarMensagensPrevBtn" onclick="importarMensagensMudarPagina(-1)">‹ Anterior</button>
-        <span id="importarMensagensPagerInfo">Página 1</span>
-        <button class="btn btn-ghost btn-sm" id="importarMensagensNextBtn" onclick="importarMensagensMudarPagina(1)">Próxima ›</button>
-      </div>
     </div>
     <div class="modal-footer">
       <span class="selected-songs-count" id="importarMensagensCount"></span>
@@ -1448,6 +1438,18 @@
         </div>
         <div class="home-card-arrow">›</div>
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: BACKING VOCAL — SENHA DO LÍDER -->
+<div class="modal-overlay" id="backingPinModal">
+  <div class="modal" style="max-width:340px">
+    <div class="modal-header"><h2>Senha do líder</h2><button class="modal-close" onclick="closeBackingPinModal()">✕</button></div>
+    <div class="modal-body" style="padding-bottom:22px;text-align:center">
+      <div style="font-size:.84rem;color:var(--text3);margin-bottom:14px">Digite a senha de 4 dígitos para continuar.</div>
+      <input class="form-input backing-pin-input" id="backingPinInput" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="••••" />
+      <div class="backing-pin-erro" id="backingPinErro"></div>
     </div>
   </div>
 </div>
@@ -3425,45 +3427,70 @@ let importarMensagensTotal=0;
 let importarMensagensItems=[];
 let importarMensagensSelected=new Map();
 let importarMensagensLoading=false;
+let importarMensagensErro=false;
+let importarMensagensFim=false;
+let importarMensagensTitulos=new Set();
+let importarMensagensObserver=null;
 
 async function openImportarMensagensModal(){
-  importarMensagensPage=1;
   importarMensagensSelected.clear();
   document.getElementById('importarMensagensSearch').value='';
   document.getElementById('importarMensagensModal').classList.add('open');
   atualizarImportarMensagensFooter();
-  await carregarImportarMensagensPagina();
+  try{
+    const{data}=await sb.from('mensagem').select('titulo');
+    importarMensagensTitulos=new Set((data||[]).map(m=>(m.titulo||'').trim().toLowerCase()));
+  }catch(e){importarMensagensTitulos=new Set();}
+  await carregarImportarMensagens(true);
   setTimeout(()=>document.getElementById('importarMensagensSearch').focus(),150);
 }
 function closeImportarMensagensModal(){
   document.getElementById('importarMensagensModal').classList.remove('open');
+  if(importarMensagensObserver)importarMensagensObserver.disconnect();
 }
 
-async function carregarImportarMensagensPagina(){
+// Lista contínua: carrega a primeira página e vai trazendo as próximas conforme o usuário rola
+async function carregarImportarMensagens(reset){
   if(importarMensagensLoading)return;
   importarMensagensLoading=true;
+  importarMensagensErro=false;
   const list=document.getElementById('importarMensagensList');
-  list.innerHTML='<div style="text-align:center;padding:24px;color:var(--text3)"><div class="spinner" style="margin:auto"></div></div>';
+  if(reset){
+    importarMensagensFim=false;
+    importarMensagensPage=1;
+    importarMensagensItems=[];
+    importarMensagensTotal=0;
+    list.scrollTop=0;
+    list.innerHTML='<div style="text-align:center;padding:24px;color:var(--text3)"><div class="spinner" style="margin:auto"></div></div>';
+  }else{
+    importarMensagensPage++;
+  }
   const titulo=document.getElementById('importarMensagensSearch').value.trim();
   try{
-    const{data,error}=await sb.functions.invoke('import-mensagens',{body:{page:importarMensagensPage,titulo}});
+    const{data,error}=await sb.functions.invoke('import-mensagens',{body:{pagina:importarMensagensPage,titulo,lista:true}});
     if(error)throw error;
     if(!data||!data.success)throw new Error((data&&data.error)||'Falha ao buscar mensagens');
-    importarMensagensItems=data.data||[];
+    const jaTem=new Set(reset?[]:importarMensagensItems.map(i=>i.id));
+    const novos=(data.data||[]).filter(i=>!jaTem.has(i.id)&&jaTem.add(i.id));
+    importarMensagensItems=reset?novos:[...importarMensagensItems,...novos];
     importarMensagensTotal=data.total||0;
-    renderImportarMensagensList();
+    if(!reset&&!novos.length)importarMensagensFim=true;
   }catch(e){
-    list.innerHTML='<div style="text-align:center;padding:24px;color:var(--text3)">Não foi possível buscar as mensagens do site agora. Tente novamente em instantes.</div>';
+    importarMensagensErro=true;
+    if(!reset)importarMensagensPage--;
     toast('Erro ao buscar mensagens do site','error');
   }finally{
     importarMensagensLoading=false;
-    atualizarImportarMensagensPager();
   }
+  renderImportarMensagensList();
+}
+
+function importarMensagensTemMais(){
+  return importarMensagensPage*12<importarMensagensTotal&&!importarMensagensErro&&!importarMensagensFim;
 }
 
 function jaExisteMensagem(titulo){
-  const t=(titulo||'').trim().toLowerCase();
-  return cachedMensagens.some(m=>(m.titulo||'').trim().toLowerCase()===t);
+  return importarMensagensTitulos.has((titulo||'').trim().toLowerCase());
 }
 
 function formatarDataImportacao(iso){
@@ -3475,10 +3502,13 @@ function formatarDataImportacao(iso){
 function renderImportarMensagensList(){
   const list=document.getElementById('importarMensagensList');
   if(!importarMensagensItems.length){
-    list.innerHTML='<div style="text-align:center;padding:24px;color:var(--text3);font-style:italic">Nenhuma mensagem encontrada.</div>';
+    list.innerHTML=importarMensagensErro
+      ?'<div style="text-align:center;padding:24px;color:var(--text3)">Não foi possível buscar as mensagens do site agora. Tente novamente em instantes.</div>'
+      :'<div style="text-align:center;padding:24px;color:var(--text3);font-style:italic">Nenhuma mensagem encontrada.</div>';
     return;
   }
-  list.innerHTML=importarMensagensItems.map(item=>{
+  const keep=list.scrollTop;
+  const itens=importarMensagensItems.map(item=>{
     const existente=jaExisteMensagem(item.titulo);
     const checked=importarMensagensSelected.has(item.id);
     return `
@@ -3492,6 +3522,24 @@ function renderImportarMensagensList(){
       ${existente?'<span class="tom-badge">Já cadastrada</span>':''}
     </label>`;
   }).join('');
+  const fim=importarMensagensTemMais()
+    ?'<div id="importarMensagensSentinela" style="display:flex;justify-content:center;padding:14px"><div class="spinner"></div></div>'
+    :importarMensagensErro
+      ?'<div style="text-align:center;padding:12px"><button class="btn btn-ghost btn-sm" onclick="carregarImportarMensagens(false)">Tentar carregar mais</button></div>'
+      :'';
+  list.innerHTML=itens+fim;
+  list.scrollTop=keep;
+  observarImportarMensagens();
+}
+
+function observarImportarMensagens(){
+  if(importarMensagensObserver)importarMensagensObserver.disconnect();
+  const sentinela=document.getElementById('importarMensagensSentinela');
+  if(!sentinela||!('IntersectionObserver' in window))return;
+  importarMensagensObserver=new IntersectionObserver(entries=>{
+    if(entries.some(en=>en.isIntersecting)&&importarMensagensTemMais()&&!importarMensagensLoading)carregarImportarMensagens(false);
+  },{root:document.getElementById('importarMensagensList'),rootMargin:'200px 0px'});
+  importarMensagensObserver.observe(sentinela);
 }
 
 function toggleImportarMensagem(id,checked){
@@ -3509,22 +3557,10 @@ function atualizarImportarMensagensFooter(){
   document.getElementById('importarMensagensConfirmBtn').disabled=count===0;
 }
 
-function atualizarImportarMensagensPager(){
-  const totalPages=Math.max(1,Math.ceil(importarMensagensTotal/12));
-  document.getElementById('importarMensagensPagerInfo').textContent=`Página ${importarMensagensPage} de ${totalPages}`;
-  document.getElementById('importarMensagensPrevBtn').disabled=importarMensagensPage<=1;
-  document.getElementById('importarMensagensNextBtn').disabled=importarMensagensPage>=totalPages;
-}
-
-function importarMensagensMudarPagina(delta){
-  importarMensagensPage=Math.max(1,importarMensagensPage+delta);
-  carregarImportarMensagensPagina();
-}
-
 let importarMensagensSearchTimer;
 document.getElementById('importarMensagensSearch').addEventListener('input',()=>{
   clearTimeout(importarMensagensSearchTimer);
-  importarMensagensSearchTimer=setTimeout(()=>{importarMensagensPage=1;carregarImportarMensagensPagina();},400);
+  importarMensagensSearchTimer=setTimeout(()=>carregarImportarMensagens(true),400);
 });
 
 async function confirmarImportarMensagens(){
@@ -3536,7 +3572,12 @@ async function confirmarImportarMensagens(){
   let ok=0,fail=0;
   for(const item of items){
     try{
-      const conteudo=fixGluedWords(item.conteudo||'');
+      // a lista traz só os títulos; o texto completo é buscado aqui, apenas das mensagens escolhidas
+      const{data:resp,error}=await sb.functions.invoke('import-mensagens',{body:{id:item.id,titulo:item.titulo}});
+      if(error)throw error;
+      const completa=(resp&&resp.data||[]).find(i=>i.id===item.id)||(resp&&resp.data||[])[0];
+      if(!completa||!completa.conteudo)throw new Error('Mensagem sem conteúdo');
+      const conteudo=fixGluedWords(completa.conteudo);
       const body={titulo:item.titulo,autor:'William Marrion Branham',conteudo};
       if(DEMO){DDATA.mensagens.push({id:(Math.max(0,...DDATA.mensagens.map(m=>m.id))+1),...body});}
       else{await dbCreateMensagem(body);}
@@ -5059,16 +5100,54 @@ function closeBackingRoleModal(){
   document.getElementById('backingRoleModal').classList.remove('open');
   if(!backingRole&&document.querySelector('.panel.active')?.id==='panel-backing')switchPanel('home');
 }
+const BACKING_PIN_LIDER='4321';
+
 function selectBackingRole(role){
-  backingRole=role;
   document.getElementById('backingRoleModal').classList.remove('open');
+  if(role==='lider'){openBackingPinModal();return;}
+  entrarBackingComo(role);
+}
+function entrarBackingComo(role){
+  backingRole=role;
   if(document.querySelector('.panel.active')?.id!=='panel-backing')switchPanel('backing');
   else backingOnEnter({});
 }
+
+/* Senha simples do líder (só para evitar acesso por engano) */
+function openBackingPinModal(){
+  const input=document.getElementById('backingPinInput');
+  input.value='';
+  document.getElementById('backingPinErro').textContent='';
+  document.getElementById('backingPinModal').classList.add('open');
+  setTimeout(()=>input.focus(),150);
+}
+function closeBackingPinModal(){
+  document.getElementById('backingPinModal').classList.remove('open');
+  if(!backingRole&&document.querySelector('.panel.active')?.id==='panel-backing')switchPanel('home');
+}
+document.getElementById('backingPinInput').addEventListener('input',e=>{
+  const input=e.target;
+  input.value=input.value.replace(/\D/g,'').slice(0,4);
+  document.getElementById('backingPinErro').textContent='';
+  if(input.value.length<4)return;
+  if(input.value===BACKING_PIN_LIDER){
+    document.getElementById('backingPinModal').classList.remove('open');
+    input.value='';
+    entrarBackingComo('lider');
+  }else{
+    document.getElementById('backingPinErro').textContent='Senha incorreta';
+    input.classList.remove('shake');
+    void input.offsetWidth;
+    input.classList.add('shake');
+    input.value='';
+  }
+});
 document.getElementById('backingRoleModal').addEventListener('click',e=>{if(e.target.id==='backingRoleModal')closeBackingRoleModal();});
+document.getElementById('backingPinModal').addEventListener('click',e=>{if(e.target.id==='backingPinModal')closeBackingPinModal();});
 document.addEventListener('keydown',e=>{
   if(e.key!=='Escape')return;
   if(document.getElementById('backingViewScreen').classList.contains('open')){closeBackingView();return;}
+  if(document.getElementById('backingPinModal').classList.contains('open')){closeBackingPinModal();return;}
   if(document.getElementById('backingRoleModal').classList.contains('open'))closeBackingRoleModal();
 });
 
@@ -5390,7 +5469,7 @@ if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
 
 /* Atualização automática: o iPhone/Android mantêm o app aberto em segundo plano sem recarregar.
    Ao abrir/voltar, compara a versão em uso com a publicada e recarrega sozinho se for diferente. */
-const APP_BUILD='1793134292402';
+const APP_BUILD='1793225748422';
 async function verificarNovaVersao(){
   if(APP_BUILD.startsWith('__')||!/^https?:$/.test(location.protocol)||location.hash==='#telao')return;
   if(document.querySelector('.modal-overlay.open'))return;
