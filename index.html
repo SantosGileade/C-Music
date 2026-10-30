@@ -388,6 +388,7 @@
     .playlist-detail-header{display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap}
     .back-btn{width:38px;height:38px;border-radius:10px;background:var(--card2);border:1px solid var(--border);color:var(--text2);display:flex;align-items:center;justify-content:center;transition:var(--transition);font-size:1.1rem;flex-shrink:0}
     .back-btn:hover{background:var(--accent);color:#fff;border-color:transparent}
+    .detail-add-btn{width:42px;height:36px;padding:0;justify-content:center;flex-shrink:0}
     .detail-header-actions{margin-left:auto;display:flex;gap:8px}
     .playing-indicator{display:flex;align-items:center;gap:5px;font-size:.74rem;color:var(--green);font-weight:600}
     .playing-bars{display:flex;gap:2px;align-items:flex-end;height:13px}
@@ -1132,14 +1133,14 @@
         <div class="panel-title">🎤 <span>Backing Vocal</span></div>
         <div style="font-size:.79rem;color:var(--text3);margin-top:2px" id="backingSubtitle"></div>
       </div>
-      <button class="btn btn-ghost btn-sm" id="backingRoleBtn" onclick="openBackingRoleModal()"></button>
     </div>
-    <div class="search-row">
+    <div class="search-row" id="backingSearchRow">
       <div class="search-wrap">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         <input class="search-input" type="search" id="backingSearch" placeholder="Buscar por título, autor ou letra..." autocomplete="off" />
       </div>
     </div>
+    <div class="backing-list" id="backingDomingoList" style="display:none"></div>
     <div class="backing-list" id="backingList"></div>
     <div id="backingVerMais" style="display:none;justify-content:center;padding:18px 0"><div class="spinner"></div></div>
   </div>
@@ -1177,9 +1178,8 @@
           <button class="form-input tone-filter-button playlist-tone-filter" id="plTomFilter" type="button" value="" onclick="openToneFilterModal('playlist')">
             <span id="plTomFilterLabel">Tom</span>
           </button>
-          <button class="btn btn-teal btn-sm" onclick="openAddSongModal()">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
-            Adicionar
+          <button class="btn btn-primary detail-add-btn" onclick="openAddSongModal()" aria-label="Adicionar música" title="Adicionar música">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
           </button>
         </div>
       </div>
@@ -1666,9 +1666,17 @@
     <span class="bn-icon">🎶</span>
     <span>Músicas</span>
   </button>
-  <button class="bottom-nav-btn" id="bnPlaylists" onclick="switchPanel('playlists')" aria-label="Playlists">
+  <button class="bottom-nav-btn" id="bnPlaylists" onclick="switchPanel('playlists',{fromNav:true})" aria-label="Playlists">
     <span class="bn-icon">📋</span>
     <span>Playlists</span>
+  </button>
+  <button class="bottom-nav-btn" id="bnBackMusicas" onclick="backingSetModo('musicas')" aria-label="Músicas" style="display:none">
+    <span class="bn-icon">🎶</span>
+    <span>Músicas</span>
+  </button>
+  <button class="bottom-nav-btn" id="bnBackPlaylist" onclick="backingSetModo('domingo')" aria-label="Playlist Domingo" style="display:none">
+    <span class="bn-icon">📋</span>
+    <span>Playlist Domingo</span>
   </button>
   <button class="bottom-nav-btn" id="bnApresentacao" onclick="switchPanel('apresentacao')" aria-label="Visualização" style="display:none">
     <span class="bn-icon">🎬</span>
@@ -2852,6 +2860,11 @@ const PANEL_LABELS = {musicas:'🎶 Músicas', playlists:'📋 Playlists', apres
 
 function switchPanel(name, navOpts) {
   navOpts = navOpts || {};
+  // Ida e volta Músicas ⇄ Playlists: ao voltar para Playlists pelo menu, reabre a playlist que estava aberta
+  // (tocar em Playlists estando já na tela das playlists volta para a lista, como em qualquer aba)
+  const jaEmPlaylists = document.querySelector('.panel.active')?.id==='panel-playlists';
+  const manterPlaylist = name==='playlists' && (navOpts.fromNav||navOpts.fromPopstate) && !jaEmPlaylists
+    && !!currentPL && document.getElementById('playlistDetailView').style.display!=='none';
   if(name==='home')startHomeRealtime();else stopHomeRealtime();
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.getElementById('panel-'+name).classList.add('active');
@@ -2877,7 +2890,8 @@ function switchPanel(name, navOpts) {
   // Operador é destino único, acessado pela home, sem nav
   const musicasArea = name === 'musicas' || name === 'playlists';
   const datashowArea = name === 'apresentacao' || name === 'mensagens';
-  const showNav = musicasArea || datashowArea;
+  const backingArea = name === 'backing';
+  const showNav = musicasArea || datashowArea || backingArea;
   const nav = document.getElementById('bottomNav');
   nav.classList.toggle('visible', showNav);
   document.querySelector('main').style.paddingBottom = showNav
@@ -2887,6 +2901,8 @@ function switchPanel(name, navOpts) {
   document.getElementById('bnPlaylists').style.display = musicasArea ? '' : 'none';
   document.getElementById('bnApresentacao').style.display = datashowArea ? '' : 'none';
   document.getElementById('bnMensagens').style.display = datashowArea ? '' : 'none';
+  document.getElementById('bnBackMusicas').style.display = backingArea ? '' : 'none';
+  document.getElementById('bnBackPlaylist').style.display = backingArea ? '' : 'none';
   if (musicasArea) {
     document.getElementById('bnMusicas').classList.toggle('active', name === 'musicas');
     document.getElementById('bnPlaylists').classList.toggle('active', name === 'playlists');
@@ -2902,9 +2918,14 @@ function switchPanel(name, navOpts) {
     loadMusicas();
   }
   if(name==='playlists'){
-    showPlaylistList(false);
-    document.getElementById('playlistSearch').value='';
-    loadPlaylists();
+    if(manterPlaylist){
+      document.getElementById('headerBackBtn').style.display='none';
+      atualizarPlaylistAberta();
+    }else{
+      showPlaylistList(false);
+      document.getElementById('playlistSearch').value='';
+      loadPlaylists();
+    }
   }
   if(name==='apresentacao') apLoadPlaylists();
   if(name==='mensagens'){
@@ -4390,6 +4411,19 @@ function removeFromPL(mpId,titulo){
   });
 }
 
+// Recarrega as músicas da playlist que continua aberta (sem perder o filtro de tom)
+async function atualizarPlaylistAberta(){
+  if(!currentPL)return;
+  const id=currentPL.id;
+  try{
+    const items=DEMO?(DDATA.mp[id]||[]):await dbGetPlaylistMusicas(id);
+    if(!currentPL||currentPL.id!==id)return;
+    currentPLItems=(items||[]).sort((a,b)=>a.ordem-b.ordem);
+    renderPlaylistDetail(currentPLItems);
+    if(!realtimeChannel)startDetailRefresh();
+  }catch(e){}
+}
+
 function showPlaylistList(refresh=true){
   stopDetailRefresh();
   currentPL=null;
@@ -4859,6 +4893,9 @@ function apStopRealtime() {
    BACKING VOCAL (tela oculta) — Cantor: só visualiza | Líder: define as vozes
    ===================================================================== */
 let backingRole=null;
+let backingModo='musicas';   // 'musicas' (todas) ou 'domingo' (playlist de domingo)
+let backingDomingo=[];
+let backingDomingoCh=null;
 let backingCats=[];
 let backingIdsComVozes=new Set();
 let backingItems=[];
@@ -5023,12 +5060,76 @@ document.addEventListener('keydown',e=>{
 
 function backingOnEnter(navOpts){
   if(!backingRole){openBackingRoleModal();return;}
-  const lider=backingRole==='lider';
-  document.getElementById('backingRoleBtn').textContent=(lider?'⭐ Líder':'🎙️ Cantor')+' ⇄';
-  document.getElementById('backingSubtitle').textContent=lider?'Defina as vozes de cada música':'Veja as vozes de cada música';
-  if(navOpts&&navOpts.fromPopstate&&backingLoaded){renderBackingList();return;}
+  if(!(navOpts&&navOpts.fromPopstate))backingModo='musicas';
+  backingAplicarModo();
+  if(navOpts&&navOpts.fromPopstate&&backingLoaded){renderBackingList();if(backingModo==='domingo')carregarBackingDomingo();return;}
   document.getElementById('backingSearch').value='';
   loadBackingMusicas(true);
+  if(backingModo==='domingo')carregarBackingDomingo();
+}
+
+/* ---------- alternar entre todas as músicas e a playlist de Domingo ---------- */
+function backingAplicarModo(){
+  const lider=backingRole==='lider';
+  const dom=backingModo==='domingo';
+  document.getElementById('bnBackMusicas').classList.toggle('active',!dom);
+  document.getElementById('bnBackPlaylist').classList.toggle('active',dom);
+  document.getElementById('backingSubtitle').textContent=dom
+    ?'Músicas do repertório de domingo'
+    :(lider?'Defina as vozes de cada música':'Veja as vozes de cada música');
+  document.getElementById('backingSearchRow').style.display=dom?'none':'';
+  document.getElementById('backingList').style.display=dom?'none':'';
+  document.getElementById('backingVerMais').style.display=dom||!backingHasMore?'none':'flex';
+  document.getElementById('backingDomingoList').style.display=dom?'':'none';
+}
+function backingSetModo(modo){
+  if(backingModo===modo)return;
+  backingModo=modo;
+  backingAplicarModo();
+  if(backingModo==='domingo'){
+    iniciarBackingDomingoRealtime();
+    carregarBackingDomingo(true);
+  }
+}
+function backingSongHtml(m,numero){
+  const lider=backingRole==='lider';
+  return `
+    <div class="backing-song">
+      ${numero?`<div class="ap-song-num">${numero}</div>`:''}
+      <div class="backing-song-main" onclick="openBackingView(${m.id})">
+        <div class="backing-song-title" title="${esc(m.titulo)}">${esc(m.titulo)}</div>
+        <div class="backing-song-sub">${m.autor?`<span>${esc(m.autor)}</span>`:''}${backingIdsComVozes.has(m.id)?`<span class="backing-tag"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4"/></svg>vozes</span>`:''}</div>
+      </div>
+      ${m.tom?`<span class="tom-badge">${esc(m.tom)}</span>`:''}
+      ${lider?`<button class="btn backing-edit-btn" title="Editar vozes" onclick="openBackingEdit(${m.id})">${ICON_EDIT}</button>`:''}
+    </div>`;
+}
+async function carregarBackingDomingo(mostrarCarregando){
+  const list=document.getElementById('backingDomingoList');
+  if(mostrarCarregando||!backingDomingo.length)list.innerHTML='<div style="text-align:center;padding:36px"><div class="spinner" style="margin:auto"></div></div>';
+  try{
+    if(!backingCats.length||!backingIdsComVozes.size)await carregarBackingBase();
+    const pl=await dbGetOrCreateHojePlaylist();
+    const itens=await dbGetPlaylistMusicas(pl.id);
+    backingDomingo=itens.filter(mp=>mp.musica&&!musicaDeOutroDomingo(mp)).sort((a,b)=>a.ordem-b.ordem).map(mp=>mp.musica);
+    renderBackingDomingo();
+  }catch(e){
+    list.innerHTML='<div class="backing-empty" style="color:var(--red)">Erro ao carregar. Verifique a conexão.</div>';
+  }
+}
+function renderBackingDomingo(){
+  const list=document.getElementById('backingDomingoList');
+  list.innerHTML=backingDomingo.length
+    ?backingDomingo.map((m,i)=>backingSongHtml(m,i+1)).join('')
+    :'<div class="backing-empty">Nenhuma música na playlist de Domingo ainda.</div>';
+}
+function iniciarBackingDomingoRealtime(){
+  if(DEMO||!sb||backingDomingoCh)return;
+  backingDomingoCh=sb.channel('backing-domingo')
+    .on('postgres_changes',{event:'*',schema:'public',table:'musica_playlist'},()=>{
+      if(backingModo==='domingo'&&document.querySelector('.panel.active')?.id==='panel-backing')carregarBackingDomingo();
+    })
+    .subscribe();
 }
 
 async function carregarBackingBase(){
@@ -5071,17 +5172,8 @@ function renderBackingList(){
     document.getElementById('backingVerMais').style.display='none';
     return;
   }
-  const lider=backingRole==='lider';
-  list.innerHTML=backingItems.map(m=>`
-    <div class="backing-song">
-      <div class="backing-song-main" onclick="openBackingView(${m.id})">
-        <div class="backing-song-title" title="${esc(m.titulo)}">${esc(m.titulo)}</div>
-        <div class="backing-song-sub">${m.autor?`<span>${esc(m.autor)}</span>`:''}${backingIdsComVozes.has(m.id)?`<span class="backing-tag"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4"/></svg>vozes</span>`:''}</div>
-      </div>
-      ${m.tom?`<span class="tom-badge">${esc(m.tom)}</span>`:''}
-      ${lider?`<button class="btn backing-edit-btn" title="Editar vozes" onclick="openBackingEdit(${m.id})">${ICON_EDIT}</button>`:''}
-    </div>`).join('');
-  document.getElementById('backingVerMais').style.display=backingHasMore?'flex':'none';
+  list.innerHTML=backingItems.map(m=>backingSongHtml(m)).join('');
+  document.getElementById('backingVerMais').style.display=backingHasMore&&backingModo!=='domingo'?'flex':'none';
 }
 
 let backingSearchTimer;
@@ -5240,7 +5332,7 @@ async function salvarBackingEdit(){
     else backingIdsComVozes.delete(backingEdit.musica.id);
     toast('Vozes salvas!','success');
     closeBackingEdit();
-    renderBackingList();
+    renderBackingList();renderBackingDomingo();
   }catch(e){
     toast('Não foi possível salvar. As tabelas do backing já foram criadas no Supabase?','error');
   }finally{
@@ -5339,7 +5431,7 @@ if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
 
 /* Atualização automática: o iPhone/Android mantêm o app aberto em segundo plano sem recarregar.
    Ao abrir/voltar, compara a versão em uso com a publicada e recarrega sozinho se for diferente. */
-const APP_BUILD='1793325242013';
+const APP_BUILD='1793362596523';
 async function verificarNovaVersao(){
   if(APP_BUILD.startsWith('__')||!/^https?:$/.test(location.protocol)||location.hash==='#telao')return;
   if(document.querySelector('.modal-overlay.open'))return;
