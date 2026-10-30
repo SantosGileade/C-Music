@@ -386,9 +386,6 @@
     .back-btn{width:38px;height:38px;border-radius:10px;background:var(--card2);border:1px solid var(--border);color:var(--text2);display:flex;align-items:center;justify-content:center;transition:var(--transition);font-size:1.1rem;flex-shrink:0}
     .back-btn:hover{background:var(--accent);color:#fff;border-color:transparent}
     .detail-header-actions{margin-left:auto;display:flex;gap:8px}
-    .playlist-ativa-bar{margin-bottom:14px}
-    .playlist-ativa-bar .btn{width:100%;justify-content:center;padding:10px}
-    .playlist-ativa-bar .btn.playlist-ativa-on{background:linear-gradient(135deg,var(--green),#3d9d6f);color:#fff}
     .playing-indicator{display:flex;align-items:center;gap:5px;font-size:.74rem;color:var(--green);font-weight:600}
     .playing-bars{display:flex;gap:2px;align-items:flex-end;height:13px}
     .playing-bars span{width:3px;background:var(--green);border-radius:2px;animation:bar .8s ease infinite alternate}
@@ -681,10 +678,6 @@
     .ap-card-header{padding:11px 15px;background:var(--card2);border-bottom:1px solid var(--border);font-size:.73rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);display:flex;align-items:center;justify-content:space-between;gap:10px}
     .ap-card-hint{font-weight:500;text-transform:none;letter-spacing:0;text-align:right}
     .ap-song-list{width:100%;min-width:0;max-height:calc(100dvh - 380px);min-height:180px;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch}
-    .ap-waiting{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:48px 24px;gap:10px;color:var(--text3)}
-    .ap-waiting-icon{font-size:2.6rem}
-    .ap-waiting-title{font-size:1rem;font-weight:700;color:var(--text)}
-    .ap-waiting-sub{font-size:.82rem;max-width:320px;line-height:1.5}
     .ap-song-item{width:100%;min-width:0;display:grid;grid-template-columns:24px minmax(0,1fr) 22px;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border);transition:var(--transition)}
     .ap-song-item:last-child{border-bottom:none}
     .ap-song-item.ap-proxima{background:rgba(20,184,166,.07)}
@@ -731,17 +724,20 @@
       .datashow-complete{flex:1;justify-content:center}
     }
     @media(max-width:899px){
-      #panel-apresentacao.active{height:calc(100dvh - 98px - var(--safe-top));display:flex;flex-direction:column;overflow:hidden}
-      #panel-apresentacao .panel-header{flex:0 0 auto}
-      #panel-apresentacao .ap-layout{display:flex;flex:1 1 auto;min-height:0;flex-direction:column}
-      #panel-apresentacao .ap-main-column{flex:1 1 auto;min-height:0}
-      #panel-apresentacao .ap-main-column>.ap-card:first-child{display:flex;flex:1 1 auto;min-height:0;flex-direction:column}
-      #panel-apresentacao .ap-song-list{height:auto;max-height:none;min-height:120px;flex:1 1 auto}
-      #panel-apresentacao .ap-history-list{max-height:105px}
-      #panel-apresentacao .datashow-next{flex:0 0 auto}
+      /* celular: a lista rola em cima e o quadro "Próxima música" fica fixo logo acima do menu de baixo */
+      #panel-apresentacao.active{height:calc(100dvh - 150px - var(--safe-top) - var(--safe-bot));display:flex;flex-direction:column;overflow:hidden}
+      #panel-apresentacao .panel-header{flex:0 0 auto;margin-bottom:12px}
+      #panel-apresentacao .ap-layout{display:flex;flex:1 1 auto;min-height:0;flex-direction:column;gap:10px}
+      #panel-apresentacao .ap-main-column{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+      #panel-apresentacao .ap-main-column>.ap-card{flex:0 0 auto}
+      #panel-apresentacao .ap-song-list{height:auto;max-height:none;min-height:0;overflow:visible}
+      #panel-apresentacao .ap-history-list{max-height:none;overflow:visible}
+      #panel-apresentacao .datashow-next{flex:0 0 auto;padding:12px 14px;gap:10px;align-items:center}
+      #panel-apresentacao .datashow-next-icon{font-size:1.5rem}
+      #panel-apresentacao #apProximaTitle{font-size:1.02rem}
     }
     @media(min-width:640px) and (max-width:899px){
-      #panel-apresentacao.active{height:calc(100dvh - 112px - var(--safe-top))}
+      #panel-apresentacao.active{height:calc(100dvh - 164px - var(--safe-top) - var(--safe-bot))}
     }
     @media(max-width:480px){
       .datashow-next{flex-wrap:wrap}
@@ -1017,13 +1013,8 @@
   <div class="panel" id="panel-apresentacao">
     <div class="panel-header">
       <div>
-        <div class="panel-title">🎬 <span>Datashow</span></div>
-        <div style="font-size:.79rem;color:var(--text3);margin-top:2px">Repertório de hoje para o operador do Holyrics</div>
-      </div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <select class="form-input" id="apPlaylistSel" style="width:auto;min-width:160px" onchange="apPlaylistChanged()">
-          <option value="">— Selecione a Playlist —</option>
-        </select>
+        <div class="panel-title">🎬 <span>Playlist de Domingo</span></div>
+        <div style="font-size:.79rem;color:var(--text3);margin-top:2px">Músicas do repertório para o operador do Holyrics</div>
       </div>
     </div>
 
@@ -1031,11 +1022,11 @@
       <div class="ap-main-column">
         <div class="ap-card">
           <div class="ap-card-header">
-            Repertório selecionado
+            Repertório de Domingo
             <span class="ap-card-hint">Arraste ou use ▲ ▼ para alterar a ordem</span>
           </div>
           <div class="ap-song-list" id="apSongList">
-            <div style="padding:28px;text-align:center;color:var(--text3);font-size:.84rem">Selecione uma playlist acima</div>
+            <div style="padding:28px;text-align:center;color:var(--text3);font-size:.84rem">Carregando…</div>
           </div>
         </div>
         <div class="ap-card" id="apHistoryCard" style="display:none">
@@ -1178,9 +1169,6 @@
             Adicionar
           </button>
         </div>
-      </div>
-      <div class="playlist-ativa-bar">
-        <button class="btn btn-primary btn-sm" id="playlistAtivaBtn" onclick="togglePlaylistAtiva()">📽 Exibir no Datashow</button>
       </div>
       <div class="table-wrap" style="display:block">
         <table>
@@ -1545,7 +1533,7 @@
       <button class="home-card" style="--home-color:#e5a940" onclick="closeDatashowChoiceModal();switchPanel('apresentacao')">
         <div class="home-card-icon" style="background:linear-gradient(135deg,var(--pink),var(--yellow))">🎬</div>
         <div class="home-card-body">
-          <div class="home-card-title">Visualização de Playlist</div>
+          <div class="home-card-title">Playlist de Domingo</div>
           <div class="home-card-desc">Acompanhe o repertório e a próxima música</div>
         </div>
         <div class="home-card-arrow">›</div>
@@ -1726,7 +1714,6 @@ let playlistItems = [];
 let homeStatsUpdatedAt = null;
 let demoMusicUpdatedAt = null;
 const demoVistoIds = new Set();
-let demoPlaylistAtivaId = null;
 let homeRealtimeCh = null;
 let recentUpdatesCache = [];
 let alertAudioCtx = null;
@@ -1968,30 +1955,7 @@ async function dbClearPublicPlaylists() {
   const {error}=await sb.from('playlist').update({publico:false}).eq('publico',true);
   if(error) throw error;
 }
-const PLAYLIST_ATIVA_MAX_MS=24*3600*1000;
-
-async function dbSetPlaylistAtiva(id) {
-  const {error:e1}=await sb.from('playlist').update({ativa:false,ativada_em:null}).eq('ativa',true);
-  if(e1) throw e1;
-  const {error:e2}=await sb.from('playlist').update({ativa:true,ativada_em:new Date().toISOString()}).eq('id',id);
-  if(e2) throw e2;
-}
-async function dbClearPlaylistAtiva(id) {
-  const {error}=await sb.from('playlist').update({ativa:false,ativada_em:null}).eq('id',id);
-  if(error) throw error;
-}
-async function dbGetPlaylistAtiva() {
-  const {data,error}=await sb.from('playlist').select('*').eq('ativa',true).maybeSingle();
-  if(error) throw error;
-  if(data&&data.ativada_em){
-    const elapsed=Date.now()-new Date(data.ativada_em).getTime();
-    if(elapsed>PLAYLIST_ATIVA_MAX_MS){
-      try{await dbClearPlaylistAtiva(data.id);}catch(e){}
-      return null;
-    }
-  }
-  return data;
-}
+const PL_DOMINGO='Domingo';
 async function dbDeletePlaylist(id) {
   const {error} = await sb.from('playlist').delete().eq('id',id);
   if (error) throw error;
@@ -2025,10 +1989,18 @@ async function dbAddSongsToPL({musicaIds,playlistId,ordemInicial}) {
   return data;
 }
 async function dbGetOrCreateHojePlaylist() {
-  const {data,error}=await sb.from('playlist').select('*').eq('title','Hoje').maybeSingle();
+  const {data,error}=await sb.from('playlist').select('*').eq('title',PL_DOMINGO).maybeSingle();
   if(error)throw error;
   if(data)return data;
-  return dbCreatePlaylist({title:'Hoje',publico:false});
+  // Playlist automática antiga ("Hoje"): só renomeia, mantendo as músicas
+  const {data:antiga,error:e2}=await sb.from('playlist').select('*').eq('title','Hoje').maybeSingle();
+  if(e2)throw e2;
+  if(antiga){
+    const {data:ren,error:e3}=await sb.from('playlist').update({title:PL_DOMINGO}).eq('id',antiga.id).select().single();
+    if(e3)throw e3;
+    return ren;
+  }
+  return dbCreatePlaylist({title:PL_DOMINGO,publico:false});
 }
 async function dbAddOrRefreshTodaySong(musicaId) {
   const playlist=await dbGetOrCreateHojePlaylist();
@@ -2853,7 +2825,7 @@ function playAlertSound(){
 /* =====================================================================
    PANEL SWITCHING
    ===================================================================== */
-const PANEL_LABELS = {musicas:'🎶 Músicas', playlists:'📋 Playlists', apresentacao:'🎬 Datashow', mensagens:'💬 Mensagens', operador:'🔊 Operador de Som'};
+const PANEL_LABELS = {musicas:'🎶 Músicas', playlists:'📋 Playlists', apresentacao:'🎬 Playlist de Domingo', mensagens:'💬 Mensagens', operador:'🔊 Operador de Som'};
 
 function switchPanel(name, navOpts) {
   navOpts = navOpts || {};
@@ -3913,7 +3885,7 @@ async function openAddToPlaylistModal(musicaId){
     const playlists=DEMO
       ?DDATA.playlists.map(p=>({...p,musicas_count:(DDATA.mp[p.id]||[]).length}))
       :await dbListPlaylists();
-    availablePlaylistsForSong=(playlists||[]).filter(p=>p.title!=='Hoje');
+    availablePlaylistsForSong=(playlists||[]).filter(p=>p.title!==PL_DOMINGO);
     if(!availablePlaylistsForSong.length){
       document.getElementById('playlistPickerList').innerHTML='<div style="text-align:center;padding:24px;color:var(--text3)">Nenhuma playlist disponível. Crie uma playlist primeiro.</div>';
       return;
@@ -4076,10 +4048,10 @@ function deleteMusica(id,nome){
 }
 
 function getOrCreateDemoHojePlaylist(){
-  let playlist=DDATA.playlists.find(p=>p.title==='Hoje');
+  let playlist=DDATA.playlists.find(p=>p.title===PL_DOMINGO);
   if(!playlist){
     const id=Math.max(0,...DDATA.playlists.map(p=>p.id))+1;
-    playlist={id,title:'Hoje',publico:false};
+    playlist={id,title:PL_DOMINGO,publico:false};
     DDATA.playlists.push(playlist);
     DDATA.mp[id]=[];
   }
@@ -4231,7 +4203,7 @@ function renderPlaylistCards(){
         </div>
       </div>
       <div class="playlist-card-actions" onclick="event.stopPropagation()">
-        ${p.title==='Hoje'
+        ${p.title===PL_DOMINGO
           ?'<span class="badge badge-pub playlist-auto-badge">Automática</span>'
           :`<button class="btn btn-ghost btn-sm btn-icon playlist-card-action standard-edit-icon" title="Editar" onclick="editPlaylist(${p.id})" aria-label="Editar playlist">${ICON_EDIT}</button>
              <button class="btn btn-danger btn-sm btn-icon playlist-card-action standard-delete-icon" title="Excluir" onclick="deletePlaylistFromList(${p.id})" aria-label="Excluir playlist">${ICON_DELETE}</button>`}
@@ -4315,7 +4287,7 @@ async function openPlaylistDetail(id,title,publico){
   // Oculta o botão voltar do header pois o detail já tem o seu próprio
   document.getElementById('headerBackBtn').style.display='none';
   document.getElementById('detailTitle').textContent=title;
-  const isToday=title==='Hoje';
+  const isToday=title===PL_DOMINGO;
   document.getElementById('detailMeta').textContent=isToday?'📅 Repertório diário':(publico?'🌐 Pública':'🔒 Privada');
   document.getElementById('clearTodayPlaylistBtn').style.display=isToday?'inline-flex':'none';
   setPlaylistTomFilter('',false);
@@ -4326,50 +4298,6 @@ async function openPlaylistDetail(id,title,publico){
   currentPLItems=(items||[]).sort((a,b)=>a.ordem-b.ordem);
   renderPlaylistDetail(currentPLItems);
   startDetailRefresh();
-  refreshPlaylistAtivaButton();
-}
-
-async function refreshPlaylistAtivaButton(){
-  if(!currentPL)return;
-  try{
-    const ativaPl=DEMO?(demoPlaylistAtivaId?{id:demoPlaylistAtivaId}:null):await dbGetPlaylistAtiva();
-    currentPL.ativa=Boolean(ativaPl&&ativaPl.id===currentPL.id);
-  }catch(e){
-    currentPL.ativa=false;
-  }
-  updatePlaylistAtivaButton();
-}
-
-function updatePlaylistAtivaButton(){
-  const btn=document.getElementById('playlistAtivaBtn');
-  if(!btn||!currentPL)return;
-  if(currentPL.ativa){
-    btn.classList.add('playlist-ativa-on');
-    btn.textContent='🟢 Em exibição no Datashow · Parar';
-  }else{
-    btn.classList.remove('playlist-ativa-on');
-    btn.textContent='📽 Exibir no Datashow';
-  }
-}
-
-async function togglePlaylistAtiva(){
-  if(!currentPL)return;
-  try{
-    if(currentPL.ativa){
-      if(DEMO){demoPlaylistAtivaId=null;}
-      else{await dbClearPlaylistAtiva(currentPL.id);}
-      currentPL.ativa=false;
-      toast('Playlist não está mais no Datashow.','info');
-    }else{
-      if(DEMO){demoPlaylistAtivaId=currentPL.id;}
-      else{await dbSetPlaylistAtiva(currentPL.id);}
-      currentPL.ativa=true;
-      toast('Playlist sendo exibida no Datashow!','success');
-    }
-    updatePlaylistAtivaButton();
-  }catch(e){
-    toast('Não foi possível atualizar o Datashow','error');
-  }
 }
 
 function renderPlaylistDetail(items){
@@ -4383,7 +4311,7 @@ function renderPlaylistDetail(items){
   document.getElementById('playlistMusicaTbody').innerHTML=filtered.map(mp=>{
     const m=mp.musica||{};
     const proxima=mp.tocando;
-    const stale=currentPL?.title==='Hoje'&&mp.adicionado_em&&mp.adicionado_em!==getLocalDateKey();
+    const stale=currentPL?.title===PL_DOMINGO&&mp.adicionado_em&&mp.adicionado_em!==getLocalDateKey();
     return `<tr class="${stale?'stale-song':''}">
       <td><div class="order-badge ${proxima?'playing-now':''}">${mp.ordem}</div></td>
       <td class="td-title clickable" onclick="openLetra(${m.id})">${esc(m.titulo||`#${mp.musica_id}`)}
@@ -4420,15 +4348,15 @@ async function clearProxima(){
 }
 
 function clearTodayPlaylist(){
-  if(!currentPL||currentPL.title!=='Hoje')return;
-  openConfirm('Limpar todas as músicas da playlist Hoje?',async()=>{
+  if(!currentPL||currentPL.title!==PL_DOMINGO)return;
+  openConfirm('Limpar todas as músicas da playlist Domingo?',async()=>{
     try{
       if(DEMO){
         DDATA.mp[currentPL.id]=[];
       }else{
         await dbClearPlaylistSongs(currentPL.id);
       }
-      toast('Playlist Hoje limpa','success');
+      toast('Playlist Domingo limpa','success');
       await openPlaylistDetail(currentPL.id,currentPL.title,currentPL.publico);
     }catch(e){
       toast('Erro ao limpar: '+e.message,'error');
@@ -4583,8 +4511,7 @@ let apSongs       = [];   // [{mp, musica}]
 let apProximaGlobal = null;
 let apProximaId   = null;
 let apRealtimeCh  = null;
-let apAtivaCh     = null;
-let apPlaylistAtivaId = null;
+let apPlaylistId  = null;
 let apGlobalRefreshTimer = null;
 let apDraggedId   = null;
 let apJustDragged = false;
@@ -4595,56 +4522,15 @@ let apLastAlertedProximaId = null;
    DATASHOW — LOAD
    ===================================================================== */
 async function apLoadPlaylists() {
-  const sel = document.getElementById('apPlaylistSel');
-  let items;
-  let ativaPl=null;
-  if (DEMO) {
-    await delay(100); getOrCreateDemoHojePlaylist(); items = DDATA.playlists;
-    ativaPl = demoPlaylistAtivaId ? items.find(p=>p.id===demoPlaylistAtivaId) : null;
-  } else {
-    try {
-      await dbGetOrCreateHojePlaylist();
-      items = await dbListPlaylists();
-    } catch(e) { return; }
-    try { ativaPl = await dbGetPlaylistAtiva(); } catch(e) { ativaPl = null; }
-  }
-  apPlaylistAtivaId = ativaPl ? ativaPl.id : null;
-  sel.innerHTML = '<option value="">— Selecione a Playlist —</option>' +
-    (items||[]).map(p=>`<option value="${p.id}" data-title="${esc(p.title)}" data-pub="${p.publico}">${esc(p.title)}</option>`).join('');
-  sel.value = apPlaylistAtivaId ? String(apPlaylistAtivaId) : '';
+  try {
+    if (DEMO) { await delay(100); apPlaylistId = getOrCreateDemoHojePlaylist().id; }
+    else apPlaylistId = (await dbGetOrCreateHojePlaylist()).id;
+  } catch(e) { return; }
   await apLoadSongs();
-  startApAtivaRealtime();
-}
-
-function apPlaylistChanged() {
-  const id=document.getElementById('apPlaylistSel').value;
-  if(id) localStorage.setItem('cmusic_datashow_playlist',id);
-  else localStorage.removeItem('cmusic_datashow_playlist');
-  apLoadSongs();
-}
-
-async function apResyncAtiva(){
-  try{
-    const ativaPl=await dbGetPlaylistAtiva();
-    const newId=ativaPl?ativaPl.id:null;
-    if(newId!==apPlaylistAtivaId){
-      apPlaylistAtivaId=newId;
-      document.getElementById('apPlaylistSel').value=newId?String(newId):'';
-      await apLoadSongs();
-    }
-  }catch(e){}
-}
-
-function startApAtivaRealtime(){
-  if(DEMO||!sb||apAtivaCh)return;
-  apAtivaCh=sb.channel('playlist-ativa')
-    .on('postgres_changes',{event:'*',schema:'public',table:'playlist'},apResyncAtiva)
-    .subscribe();
 }
 
 async function apLoadSongs() {
-  const sel = document.getElementById('apPlaylistSel');
-  const id  = parseInt(sel.value);
+  const id  = apPlaylistId;
   const listEl = document.getElementById('apSongList');
 
   // Cancela realtime anterior
@@ -4653,15 +4539,7 @@ async function apLoadSongs() {
   await apRefreshProximaGlobal();
   apStartRealtime(id||null);
 
-  if (!id) {
-    listEl.innerHTML = `
-      <div class="ap-waiting">
-        <div class="ap-waiting-icon">⏳</div>
-        <div class="ap-waiting-title">Aguardando o líder de cânticos</div>
-        <div class="ap-waiting-sub">Assim que uma playlist for selecionada para o Datashow, ela aparece aqui automaticamente. Se uma próxima música já tiver sido indicada, ela aparece ao lado.</div>
-      </div>`;
-    return;
-  }
+  if (!id) return;
   listEl.innerHTML = '<div style="padding:28px;text-align:center"><div class="spinner" style="margin:auto"></div></div>';
 
   let items;
@@ -4690,16 +4568,9 @@ function apRenderSongList() {
   const listEl = document.getElementById('apSongList');
   const historyCard=document.getElementById('apHistoryCard');
   const historyList=document.getElementById('apHistoryList');
-  const sel=document.getElementById('apPlaylistSel');
-  const selectedOption=sel.options[sel.selectedIndex];
-  const isHoje=selectedOption?.dataset.title==='Hoje';
   const today=getLocalDateKey();
-  const history=isHoje
-    ?apSongs.filter(mp=>mp.adicionado_em!==today)
-    :[];
-  apVisibleSongs=isHoje
-    ?apSongs.filter(mp=>mp.adicionado_em===today)
-    :[...apSongs];
+  const history=apSongs.filter(mp=>mp.adicionado_em!==today);
+  apVisibleSongs=apSongs.filter(mp=>mp.adicionado_em===today);
 
   historyCard.style.display=history.length?'block':'none';
   historyList.innerHTML=history.map((mp,i)=>{
@@ -4714,7 +4585,7 @@ function apRenderSongList() {
   }).join('');
 
   if (!apVisibleSongs.length) {
-    listEl.innerHTML = '<div style="padding:28px;text-align:center;color:var(--text3);font-style:italic;font-size:.84rem">Nenhuma música nesta playlist</div>';
+    listEl.innerHTML = '<div style="padding:28px;text-align:center;color:var(--text3);font-style:italic;font-size:.84rem">Nenhuma música na playlist de Domingo ainda</div>';
     return;
   }
   listEl.innerHTML = apVisibleSongs.map((mp, i) => {
@@ -4791,10 +4662,8 @@ function apMoveSong(index,delta){
 }
 
 function clearTodayHistory(){
-  const sel=document.getElementById('apPlaylistSel');
-  const playlistId=parseInt(sel.value);
-  const selectedOption=sel.options[sel.selectedIndex];
-  if(!playlistId||selectedOption?.dataset.title!=='Hoje')return;
+  const playlistId=apPlaylistId;
+  if(!playlistId)return;
   openConfirm(
     'Limpar as músicas de outro dia? As músicas adicionadas hoje continuarão na playlist.',
     async()=>{
@@ -4814,7 +4683,7 @@ function clearTodayHistory(){
 
 async function apPersistOrder(items){
   const previous=apSongs;
-  const playlistId=parseInt(document.getElementById('apPlaylistSel').value);
+  const playlistId=apPlaylistId;
   apSongs=items.map((mp,index)=>({...mp,ordem:index+1}));
   apRenderSongList();
   try{
@@ -5469,7 +5338,7 @@ if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
 
 /* Atualização automática: o iPhone/Android mantêm o app aberto em segundo plano sem recarregar.
    Ao abrir/voltar, compara a versão em uso com a publicada e recarrega sozinho se for diferente. */
-const APP_BUILD='1793294661044';
+const APP_BUILD='1793323709621';
 async function verificarNovaVersao(){
   if(APP_BUILD.startsWith('__')||!/^https?:$/.test(location.protocol)||location.hash==='#telao')return;
   if(document.querySelector('.modal-overlay.open'))return;
@@ -5506,7 +5375,6 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)verificarN
   startOperadorRealtime();
   setInterval(checkConn,60000);
   setInterval(updateHomeRelativeTime,60000);
-  setInterval(apResyncAtiva,5*60000);
 
   const initialPanel=(location.hash||'').slice(1);
   if(initialPanel&&initialPanel!=='home'&&VALID_PANELS.includes(initialPanel)){
