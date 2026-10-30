@@ -119,9 +119,8 @@
     /* ===== CARD LIST (mobile) ===== */
     .card-list-wrap{display:block;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
     @media(min-width:640px){.card-list-wrap{display:none}}
-    .song-card{background:var(--card);border-bottom:1px solid var(--border);padding:13px 14px;display:flex;align-items:center;gap:11px;transition:transform .18s ease,background .18s ease;touch-action:pan-y}
-    .song-card.swiping{transition:none;background:rgba(102,153,217,.08)}
-    .song-card:last-child{border-bottom:none}
+    .song-card{background:var(--card);border-bottom:1px solid var(--border);padding:13px 14px;display:flex;align-items:center;gap:11px;transition:background .18s ease;touch-action:pan-y;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+        .song-card:last-child{border-bottom:none}
     .song-card-body{flex:1;min-width:0}
     .song-card-title{font-weight:600;color:var(--text);font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .song-card-sub{font-size:.77rem;color:var(--text3);margin-top:2px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
@@ -1693,11 +1692,9 @@ let allMusicasPicker = [];
 let selectedSongPickerIds = new Set();
 let currentPLItems   = [];
 let realtimeChannel  = null;
-let swipeStartX = 0;
-let swipeStartY = 0;
-let swipeCardEl = null;
-let swipeMusicId = null;
-let swipeGestureAxis = null;
+let pressStartX = 0;
+let pressStartY = 0;
+let pressTimer = null;
 let suppressSongClick = false;
 let letraSwipeStartX = 0;
 let letraSwipeStartY = 0;
@@ -3130,10 +3127,11 @@ function renderMusicas(data,append=false){
 
   const cardsHtml=items.map((m,i)=>`
     <div class="song-card"
-      ontouchstart="songSwipeStart(event,${m.id})"
-      ontouchmove="songSwipeMove(event)"
-      ontouchend="songSwipeEnd(event)"
-      ontouchcancel="songSwipeCancel()">
+      ontouchstart="songPressStart(event,${m.id})"
+      ontouchmove="songPressMove(event)"
+      ontouchend="songPressEnd()"
+      ontouchcancel="songPressEnd()"
+      oncontextmenu="return false">
       <div class="song-num">${offset+i+1}</div>
       <div class="song-card-body clickable" onclick="openSongFromMusicList(${m.id})">
         <div class="song-card-title" title="${esc(m.titulo)}">${esc(m.titulo)}</div>
@@ -3809,65 +3807,29 @@ function openSongFromMusicList(musicaId){
   openLetra(musicaId);
 }
 
-function songSwipeStart(event,musicaId){
+// Apertar e segurar numa música abre a escolha de playlists
+function songPressStart(event,musicaId){
+  songPressEnd();
   const touch=event.touches[0];
-  swipeStartX=touch.clientX;
-  swipeStartY=touch.clientY;
-  swipeMusicId=musicaId;
-  swipeCardEl=event.currentTarget;
-  swipeGestureAxis=null;
-}
-
-function songSwipeMove(event){
-  if(!swipeCardEl)return;
-  const touch=event.touches[0];
-  const dx=touch.clientX-swipeStartX;
-  const dy=touch.clientY-swipeStartY;
-  if(!swipeGestureAxis){
-    if(Math.abs(dy)>10&&Math.abs(dy)>Math.abs(dx)*.8){
-      swipeGestureAxis='vertical';
-      return;
-    }
-    if(Math.abs(dx)>14&&Math.abs(dx)>Math.abs(dy)*1.4){
-      swipeGestureAxis='horizontal';
-      swipeCardEl.classList.add('swiping');
-    }
-  }
-  if(swipeGestureAxis==='horizontal'&&dx<0){
-    event.preventDefault();
-    const limited=Math.max(-95,dx);
-    swipeCardEl.style.transform=`translateX(${limited}px)`;
-  }
-}
-
-function songSwipeEnd(event){
-  if(!swipeCardEl)return;
-  const touch=event.changedTouches[0];
-  const dx=touch.clientX-swipeStartX;
-  const dy=touch.clientY-swipeStartY;
-  const shouldOpen=swipeGestureAxis==='horizontal'&&dx<=-90&&Math.abs(dx)>Math.abs(dy)*1.8;
-  swipeCardEl.classList.remove('swiping');
-  swipeCardEl.style.transform='';
-  const musicaId=swipeMusicId;
-  swipeCardEl=null;
-  swipeMusicId=null;
-  swipeGestureAxis=null;
-  if(shouldOpen){
-    event.preventDefault();
+  pressStartX=touch.clientX;
+  pressStartY=touch.clientY;
+  pressTimer=setTimeout(()=>{
+    pressTimer=null;
     suppressSongClick=true;
+    setTimeout(()=>suppressSongClick=false,700);
+    if(navigator.vibrate)try{navigator.vibrate(30);}catch(e){}
     openAddToPlaylistModal(musicaId);
-    setTimeout(()=>suppressSongClick=false,450);
-  }
+  },500);
 }
 
-function songSwipeCancel(){
-  if(swipeCardEl){
-    swipeCardEl.classList.remove('swiping');
-    swipeCardEl.style.transform='';
-  }
-  swipeCardEl=null;
-  swipeMusicId=null;
-  swipeGestureAxis=null;
+function songPressMove(event){
+  if(!pressTimer)return;
+  const touch=event.touches[0];
+  if(Math.abs(touch.clientX-pressStartX)>10||Math.abs(touch.clientY-pressStartY)>10)songPressEnd();
+}
+
+function songPressEnd(){
+  if(pressTimer){clearTimeout(pressTimer);pressTimer=null;}
 }
 
 async function openAddToPlaylistModal(musicaId){
@@ -5338,7 +5300,7 @@ if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
 
 /* Atualização automática: o iPhone/Android mantêm o app aberto em segundo plano sem recarregar.
    Ao abrir/voltar, compara a versão em uso com a publicada e recarrega sozinho se for diferente. */
-const APP_BUILD='1793323709621';
+const APP_BUILD='1793323875613';
 async function verificarNovaVersao(){
   if(APP_BUILD.startsWith('__')||!/^https?:$/.test(location.protocol)||location.hash==='#telao')return;
   if(document.querySelector('.modal-overlay.open'))return;
