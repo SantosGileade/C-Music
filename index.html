@@ -26,6 +26,10 @@
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     html{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+    /* comportamento de app: segurar não seleciona texto nem abre menu de copiar (só nos campos de digitação) */
+    html,body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+    input,textarea,[contenteditable=""],[contenteditable="true"]{-webkit-user-select:text;user-select:text}
+    img{-webkit-user-drag:none}
     body{font-family:-apple-system,'SF Pro Display','Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;overflow-x:hidden}
     button{cursor:pointer;border:none;outline:none;font-family:inherit;-webkit-appearance:none}
     input,textarea,select{font-family:inherit;outline:none;border:none;-webkit-appearance:none;appearance:none}
@@ -5300,7 +5304,7 @@ if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
 
 /* Atualização automática: o iPhone/Android mantêm o app aberto em segundo plano sem recarregar.
    Ao abrir/voltar, compara a versão em uso com a publicada e recarrega sozinho se for diferente. */
-const APP_BUILD='1793323875613';
+const APP_BUILD='1793323976488';
 async function verificarNovaVersao(){
   if(APP_BUILD.startsWith('__')||!/^https?:$/.test(location.protocol)||location.hash==='#telao')return;
   if(document.querySelector('.modal-overlay.open'))return;
