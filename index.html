@@ -615,6 +615,16 @@
     .bc-row input[type=color]{width:42px;height:38px;padding:2px;border-radius:8px;border:1px solid var(--border);background:var(--card);flex-shrink:0;cursor:pointer}
     .bc-row .form-input{flex:1;height:38px}
     .backing-pin-input{text-align:center;font-size:1.8rem!important;letter-spacing:.6em;padding-left:.6em;height:56px;max-width:220px;margin:0 auto}
+    .backing-pin-input{-webkit-text-security:disc;text-security:disc}
+    /* o teclado numérico cobre a parte de baixo: a janela da senha fica no alto da tela */
+    #backingPinModal{align-items:flex-start;padding:calc(var(--safe-top) + 9vh) 16px 16px}
+    #backingPinModal .modal{border-radius:var(--radius);padding-bottom:0}
+    @media(min-width:600px) and (min-height:501px){#backingPinModal{align-items:center;padding:16px}}
+    @media(max-height:500px){
+      #backingPinModal{padding-top:calc(var(--safe-top) + 6px)}
+      #backingPinModal .backing-pin-dica{display:none}
+      #backingPinModal .modal-body{padding-bottom:12px!important}
+    }
     .backing-pin-erro{min-height:20px;margin-top:10px;font-size:.8rem;font-weight:600;color:var(--red)}
     .backing-pin-input.shake{animation:pinShake .35s ease}
     @keyframes pinShake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
@@ -1438,8 +1448,8 @@
   <div class="modal" style="max-width:340px">
     <div class="modal-header"><h2>Senha do líder</h2><button class="modal-close" onclick="closeBackingPinModal()">✕</button></div>
     <div class="modal-body" style="padding-bottom:22px;text-align:center">
-      <div style="font-size:.84rem;color:var(--text3);margin-bottom:14px">Digite a senha de 4 dígitos para continuar.</div>
-      <input class="form-input backing-pin-input" id="backingPinInput" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="••••" />
+      <div class="backing-pin-dica" style="font-size:.84rem;color:var(--text3);margin-bottom:14px">Digite a senha de 4 dígitos para continuar.</div>
+      <input class="form-input backing-pin-input" id="backingPinInput" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="done" placeholder="••••" />
       <div class="backing-pin-erro" id="backingPinErro"></div>
     </div>
   </div>
@@ -1978,12 +1988,13 @@ async function dbAddSongToPL(body) {
   const {data,error} = await sb.from('musica_playlist').insert(payload).select().single();
   if (error) throw error; return data;
 }
-async function dbAddSongsToPL({musicaIds,playlistId,ordemInicial}) {
+async function dbAddSongsToPL({musicaIds,playlistId,ordemInicial,adicionadoEm}) {
   const payloads=musicaIds.map((musicaId,index)=>({
     musica_id:musicaId,
     playlist_id:playlistId,
     ordem:ordemInicial+index,
-    tocando:false
+    tocando:false,
+    ...(adicionadoEm?{adicionado_em:adicionadoEm}:{})
   }));
   const {data,error}=await sb.from('musica_playlist').insert(payloads).select();
   if(error)throw error;
@@ -2045,8 +2056,7 @@ async function dbClearPlaylistSongs(playlistId) {
 }
 async function dbClearOldTodaySongs(playlistId) {
   const items=await dbGetPlaylistMusicas(playlistId);
-  const today=getLocalDateKey();
-  const ids=items.filter(mp=>mp.adicionado_em!==today).map(mp=>mp.id);
+  const ids=items.filter(musicaDeOutroDomingo).map(mp=>mp.id);
   if(!ids.length)return;
   const {error}=await sb.from('musica_playlist').delete().in('id',ids);
   if(error)throw error;
@@ -2092,6 +2102,18 @@ function getLocalDateKey(){
   const now=new Date();
   const pad=value=>String(value).padStart(2,'0');
   return `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+}
+// Músicas da playlist Domingo valem para o próximo domingo (inclusive hoje, se for domingo);
+// depois que esse domingo passa, viram "de outro dia"
+function domingoDoCiclo(dateKey){
+  const [y,m,d]=String(dateKey).slice(0,10).split('-').map(Number);
+  const dt=new Date(y,m-1,d);
+  dt.setDate(dt.getDate()+(7-dt.getDay())%7);
+  const pad=v=>String(v).padStart(2,'0');
+  return `${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())}`;
+}
+function musicaDeOutroDomingo(mp){
+  return !mp.adicionado_em||domingoDoCiclo(mp.adicionado_em)<getLocalDateKey();
 }
 function sortMusicasAlfabeticamente(items){
   return [...items].sort((a,b)=>(a.titulo||'').localeCompare(b.titulo||'','pt-BR',{sensitivity:'base'}));
@@ -3851,7 +3873,7 @@ async function openAddToPlaylistModal(musicaId){
     const playlists=DEMO
       ?DDATA.playlists.map(p=>({...p,musicas_count:(DDATA.mp[p.id]||[]).length}))
       :await dbListPlaylists();
-    availablePlaylistsForSong=(playlists||[]).filter(p=>p.title!==PL_DOMINGO);
+    availablePlaylistsForSong=(playlists||[]).slice().sort((a,b)=>(b.title===PL_DOMINGO)-(a.title===PL_DOMINGO));
     if(!availablePlaylistsForSong.length){
       document.getElementById('playlistPickerList').innerHTML='<div style="text-align:center;padding:24px;color:var(--text3)">Nenhuma playlist disponível. Crie uma playlist primeiro.</div>';
       return;
@@ -3925,9 +3947,20 @@ async function confirmAddToPlaylist(){
     }else{
       const results=await Promise.all(playlistIds.map(async playlistId=>{
         const items=await dbGetPlaylistMusicas(playlistId);
-        if(items.some(mp=>mp.musica_id===addToPlaylistMusicId))return false;
+        const ehDomingo=availablePlaylistsForSong.find(p=>p.id===playlistId)?.title===PL_DOMINGO;
+        const existente=items.find(mp=>mp.musica_id===addToPlaylistMusicId);
         const nextOrder=Math.max(0,...items.map(mp=>mp.ordem))+1;
-        await dbAddSongToPL({musicaId:addToPlaylistMusicId,playlistId,ordem:nextOrder,tocando:false});
+        if(existente){
+          // Na playlist de Domingo, uma música de domingo passado volta para o próximo
+          if(!ehDomingo||!musicaDeOutroDomingo(existente))return false;
+          const {error}=await sb.from('musica_playlist')
+            .update({adicionado_em:getLocalDateKey(),concluida_em:null,ordem:nextOrder})
+            .eq('id',existente.id);
+          if(error)throw error;
+          return true;
+        }
+        await dbAddSongToPL({musicaId:addToPlaylistMusicId,playlistId,ordem:nextOrder,tocando:false,
+          adicionadoEm:ehDomingo?getLocalDateKey():undefined});
         return true;
       }));
       addedCount=results.filter(Boolean).length;
@@ -4254,7 +4287,7 @@ async function openPlaylistDetail(id,title,publico){
   document.getElementById('headerBackBtn').style.display='none';
   document.getElementById('detailTitle').textContent=title;
   const isToday=title===PL_DOMINGO;
-  document.getElementById('detailMeta').textContent=isToday?'📅 Repertório diário':(publico?'🌐 Pública':'🔒 Privada');
+  document.getElementById('detailMeta').textContent=isToday?'📅 Repertório de domingo':(publico?'🌐 Pública':'🔒 Privada');
   document.getElementById('clearTodayPlaylistBtn').style.display=isToday?'inline-flex':'none';
   setPlaylistTomFilter('',false);
   document.getElementById('playlistMusicaTbody').innerHTML='<tr class="loading-row"><td colspan="5"><div class="spinner" style="margin:auto"></div></td></tr>';
@@ -4277,7 +4310,7 @@ function renderPlaylistDetail(items){
   document.getElementById('playlistMusicaTbody').innerHTML=filtered.map(mp=>{
     const m=mp.musica||{};
     const proxima=mp.tocando;
-    const stale=currentPL?.title===PL_DOMINGO&&mp.adicionado_em&&mp.adicionado_em!==getLocalDateKey();
+    const stale=currentPL?.title===PL_DOMINGO&&musicaDeOutroDomingo(mp);
     return `<tr class="${stale?'stale-song':''}">
       <td><div class="order-badge ${proxima?'playing-now':''}">${mp.ordem}</div></td>
       <td class="td-title clickable" onclick="openLetra(${m.id})">${esc(m.titulo||`#${mp.musica_id}`)}
@@ -4458,7 +4491,8 @@ async function confirmAddSong(){
       });
       DDATA.mp[currentPL.id]=lista;
     }else{
-      await dbAddSongsToPL({musicaIds,playlistId:currentPL.id,ordemInicial:ordem});
+      await dbAddSongsToPL({musicaIds,playlistId:currentPL.id,ordemInicial:ordem,
+        adicionadoEm:currentPL.title===PL_DOMINGO?getLocalDateKey():undefined});
     }
     toast(`${musicaIds.length} ${musicaIds.length===1?'música adicionada':'músicas adicionadas'}!`,'success');
     closeAddSongModal();
@@ -4534,9 +4568,8 @@ function apRenderSongList() {
   const listEl = document.getElementById('apSongList');
   const historyCard=document.getElementById('apHistoryCard');
   const historyList=document.getElementById('apHistoryList');
-  const today=getLocalDateKey();
-  const history=apSongs.filter(mp=>mp.adicionado_em!==today);
-  apVisibleSongs=apSongs.filter(mp=>mp.adicionado_em===today);
+  const history=apSongs.filter(musicaDeOutroDomingo);
+  apVisibleSongs=apSongs.filter(mp=>!musicaDeOutroDomingo(mp));
 
   historyCard.style.display=history.length?'block':'none';
   historyList.innerHTML=history.map((mp,i)=>{
@@ -4631,12 +4664,11 @@ function clearTodayHistory(){
   const playlistId=apPlaylistId;
   if(!playlistId)return;
   openConfirm(
-    'Limpar as músicas de outro dia? As músicas adicionadas hoje continuarão na playlist.',
+    'Limpar as músicas de outro dia? As músicas deste domingo continuarão na playlist.',
     async()=>{
       try{
         if(DEMO){
-          const today=getLocalDateKey();
-          DDATA.mp[playlistId]=(DDATA.mp[playlistId]||[]).filter(mp=>mp.adicionado_em===today);
+          DDATA.mp[playlistId]=(DDATA.mp[playlistId]||[]).filter(mp=>!musicaDeOutroDomingo(mp));
         }else{
           await dbClearOldTodaySongs(playlistId);
         }
@@ -4954,7 +4986,10 @@ function openBackingPinModal(){
   input.value='';
   document.getElementById('backingPinErro').textContent='';
   document.getElementById('backingPinModal').classList.add('open');
+  // foco na mesma hora (dentro do toque, para o iPhone abrir o teclado) e de novo após a animação
+  input.focus();
   setTimeout(()=>input.focus(),150);
+  setTimeout(()=>{if(document.activeElement!==input)input.focus();},450);
 }
 function closeBackingPinModal(){
   document.getElementById('backingPinModal').classList.remove('open');
