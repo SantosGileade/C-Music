@@ -752,17 +752,6 @@
       #panel-apresentacao .datashow-next-icon{font-size:1.5rem}
       #panel-apresentacao #apProximaTitle{font-size:1.02rem}
     }
-    /* Backing > Playlist Domingo: lista rola em cima e "Próxima música" fica fixa acima do menu de baixo */
-    .backing-proxima{margin-top:14px}
-    .backing-proxima.tem-musica{cursor:pointer}
-    @media(max-width:899px){
-      #panel-backing.dom-mode.active{height:calc(100dvh - 150px - var(--safe-top) - var(--safe-bot));display:flex;flex-direction:column;overflow:hidden}
-      #panel-backing.dom-mode .panel-header{flex:0 0 auto;margin-bottom:12px}
-      #panel-backing.dom-mode #backingDomingoList{flex:0 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
-      #panel-backing.dom-mode .backing-proxima{flex:0 0 auto;margin-top:auto;padding:12px 14px;gap:10px;align-items:center}
-      #panel-backing.dom-mode .backing-proxima .datashow-next-icon{font-size:1.5rem}
-      #panel-backing.dom-mode #backingProximaTitle{font-size:1.02rem}
-    }
     @media(min-width:640px) and (max-width:899px){
       #panel-apresentacao.active{height:calc(100dvh - 164px - var(--safe-top) - var(--safe-bot))}
     }
@@ -1153,16 +1142,8 @@
         <input class="search-input" type="search" id="backingSearch" placeholder="Buscar por título, autor ou letra..." autocomplete="off" />
       </div>
     </div>
-    <div class="backing-list" id="backingDomingoList" style="display:none"></div>
-    <div class="datashow-next backing-proxima" id="backingProximaBox" style="display:none" onclick="backingAbrirProxima()">
-      <span class="datashow-next-icon">⭐</span>
-      <div class="datashow-next-info">
-        <div style="font-size:.73rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#a78bfa;margin-bottom:8px">Próxima música</div>
-        <div style="font-weight:700;font-size:1.18rem;line-height:1.35" id="backingProximaTitle">Aguardando indicação do líder</div>
-        <div style="font-size:.78rem;color:var(--text3);margin-top:5px" id="backingProximaMeta"></div>
-      </div>
-    </div>
     <div class="backing-list" id="backingList"></div>
+    <div class="backing-list" id="backingDomingoList" style="display:none"></div>
     <div id="backingVerMais" style="display:none;justify-content:center;padding:18px 0"><div class="spinner"></div></div>
   </div>
 
@@ -3693,6 +3674,7 @@ async function openMensagemView(id) {
   atualizarBotaoRetirarTelao();
   atualizarBotaoLimparFundo();
   document.getElementById('mensagemScreen').classList.add('open');
+  resetarScrollLeitura('mensagemScreen');
   document.body.style.overflow='hidden';
   const hash='#mensagem-'+id;
   if(location.hash!==hash)history.pushState({overlay:'mensagem',id},'',hash);
@@ -4141,6 +4123,14 @@ async function markMusicaComoProxima(musicaId){
 /* =====================================================================
    LETRA
    ===================================================================== */
+// Cada letra/mensagem abre sempre no começo (o scroll da anterior não pode ficar)
+function resetarScrollLeitura(screenId){
+  const corpo=document.querySelector('#'+screenId+' .letra-body');
+  if(!corpo)return;
+  corpo.scrollTop=0;
+  requestAnimationFrame(()=>{corpo.scrollTop=0;});
+}
+
 async function openLetra(id) {
   let m=cachedMusicas.find(x=>x.id===id);
   if(!m){
@@ -4156,6 +4146,7 @@ async function openLetra(id) {
   else{lt.style.display='none';le.style.display='flex';}
   lt.style.fontSize=letraFontSize+'px';
   document.getElementById('letraScreen').classList.add('open');
+  resetarScrollLeitura('letraScreen');
   document.body.style.overflow='hidden';
   const hash='#letra-'+id;
   if(location.hash!==hash)history.pushState({overlay:'letra',id},'',hash);
@@ -4342,6 +4333,14 @@ async function openPlaylistDetail(id,title,publico){
 }
 
 function renderPlaylistDetail(items){
+  // Playlist Domingo: as músicas deste domingo vêm primeiro (na ordem em que foram adicionadas)
+  // e as de domingos passados ficam cinzas no fim
+  const ehDomingo = currentPL?.title === PL_DOMINGO;
+  const numeros = new Map();
+  if (ehDomingo) {
+    items = [...items].sort((a, b) => (musicaDeOutroDomingo(a) - musicaDeOutroDomingo(b)) || (a.ordem - b.ordem));
+    items.forEach((mp, i) => numeros.set(mp.id, i + 1));
+  }
   const tomFilter = document.getElementById('plTomFilter')?.value || '';
   const filtered = tomFilter ? items.filter(mp => (mp.musica||{}).tom === tomFilter) : items;
   if(!filtered.length){
@@ -4354,7 +4353,7 @@ function renderPlaylistDetail(items){
     const proxima=mp.tocando;
     const stale=currentPL?.title===PL_DOMINGO&&musicaDeOutroDomingo(mp);
     return `<tr class="${stale?'stale-song':''}">
-      <td><div class="order-badge ${proxima?'playing-now':''}">${mp.ordem}</div></td>
+      <td><div class="order-badge ${proxima?'playing-now':''}">${numeros.get(mp.id)||mp.ordem}</div></td>
       <td class="td-title clickable" onclick="openLetra(${m.id})">${esc(m.titulo||`#${mp.musica_id}`)}
         ${proxima?'<div style="margin-top:3px;font-size:.74rem;color:var(--teal);font-weight:600">⭐ Próxima</div>':''}
         ${stale?'<div style="margin-top:3px;font-size:.7rem">De outro dia</div>':''}
@@ -4918,7 +4917,6 @@ let backingModo='musicas';   // 'musicas' (todas) ou 'domingo' (playlist de domi
 let backingDomingo=[];
 let backingDomingoCh=null;
 let backingProxima=null;
-let backingProximaAlertada=null;
 let backingCats=[];
 let backingIdsComVozes=new Set();
 let backingItems=[];
@@ -5104,8 +5102,6 @@ function backingAplicarModo(){
   document.getElementById('backingList').style.display=dom?'none':'';
   document.getElementById('backingVerMais').style.display=dom||!backingHasMore?'none':'flex';
   document.getElementById('backingDomingoList').style.display=dom?'':'none';
-  document.getElementById('panel-backing').classList.toggle('dom-mode',dom);
-  atualizarBackingProxima();
 }
 function backingSetModo(modo){
   if(backingModo===modo)return;
@@ -5140,7 +5136,6 @@ async function carregarBackingDomingo(mostrarCarregando){
     backingProxima=prox;
     backingDomingo=itens.filter(mp=>mp.musica&&!musicaDeOutroDomingo(mp)).sort((a,b)=>a.ordem-b.ordem).map(mp=>mp.musica);
     renderBackingDomingo();
-    atualizarBackingProxima();
   }catch(e){
     list.innerHTML='<div class="backing-empty" style="color:var(--red)">Erro ao carregar. Verifique a conexão.</div>';
   }
@@ -5150,22 +5145,6 @@ function renderBackingDomingo(){
   list.innerHTML=backingDomingo.length
     ?backingDomingo.map((m,i)=>backingSongHtml(m,i+1,backingProxima&&backingProxima.musica_id===m.id)).join('')
     :'<div class="backing-empty">Nenhuma música na playlist de Domingo ainda.</div>';
-}
-function atualizarBackingProxima(){
-  const box=document.getElementById('backingProximaBox');
-  if(backingModo!=='domingo'){box.style.display='none';return;}
-  box.style.display='flex';
-  const m=backingProxima&&backingProxima.musica;
-  box.classList.toggle('tem-musica',!!m);
-  document.getElementById('backingProximaTitle').textContent=m?(m.titulo||'—'):'Aguardando indicação do líder';
-  document.getElementById('backingProximaMeta').textContent=m?[m.autor,m.tom?`Tom ${m.tom}`:''].filter(Boolean).join(' · '):'';
-  if(m&&backingProximaAlertada!==backingProxima.id){
-    box.classList.remove('has-next');void box.offsetWidth;box.classList.add('has-next');
-    backingProximaAlertada=backingProxima.id;
-  }else if(!m){box.classList.remove('has-next');backingProximaAlertada=null;}
-}
-function backingAbrirProxima(){
-  if(backingProxima&&backingProxima.musica)openBackingView(backingProxima.musica.id);
 }
 function iniciarBackingDomingoRealtime(){
   if(DEMO||!sb||backingDomingoCh)return;
@@ -5249,6 +5228,7 @@ async function openBackingView(id){
   document.getElementById('bvAutor').textContent=dados.musica.autor||'';
   renderBackingView();
   document.getElementById('backingViewScreen').classList.add('open');
+  resetarScrollLeitura('backingViewScreen');
   document.body.style.overflow='hidden';
   const hash='#bvoz-'+id;
   if(location.hash!==hash)history.pushState({overlay:'backing',id},'',hash);
