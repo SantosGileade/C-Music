@@ -700,8 +700,7 @@
     .ap-song-item.ap-dragging{opacity:.35}
     tr.stale-song{opacity:.4;filter:grayscale(.7)}
     .pedidos-cantores{margin-top:26px}
-    .pedidos-cantores-titulo{font-size:.74rem;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:#a78bfa;margin-bottom:4px}
-    .pedidos-cantores-sub{font-size:.76rem;color:var(--text3);margin-bottom:12px;line-height:1.4}
+    .pedidos-cantores-titulo{font-size:.74rem;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:#a78bfa;margin-bottom:10px}
     .pedidos-cantores-lista{border:1px solid rgba(139,92,246,.35);border-radius:var(--radius);overflow:hidden;background:linear-gradient(145deg,rgba(79,70,229,.1),rgba(15,23,42,.5))}
     .pedido-cantor{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid rgba(139,92,246,.2)}
     .pedido-cantor:last-child{border-bottom:none}
@@ -1805,8 +1804,7 @@ async function carregarPedidosCantores() {
     if (error) throw error;
     if (!currentPL || currentPL.title !== PL_DOMINGO) return false;
     if (!data || !data.length) { box.style.display = 'none'; box.innerHTML = ''; return true; }
-    box.innerHTML = `<div class="pedidos-cantores-titulo">Cantores querendo cantar no domingo</div>
-      <div class="pedidos-cantores-sub">Músicas que os cantores querem cantar no próximo domingo.</div>
+    box.innerHTML = `<div class="pedidos-cantores-titulo">Cantores querendo cantar no próximo domingo</div>
       <div class="pedidos-cantores-lista">${data.map(d => `
         <div class="pedido-cantor">
           <div class="pedido-cantor-info">
@@ -5514,7 +5512,7 @@ if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
 
 /* Atualização automática: o iPhone/Android mantêm o app aberto em segundo plano sem recarregar.
    Ao abrir/voltar, compara a versão em uso com a publicada e recarrega sozinho se for diferente. */
-const APP_BUILD='1795028482972';
+const APP_BUILD='1795035712228';
 async function verificarNovaVersao(){
   if(APP_BUILD.startsWith('__')||!/^https?:$/.test(location.protocol)||location.hash==='#telao')return;
   if(document.querySelector('.modal-overlay.open'))return;
