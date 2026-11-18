@@ -699,6 +699,16 @@
     .ap-song-item.ap-proxima{background:rgba(20,184,166,.07)}
     .ap-song-item.ap-dragging{opacity:.35}
     tr.stale-song{opacity:.4;filter:grayscale(.7)}
+    .pedidos-cantores{margin-top:26px}
+    .pedidos-cantores-titulo{font-size:.74rem;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:#a78bfa;margin-bottom:4px}
+    .pedidos-cantores-sub{font-size:.76rem;color:var(--text3);margin-bottom:12px;line-height:1.4}
+    .pedidos-cantores-lista{border:1px solid rgba(139,92,246,.35);border-radius:var(--radius);overflow:hidden;background:linear-gradient(145deg,rgba(79,70,229,.1),rgba(15,23,42,.5))}
+    .pedido-cantor{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid rgba(139,92,246,.2)}
+    .pedido-cantor:last-child{border-bottom:none}
+    .pedido-cantor-info{flex:1;min-width:0}
+    .pedido-cantor-titulo{font-weight:600;font-size:.9rem;overflow-wrap:anywhere;line-height:1.3}
+    .pedido-cantor-sub{font-size:.74rem;color:var(--text3);margin-top:3px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+    .pedido-cantor-quem{flex-shrink:0;max-width:42%;font-size:.74rem;font-weight:700;color:#c4b0ff;background:rgba(139,92,246,.16);border:1px solid rgba(139,92,246,.4);border-radius:99px;padding:4px 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .ap-song-num{width:24px;height:24px;border-radius:6px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:.72rem;color:var(--text3);font-weight:700;flex-shrink:0}
     .ap-song-info-wrap{flex:1;min-width:0}
     .ap-song-title{font-size:.86rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1197,6 +1207,7 @@
           <tbody id="playlistMusicaTbody"><tr class="loading-row"><td colspan="5"><div class="spinner" style="margin:auto"></div></td></tr></tbody>
         </table>
       </div>
+      <div id="pedidosCantoresBox" class="pedidos-cantores" style="display:none"></div>
     </div>
   </div>
 </main>
@@ -1758,6 +1769,7 @@ const ICON_DELETE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" st
 function startDetailRefresh() {
   stopDetailRefresh();
   if (DEMO || !sb) return;
+  iniciarPedidosCantores();
   realtimeChannel = sb.channel(`pl-${currentPL.id}`)
     .on('postgres_changes', {
       event: '*',
@@ -1777,6 +1789,53 @@ function startDetailRefresh() {
 
 function stopDetailRefresh() {
   if (realtimeChannel) { sb?.removeChannel(realtimeChannel); realtimeChannel = null; }
+  pararPedidosCantores();
+}
+
+/* Pedidos dos cantores ("Quero cantar no próximo domingo", feitos no Portal dos Cantores).
+   Aparecem só na playlist Domingo, numa seção separada abaixo das músicas. */
+let pedidosCantoresCh = null, pedidosCantoresTimer = null;
+async function carregarPedidosCantores() {
+  const box = document.getElementById('pedidosCantoresBox');
+  if (!box) return false;
+  if (DEMO || !sb || !currentPL || currentPL.title !== PL_DOMINGO) { box.style.display = 'none'; return false; }
+  try {
+    const domingo = domingoDoCiclo(getLocalDateKey());
+    const { data, error } = await sb.from('portal_domingo').select('*, cantor:cantor_id(nome)').eq('domingo', domingo).order('created_at');
+    if (error) throw error;
+    if (!currentPL || currentPL.title !== PL_DOMINGO) return false;
+    if (!data || !data.length) { box.style.display = 'none'; box.innerHTML = ''; return true; }
+    box.innerHTML = `<div class="pedidos-cantores-titulo">Cantores querendo cantar no domingo</div>
+      <div class="pedidos-cantores-sub">Pedidos feitos no Portal dos Cantores, de músicas que eles já ensaiaram. Não fazem parte da playlist acima.</div>
+      <div class="pedidos-cantores-lista">${data.map(d => `
+        <div class="pedido-cantor">
+          <div class="pedido-cantor-info">
+            <div class="pedido-cantor-titulo">${esc(d.titulo)}</div>
+            <div class="pedido-cantor-sub">${d.artista ? `<span>${esc(d.artista)}</span>` : ''}${d.tom ? `<span class="tom-badge">${esc(d.tom)}</span>` : ''}</div>
+          </div>
+          <div class="pedido-cantor-quem" title="${esc(d.cantor ? d.cantor.nome : '')}">🎤 ${esc(d.cantor ? d.cantor.nome : '—')}</div>
+        </div>`).join('')}</div>`;
+    box.style.display = 'block';
+    return true;
+  } catch (e) {
+    box.style.display = 'none';   // recurso do portal ainda não instalado no banco: some, sem atrapalhar a playlist
+    return false;
+  }
+}
+async function iniciarPedidosCantores() {
+  pararPedidosCantores();
+  if (!currentPL || currentPL.title !== PL_DOMINGO) { const b = document.getElementById('pedidosCantoresBox'); if (b) b.style.display = 'none'; return; }
+  const ok = await carregarPedidosCantores();
+  if (!ok || !currentPL || currentPL.title !== PL_DOMINGO || pedidosCantoresCh) return;
+  // canal próprio: se a tabela não existir, a playlist normal não é afetada
+  pedidosCantoresCh = sb.channel('pedidos-cantores')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'portal_domingo' }, () => carregarPedidosCantores())
+    .subscribe();
+  pedidosCantoresTimer = setInterval(() => { if (!document.hidden) carregarPedidosCantores(); }, 20000);
+}
+function pararPedidosCantores() {
+  if (pedidosCantoresCh) { sb?.removeChannel(pedidosCantoresCh); pedidosCantoresCh = null; }
+  if (pedidosCantoresTimer) { clearInterval(pedidosCantoresTimer); pedidosCantoresTimer = null; }
 }
 
 

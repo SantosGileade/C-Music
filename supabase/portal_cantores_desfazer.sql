@@ -9,6 +9,11 @@ drop function if exists portal_admin_salvar_cantor(text, bigint, text, text, boo
 drop function if exists portal_exigir_admin(text);
 drop function if exists portal_admin_verificar(text);
 
+drop table if exists portal_domingo cascade;
+drop function if exists portal_musica_ensaiada(bigint, text, text);
+drop function if exists portal_proximo_domingo();
+drop function if exists portal_hoje();
+
 drop table if exists portal_selecao cascade;
 drop table if exists portal_musica cascade;
 drop table if exists portal_ensaio cascade;
