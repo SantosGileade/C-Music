@@ -179,6 +179,21 @@
     .icon-btn.pequeno{width:34px;height:34px}
     .confirma-barra{position:sticky;bottom:calc(72px + var(--safe-bot));margin-top:16px;background:rgba(13,26,42,.94);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(139,92,246,.45);border-radius:var(--radius);padding:12px 14px}
     .confirma-barra .item-titulo{font-size:.95rem}
+    /* letra em tela cheia (mesmo formato do Nexos) */
+    #letraTela{display:none;position:fixed;inset:0;z-index:300;background:#000;flex-direction:column}
+    #letraTela.open{display:flex}
+    .letra-header{display:flex;align-items:center;gap:12px;padding:13px 18px;padding-top:calc(13px + var(--safe-top));background:rgba(0,0,0,.8);border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0}
+    .letra-header-info{flex:1;min-width:0}
+    .letra-header-title{font-size:1rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .letra-header-meta{font-size:.76rem;color:rgba(255,255,255,.45);margin-top:2px;display:flex;align-items:center;gap:8px}
+    .letra-controls{display:flex;align-items:center;gap:8px;flex-shrink:0}
+    .letra-font-btn{width:34px;height:34px;border-radius:8px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);font-size:.88rem;font-weight:700;display:flex;align-items:center;justify-content:center}
+    .letra-close{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.8);font-size:1.1rem;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .letra-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:26px 20px;padding-bottom:calc(26px + var(--safe-bot))}
+    @media(min-width:600px){.letra-body{padding:40px 56px;max-width:760px;margin:0 auto;width:100%}}
+    #letraTexto{white-space:pre-wrap;font-family:'Georgia','Times New Roman',serif;line-height:1.9;color:#fff}
+    .letra-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:rgba(255,255,255,.3);gap:14px}
+    .letra-empty-icon{font-size:3rem}
     /* modal */
     .modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:none;align-items:flex-end;justify-content:center}
     @media(min-width:600px){.modal-overlay{align-items:center;padding:16px}}
@@ -216,6 +231,23 @@
 </nav>
 
 <div class="modal-overlay" id="modal"><div class="modal" id="modalBody"></div></div>
+<div id="letraTela" ontouchstart="letraToqueInicio(event)" ontouchmove="letraToqueMove(event)" ontouchend="letraToqueFim(event)" ontouchcancel="letraToqueCancela()">
+  <div class="letra-header">
+    <button class="letra-close" onclick="fecharLetra()" aria-label="Voltar">←</button>
+    <div class="letra-header-info">
+      <div class="letra-header-title" id="letraTitulo">—</div>
+      <div class="letra-header-meta"><span id="letraAutor"></span><span id="letraTom"></span></div>
+    </div>
+    <div class="letra-controls">
+      <button class="letra-font-btn" onclick="mudarFonteLetra(-2)" aria-label="Diminuir letra">A−</button>
+      <button class="letra-font-btn" onclick="mudarFonteLetra(2)" aria-label="Aumentar letra">A+</button>
+    </div>
+  </div>
+  <div class="letra-body">
+    <div id="letraVazia" class="letra-empty" style="display:none"><div class="letra-empty-icon">🎵</div><div>Nenhuma letra cadastrada</div></div>
+    <pre id="letraTexto"></pre>
+  </div>
+</div>
 <div class="modal-overlay" id="toneModal"><div class="modal tone-modal"><div class="tone-head"><h2>Selecionar tom</h2><button class="modal-close" onclick="fecharTons()" aria-label="Fechar">✕</button></div><div class="tone-grid" id="toneGrid"></div></div></div>
 <div class="toast-container" id="toasts"></div>
 
@@ -342,7 +374,12 @@ function rota(){const h=(location.hash||'#cantores').slice(1);const i=h.indexOf(
 function ir(h){if(location.hash!==h)location.hash=h;else render();}
 let navegou=0;
 function voltar(){if(navegou>0)history.back();else ir(rota().nome==='ensaio'?'#ensaios':'#cantores');}
-window.addEventListener('hashchange',()=>{navegou++;render();});
+window.addEventListener('hashchange',()=>{
+  navegou++;
+  if(location.hash.indexOf('#letra-')===0)return;      // aberta por abrirLetra()
+  if(letraAberta){ocultarLetra();return;}               // voltou da letra: a tela de baixo continua como estava
+  render();
+});
 
 async function render(){
   fecharModal();
@@ -469,7 +506,7 @@ function renderBib(){
   $('bibChips').innerHTML=[['todas','Todas ('+bib.musicas.length+')'],['ja_canto','Já canto ('+ja+')'],['quero_ensaiar','Quero ensaiar ('+quero+')']]
     .map(([k,t])=>`<button class="chip${bib.filtro===k?' on':''}" onclick="bib.filtro='${k}';renderBib()">${t}</button>`).join('');
   $('bibLista').innerHTML=lista.length?lista.map(m=>`
-    <div class="item${m.letra?' clicavel':''}" ${m.letra?`onclick="verLetra(${m.id})"`:''}>
+    <div class="item clicavel" onclick="abrirLetra(${m.id})">
       <div class="item-main">
         <div class="item-titulo">${esc(m.titulo)}</div>
         <div class="item-sub">${m.artista?`<span>${esc(m.artista)}</span>`:''}${m.tom?`<span class="tom-badge">${esc(m.tom)}</span>`:''}
@@ -480,12 +517,40 @@ function renderBib(){
     </div>`).join('')
     :`<div class="vazio">${bib.musicas.length?'Nenhuma música encontrada.':(meu?'Você ainda não cadastrou músicas.<br>Toque no + para adicionar a primeira.':'Este cantor ainda não cadastrou músicas.')}</div>`;
 }
-function verLetra(mid){
+/* ---------- letra em tela cheia ---------- */
+let letraAberta=false,letraFonte=22;
+function abrirLetra(mid){
   const m=bib.musicas.find(x=>x.id===mid);if(!m)return;
-  abrirModal(`<h2>${esc(m.titulo)}</h2><p class="sub">${esc([m.artista,m.tom?'Tom '+m.tom:''].filter(Boolean).join(' · '))}</p>
-    <div class="letra-texto">${esc(m.letra)}</div>
-    <div class="modal-acoes"><button class="btn btn-ghost" onclick="fecharModal()">Fechar</button></div>`);
+  $('letraTitulo').textContent=m.titulo||'—';
+  $('letraAutor').textContent=m.artista||'';
+  $('letraTom').textContent=m.tom?`🎵 Tom: ${m.tom}`:'';
+  const texto=$('letraTexto'),vazia=$('letraVazia');
+  if(m.letra&&m.letra.trim()){texto.textContent=m.letra;texto.style.display='block';vazia.style.display='none';}
+  else{texto.style.display='none';vazia.style.display='flex';}
+  texto.style.fontSize=letraFonte+'px';
+  $('letraTela').classList.add('open');
+  const corpo=document.querySelector('#letraTela .letra-body');
+  corpo.scrollTop=0;requestAnimationFrame(()=>{corpo.scrollTop=0;});   // sempre começa no início
+  document.body.style.overflow='hidden';
+  letraAberta=true;
+  location.hash='#letra-'+mid;
 }
+function ocultarLetra(){$('letraTela').classList.remove('open');document.body.style.overflow='';letraAberta=false;}
+function fecharLetra(){if(location.hash.indexOf('#letra-')===0)history.back();else ocultarLetra();}
+function mudarFonteLetra(d){letraFonte=Math.max(14,Math.min(52,letraFonte+d));$('letraTexto').style.fontSize=letraFonte+'px';}
+// arrastar da borda esquerda para a direita também volta (como no Nexos)
+let _lx=0,_ly=0,_lativo=false;
+function letraToqueInicio(e){const t=e.touches[0];_lativo=t.clientX<=36;_lx=t.clientX;_ly=t.clientY;}
+function letraToqueMove(e){
+  if(!_lativo)return;const t=e.touches[0],dx=t.clientX-_lx,dy=t.clientY-_ly;
+  if(dx>8&&dx>Math.abs(dy)*1.35){e.preventDefault();$('letraTela').style.transform=`translateX(${Math.min(dx,window.innerWidth)}px)`;}
+}
+function letraToqueFim(e){
+  if(!_lativo)return;const t=e.changedTouches[0],dx=t.clientX-_lx,dy=t.clientY-_ly;
+  $('letraTela').style.transform='';_lativo=false;
+  if(dx>=75&&dx>Math.abs(dy)*1.5)fecharLetra();
+}
+function letraToqueCancela(){$('letraTela').style.transform='';_lativo=false;}
 
 /* ---------- cadastro / edição de música ---------- */
 function abrirFormMusica(mid){
@@ -613,11 +678,12 @@ function renderEnsaio(){
     miolo=`<div class="secao" style="margin-top:8px">
       <div class="secao-topo"><h3>Escolha a música que deseja ensaiar</h3>
         ${ens.aba==='lista'&&ens.minhas.length?`<button class="icon-btn pequeno" aria-label="Pesquisar" title="Pesquisar" onclick="alternarBuscaEnsaio()">${ICON_BUSCA}</button>`:''}</div>
+      <div id="buscaChip"></div>
       <div class="seg" style="margin-bottom:14px">
         <button class="${ens.aba==='lista'?'on':''}" onclick="ens.aba='lista';renderEnsaio()">Da minha lista</button>
         <button class="${ens.aba==='nova'?'on':''}" onclick="ens.aba='nova';renderEnsaio()">Nova música</button></div>
       ${ens.aba==='lista'?`
-        ${ens.buscaAberta?`<input class="form-input" id="ensBusca" type="search" placeholder="Pesquisar..." autocomplete="off" style="margin-bottom:12px" value="${esc(ens.busca)}" oninput="ens.busca=this.value;renderEnsaioLista()">`:''}
+        <input class="form-input" id="ensBusca" type="search" enterkeyhint="search" placeholder="Pesquisar..." autocomplete="off" style="margin-bottom:12px;display:${ens.buscaAberta?'block':'none'}" value="${esc(ens.busca)}" oninput="ens.busca=this.value;renderEnsaioLista()" onblur="aoSairBusca()" onkeydown="if(event.key==='Enter')this.blur()">
         <div class="lista" id="ensLista">${listaMarcavel(filtradas,ens.minhas.length)}</div>`
       :`<div class="lista" style="padding:4px 16px 18px">
           <label class="campo">Título *</label><input class="form-input" id="nvTitulo" maxlength="200" placeholder="Nome da música" autocomplete="off">
@@ -640,13 +706,33 @@ function renderEnsaio(){
     </div>
     <div class="quem"><span>Escolhendo como <b>${esc(eu_?eu_.nome:'')}</b></span><button class="chip" onclick="trocarEuEnsaio()">Não sou eu</button></div>
     ${miolo}`;
+  atualizarChipBusca();
 }
+// O campo já existe na tela (escondido). Ao tocar na lupa ele aparece e recebe o foco NO MESMO TOQUE,
+// que é o que faz o teclado abrir sozinho no celular.
+let _buscaTimer=null;
 function alternarBuscaEnsaio(){
-  ens.buscaAberta=!ens.buscaAberta;
-  if(!ens.buscaAberta)ens.busca='';
-  renderEnsaio();
-  if(ens.buscaAberta)setTimeout(()=>{const i=$('ensBusca');if(i)i.focus();},60);
+  const i=$('ensBusca');if(!i)return;
+  if(i.style.display!=='none'){fecharBuscaEnsaio();return;}
+  ens.buscaAberta=true;i.style.display='block';i.focus();
+  atualizarChipBusca();
 }
+function fecharBuscaEnsaio(){
+  clearTimeout(_buscaTimer);
+  const i=$('ensBusca');ens.buscaAberta=false;if(i){i.style.display='none';i.blur();}
+  atualizarChipBusca();
+}
+// ao sair do campo (tocar fora, teclado fechado, tecla Enter) ele some sozinho
+function aoSairBusca(){
+  clearTimeout(_buscaTimer);
+  _buscaTimer=setTimeout(()=>{if(ens.buscaAberta&&document.activeElement!==$('ensBusca'))fecharBuscaEnsaio();},250);
+}
+// se ficou um filtro ativo com o campo escondido, mostra um botãozinho para limpar
+function atualizarChipBusca(){
+  const c=$('buscaChip');if(!c)return;
+  c.innerHTML=(!ens.buscaAberta&&ens.busca)?`<button class="chip" style="margin-bottom:12px" onclick="limparBuscaEnsaio()">🔍 ${esc(ens.busca)} ✕</button>`:'';
+}
+function limparBuscaEnsaio(){ens.busca='';const i=$('ensBusca');if(i)i.value='';atualizarChipBusca();renderEnsaioLista();}
 function listaMarcavel(filtradas,totalDisp){
   if(!totalDisp)return '<div class="vazio">Você ainda não tem músicas na sua biblioteca.<br>Use a aba "Nova música".</div>';
   if(!filtradas.length)return '<div class="vazio">Nenhuma música encontrada.</div>';
@@ -886,8 +972,9 @@ sb.channel('portal-listas')
 setInterval(atualizarListas,45000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)atualizarListas();});
 
-// primeiro acesso: quem já se identificou cai direto no portal (lista de cantores com o atalho "Minha área")
-if(!location.hash)history.replaceState(null,'','#cantores');
+// ao abrir o portal, sempre começa na tela com todos os cantores (mesmo que o atalho do celular tenha sido
+// salvo estando dentro de outra tela, como a das músicas de um cantor)
+history.replaceState(null,'','#cantores');
 render();
 </script>
 </body>
