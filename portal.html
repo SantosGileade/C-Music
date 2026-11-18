@@ -135,6 +135,7 @@
     .marca{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid rgba(102,153,217,.18);cursor:pointer}
     .marca:last-child{border-bottom:none}
     .marca input[type=radio]{-webkit-appearance:none;appearance:none;width:24px;height:24px;border-radius:50%;border:2px solid var(--accent);background:transparent;flex-shrink:0}
+    .marca.desativada{cursor:default;opacity:.5;padding-left:50px}
     .marca input[type=radio]:checked{border-color:var(--violet);background:radial-gradient(circle,var(--violet) 0 45%,transparent 50%)}
     .aviso{border-radius:var(--radius2);padding:11px 13px;font-size:.83rem;line-height:1.45;margin-bottom:14px}
     .aviso.ok{background:rgba(76,175,130,.1);border:1px solid rgba(76,175,130,.3);color:#9be0be}
@@ -484,14 +485,16 @@ async function viewCantor(cid,id){
   $('view').innerHTML=`
     <div class="perfil-topo">${avatar(bib.cantor,true)}
       <div><div class="perfil-nome">${esc(bib.cantor.nome)}${meu?' <span class="tag-eu">Você</span>':''}</div>
-      <div class="perfil-sub" id="bibContagem"></div></div></div>
+      <div class="perfil-sub" id="bibContagem"></div></div>
+      <div style="margin-left:auto;display:flex;gap:10px;align-items:center">
+        <button class="icon-btn" aria-label="Pesquisar" title="Pesquisar" onclick="alternarBuscaBib()">${ICON_BUSCA}</button>
+        ${meu?'<button class="btn btn-primary btn-add" onclick="abrirFormMusica()" aria-label="Adicionar música" title="Adicionar música">+</button>':''}
+      </div></div>
     ${meu?'':'<div class="aviso alerta">Você está vendo a biblioteca de outro cantor. Só ele pode alterar as próprias músicas.</div>'}
     <div id="bibDomingo"></div>
-    <div class="linha-acoes">
-      <div class="busca">${ICON_BUSCA}<input class="form-input" id="bibBusca" type="search" placeholder="Buscar música ou artista..." autocomplete="off" oninput="bib.busca=this.value;renderBib()"></div>
-      ${meu?'<button class="btn btn-primary btn-add" onclick="abrirFormMusica()" aria-label="Adicionar música" title="Adicionar música">+</button>':''}
-    </div>
     <div class="chips" id="bibChips"></div>
+    <div id="bibBuscaChip"></div>
+    <input class="form-input" id="bibBusca" type="search" enterkeyhint="search" placeholder="Pesquisar..." autocomplete="off" style="margin-bottom:12px;display:none" oninput="bib.busca=this.value;renderBib()" onblur="aoSairBuscaBib()" onkeydown="if(event.key==='Enter')this.blur()">
     <div class="lista" id="bibLista"></div>`;
   renderBib();
   if(!eu&&!jaPerguntouEu){jaPerguntouEu=true;perguntarEu(bib.cantor);}
@@ -508,21 +511,21 @@ function renderBib(){
   const meu=bib.cantor.id===eu;
   const q=normaliza(bib.busca);
   const lista=bib.musicas.filter(m=>(bib.filtro==='todas'||m.categoria===bib.filtro)&&(!q||normaliza(m.titulo).includes(q)||normaliza(m.artista).includes(q)));
-  const ja=bib.musicas.filter(m=>m.categoria==='ja_canto').length,quero=bib.musicas.length-ja;
   $('bibContagem').textContent=`${bib.musicas.length} ${bib.musicas.length===1?'música cadastrada':'músicas cadastradas'}`;
   const dom=meu&&bib.domingoOk?bib.domingo:null;
   $('bibDomingo').innerHTML=dom?`<div class="domingo-card"><div class="item-main"><div class="rotulo">Quero cantar no domingo (${esc(fmtDiaMes(bib.domingoData))})</div>
       <div class="item-titulo">${esc(dom.titulo)}</div>
       <div class="item-sub">${dom.artista?`<span>${esc(dom.artista)}</span>`:''}${dom.tom?`<span class="tom-badge">${esc(dom.tom)}</span>`:''}</div></div>
       <button class="btn btn-ghost btn-sm" onclick="removerDomingo()">Remover</button></div>`:'';
-  $('bibChips').innerHTML=[['todas','Todas ('+bib.musicas.length+')'],['ja_canto','Já canto ('+ja+')'],['quero_ensaiar','Quero ensaiar ('+quero+')']]
+  $('bibChips').innerHTML=[['todas','Todas'],['ja_canto','Já canto'],['quero_ensaiar','Quero ensaiar']]
     .map(([k,t])=>`<button class="chip${bib.filtro===k?' on':''}" onclick="bib.filtro='${k}';renderBib()">${t}</button>`).join('');
+  atualizarChipBuscaBib();
   $('bibLista').innerHTML=lista.length?lista.map(m=>`
     <div class="item clicavel" onclick="abrirLetra(${m.id})">
       <div class="item-main">
         <div class="item-titulo">${esc(m.titulo)}</div>
         <div class="item-sub">${m.artista?`<span>${esc(m.artista)}</span>`:''}${m.tom?`<span class="tom-badge">${esc(m.tom)}</span>`:''}
-          <span class="cat ${m.categoria==='ja_canto'?'ja':'quero'}">${m.categoria==='ja_canto'?'Já canto':'Quero ensaiar'}</span>${m.letra?'<span>📄 letra</span>':''}</div>
+          ${bib.filtro==='todas'?`<span class="cat ${m.categoria==='ja_canto'?'ja':'quero'}">${m.categoria==='ja_canto'?'Já canto':'Quero ensaiar'}</span>`:''}</div>
         ${meu&&bib.domingoOk&&bib.ensaiadas.has(chaveMusica(m.titulo,m.artista))?(()=>{const no=bib.domingo&&chaveMusica(bib.domingo.titulo,bib.domingo.artista)===chaveMusica(m.titulo,m.artista);
           return `<button class="pill-dom${no?' on':''}" onclick="event.stopPropagation();alternarDomingo(${m.id})">${no?'✓ Vou cantar no domingo':'🎤 Quero cantar no domingo'}</button>`;})():''}
       </div>
@@ -531,6 +534,32 @@ function renderBib(){
     </div>`).join('')
     :`<div class="vazio">${bib.musicas.length?'Nenhuma música encontrada.':(meu?'Você ainda não cadastrou músicas.<br>Toque no + para adicionar a primeira.':'Este cantor ainda não cadastrou músicas.')}</div>`;
 }
+// Pesquisa da biblioteca: só a lupa. O campo já existe (escondido); ao tocar ele aparece e recebe o foco
+// NO MESMO TOQUE (é o que abre o teclado no celular) e some sozinho quando o cantor sai dele.
+let _buscaBibTimer=null;
+function alternarBuscaBib(){
+  const i=$('bibBusca');if(!i)return;
+  if(i.style.display!=='none'){fecharBuscaBib();return;}
+  i.style.display='block';i.focus();
+  atualizarChipBuscaBib();
+}
+function fecharBuscaBib(){
+  clearTimeout(_buscaBibTimer);
+  const i=$('bibBusca');if(i){i.style.display='none';i.blur();}
+  atualizarChipBuscaBib();
+}
+function aoSairBuscaBib(){
+  clearTimeout(_buscaBibTimer);
+  _buscaBibTimer=setTimeout(()=>{const i=$('bibBusca');if(i&&i.style.display!=='none'&&document.activeElement!==i)fecharBuscaBib();},250);
+}
+// se ficou uma pesquisa ativa com o campo escondido, aparece um botãozinho para limpar
+function atualizarChipBuscaBib(){
+  const c=$('bibBuscaChip'),i=$('bibBusca');if(!c)return;
+  const aberto=i&&i.style.display!=='none';
+  c.innerHTML=(!aberto&&bib.busca)?`<button class="chip" style="margin-bottom:12px" onclick="limparBuscaBib()">🔍 ${esc(bib.busca)} ✕</button>`:'';
+}
+function limparBuscaBib(){bib.busca='';const i=$('bibBusca');if(i)i.value='';renderBib();}
+
 /* ---------- "Quero cantar no próximo domingo" (só músicas já ensaiadas, 1 por domingo) ---------- */
 const fmtDiaMes=s=>{const [,m,d]=String(s||'').split('-');return d&&m?`${d}/${m}`:'';};
 async function carregarDomingoCantor(cid){
@@ -541,10 +570,7 @@ async function carregarDomingoCantor(cid){
       sb.rpc('portal_proximo_domingo')
     ]);
     if(rs.error||rd.error||rp.error)throw (rs.error||rd.error||rp.error);
-    const agora=Date.now();
-    // "ensaiada" = escolhida para um ensaio que já aconteceu (e não foi cancelado)
-    bib.ensaiadas=new Set((rs.data||[]).filter(s=>s.ensaio&&s.ensaio.status!=='cancelado'&&(s.ensaio.status==='realizado'||new Date(s.ensaio.data_hora).getTime()<agora))
-      .map(s=>chaveMusica(s.titulo,s.artista)));
+    bib.ensaiadas=conjuntoEnsaiadas(rs.data);
     bib.domingoData=rp.data;
     bib.domingo=(rd.data||[]).find(d=>d.domingo===rp.data)||null;
     bib.domingoOk=true;
@@ -699,18 +725,27 @@ async function viewEnsaio(eid,id){
       ${cantores.length?`<div class="lista">${cantores.map(c=>`<div class="item clicavel" onclick="escolherEuEEnsaio(${c.id},${e.id})">${avatar(c)}<div class="item-main"><div class="item-titulo">${esc(c.nome)}</div></div></div>`).join('')}</div>`:'<div class="vazio">Nenhum cantor cadastrado ainda.</div>'}`;
     return;
   }
-  const [rm,rs]=await Promise.all([
+  const [rm,rs,rh]=await Promise.all([
     sb.from('portal_musica').select('*').eq('cantor_id',eu).order('titulo'),
-    sb.from('portal_selecao').select('*').eq('ensaio_id',eid).eq('cantor_id',eu).order('enviado_em')
+    sb.from('portal_selecao').select('*').eq('ensaio_id',eid).eq('cantor_id',eu).order('enviado_em'),
+    sb.from('portal_selecao').select('titulo,artista,ensaio_id,ensaio:ensaio_id(status,data_hora)').eq('cantor_id',eu)
   ]);
-  if(rm.error)throw rm.error;if(rs.error)throw rs.error;
+  if(rm.error)throw rm.error;if(rs.error)throw rs.error;if(rh.error)throw rh.error;
   if(!atual(id))return;
-  ens={ensaio:e,minhas:rm.data||[],enviadas:rs.data||[],pendentes:[],aba:'lista',busca:'',buscaAberta:false};
+  // músicas que este cantor já ensaiou em ensaios que aconteceram: não voltam para outro ensaio
+  const ensaiadas=conjuntoEnsaiadas(rh.data);
+  ens={ensaio:e,minhas:rm.data||[],enviadas:rs.data||[],ensaiadas,pendentes:[],aba:'lista',busca:'',buscaAberta:false};
   renderEnsaio();
 }
 function escolherEuEEnsaio(cid,eid){eu=cid;lsSet(LS_EU,String(cid));render();}
 
 function chaveMusica(titulo,artista){return normaliza(titulo)+'|'+normaliza(artista);}
+// "ensaiada" = o cantor escolheu a música para um ensaio que já aconteceu (e não foi cancelado)
+function conjuntoEnsaiadas(selecoes){
+  const agora=Date.now();
+  return new Set((selecoes||[]).filter(s=>s.ensaio&&s.ensaio.status!=='cancelado'&&(s.ensaio.status==='realizado'||new Date(s.ensaio.data_hora).getTime()<agora))
+    .map(s=>chaveMusica(s.titulo,s.artista)));
+}
 function jaEscolhida(m){
   const k=chaveMusica(m.titulo,m.artista);
   return ens.enviadas.some(s=>chaveMusica(s.titulo,s.artista)===k);
@@ -795,8 +830,13 @@ function limparBuscaEnsaio(){ens.busca='';const i=$('ensBusca');if(i)i.value='';
 function listaMarcavel(filtradas,totalDisp){
   if(!totalDisp)return '<div class="vazio">Você ainda não tem músicas na sua biblioteca.<br>Use a aba "Nova música".</div>';
   if(!filtradas.length)return '<div class="vazio">Nenhuma música encontrada.</div>';
-  return filtradas.map(m=>`<label class="marca"><input type="radio" name="ensMusica" ${ens.pendentes.some(p=>p.musica_id===m.id)?'checked':''} onchange="marcarMusica(${m.id})">
-    <div class="item-main"><div class="item-titulo">${esc(m.titulo)}</div><div class="item-sub">${m.artista?`<span>${esc(m.artista)}</span>`:''}${m.tom?`<span class="tom-badge">${esc(m.tom)}</span>`:''}</div></div></label>`).join('');
+  return filtradas.map(m=>{
+    const feita=ens.ensaiadas.has(chaveMusica(m.titulo,m.artista));
+    const sub=`<div class="item-sub">${m.artista?`<span>${esc(m.artista)}</span>`:''}${m.tom?`<span class="tom-badge">${esc(m.tom)}</span>`:''}${feita?'<span class="cat cinza">Já ensaiada</span>':''}</div>`;
+    if(feita)return `<div class="marca desativada"><div class="item-main"><div class="item-titulo">${esc(m.titulo)}</div>${sub}</div></div>`;
+    return `<label class="marca"><input type="radio" name="ensMusica" ${ens.pendentes.some(p=>p.musica_id===m.id)?'checked':''} onchange="marcarMusica(${m.id})">
+    <div class="item-main"><div class="item-titulo">${esc(m.titulo)}</div>${sub}</div></label>`;
+  }).join('');
 }
 function renderEnsaioLista(){
   const q=normaliza(ens.busca);
@@ -804,7 +844,7 @@ function renderEnsaioLista(){
 }
 // só pode haver UMA música para confirmar: escolher outra troca a anterior
 function marcarMusica(mid){
-  const m=ens.minhas.find(x=>x.id===mid);if(!m)return;
+  const m=ens.minhas.find(x=>x.id===mid);if(!m||ens.ensaiadas.has(chaveMusica(m.titulo,m.artista)))return;
   ens.pendentes=[{musica_id:m.id,titulo:m.titulo,artista:m.artista,tom:m.tom}];
   const y=window.scrollY;renderEnsaio();window.scrollTo(0,y);
 }
@@ -814,6 +854,7 @@ async function adicionarNova(){
   if(!titulo){toast('O título é obrigatório.','erro');$('nvTitulo').focus();return;}
   const artista=$('nvArtista').value.trim()||null,tom=$('nvTom').dataset.tom||null;
   const k=chaveMusica(titulo,artista);
+  if(ens.ensaiadas.has(k)){toast('Essa música você já ensaiou em um ensaio anterior. Escolha outra.','erro');return;}
   let m=ens.minhas.find(x=>chaveMusica(x.titulo,x.artista)===k);
   let nova=false;
   if(!m){
@@ -834,7 +875,7 @@ async function confirmarEnvio(){
   if(data)ens.enviadas=data;
   renderEnsaio();
   if(!r.error)toast('Música enviada para o ensaio!','ok');
-  else if(r.error.code==='42501')toast('A escolha para este ensaio acabou de ser encerrada.','erro');
+  else if(r.error.code==='42501')toast('Não foi possível enviar: a escolha deste ensaio foi encerrada ou a música já foi ensaiada.','erro');
   else if(r.error.code==='23505')toast('Você já tem uma música neste ensaio. Para trocar, toque em "Trocar".','erro');
   else toast(tratarErro(r.error),'erro');
 }
