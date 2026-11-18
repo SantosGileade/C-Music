@@ -134,7 +134,8 @@
     .secao h3{font-size:.8rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:10px}
     .marca{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid rgba(102,153,217,.18);cursor:pointer}
     .marca:last-child{border-bottom:none}
-    .marca input{width:22px;height:22px;accent-color:var(--violet);flex-shrink:0}
+    .marca input[type=radio]{-webkit-appearance:none;appearance:none;width:24px;height:24px;border-radius:50%;border:2px solid var(--accent);background:transparent;flex-shrink:0}
+    .marca input[type=radio]:checked{border-color:var(--violet);background:radial-gradient(circle,var(--violet) 0 45%,transparent 50%)}
     .aviso{border-radius:var(--radius2);padding:11px 13px;font-size:.83rem;line-height:1.45;margin-bottom:14px}
     .aviso.ok{background:rgba(76,175,130,.1);border:1px solid rgba(76,175,130,.3);color:#9be0be}
     .aviso.alerta{background:rgba(212,168,76,.1);border:1px solid rgba(212,168,76,.3);color:var(--yellow)}
@@ -146,12 +147,38 @@
     .rodape-item{font-size:.74rem;color:var(--text3);margin-top:4px;display:flex;gap:10px;flex-wrap:wrap}
 
     /* navegação de baixo */
-    .bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(13,26,42,.96);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);display:none;padding-bottom:var(--safe-bot)}
+    .bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:100;-webkit-transform:translateZ(0);transform:translateZ(0);background:rgba(13,26,42,.96);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);display:none;padding-bottom:var(--safe-bot)}
     .bottom-nav.visible{display:flex}
     .bottom-nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 0;background:transparent;color:var(--text3);font-size:.68rem;font-weight:600}
     .bottom-nav .bn-icon{font-size:1.35rem;line-height:1}
     .bottom-nav button.active{color:var(--accent2)}
 
+    /* tom (mesmo padrão do Nexos) */
+    .tone-field{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:46px;text-align:left;color:var(--text);cursor:pointer}
+    .tone-field .ph{color:var(--text3)}
+    .tone-field.filled{border-color:var(--accent);background:rgba(102,153,217,.12)}
+    .tone-field svg{width:14px;height:14px;color:var(--text3);flex-shrink:0}
+    #toneModal{z-index:230;align-items:center;padding:18px}
+    #toneModal .tone-modal{max-width:390px;border-radius:18px;padding:0 0 18px;overflow:hidden;animation:sobe .2s ease}
+    .tone-head{display:flex;align-items:center;justify-content:space-between;padding:18px 18px 0;margin-bottom:14px}
+    .tone-head h2{font-size:1rem;margin:0}
+    .modal-close{width:32px;height:32px;border-radius:8px;background:var(--card2);color:var(--text2);font-size:1rem;display:flex;align-items:center;justify-content:center}
+    .tone-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;padding:0 18px}
+    .tone-option{height:40px;border-radius:9px;background:rgba(41,66,95,.58);border:1px solid rgba(102,153,217,.14);color:var(--text2);font-size:.82rem;font-weight:700}
+    .tone-option.selected{background:rgba(102,153,217,.18);border-color:var(--accent);color:#fff}
+    .tone-option.tone-all{grid-column:1/-1;height:38px}
+    /* janela pequena no centro (ex.: "Selecione quem é você") */
+    .modal-overlay.centro{align-items:center;padding:18px}
+    .modal-overlay.centro .modal{border-radius:18px;max-width:380px}
+    /* ensaio */
+    .quem{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 0 6px;font-size:.82rem;color:var(--text3)}
+    .quem b{color:var(--text2)}
+    .nota-prazo{font-size:.78rem;color:var(--text3);margin-top:10px;line-height:1.4}
+    .secao-topo{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+    .secao-topo h3{margin:0}
+    .icon-btn.pequeno{width:34px;height:34px}
+    .confirma-barra{position:sticky;bottom:calc(72px + var(--safe-bot));margin-top:16px;background:rgba(13,26,42,.94);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(139,92,246,.45);border-radius:var(--radius);padding:12px 14px}
+    .confirma-barra .item-titulo{font-size:.95rem}
     /* modal */
     .modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:none;align-items:flex-end;justify-content:center}
     @media(min-width:600px){.modal-overlay{align-items:center;padding:16px}}
@@ -189,6 +216,7 @@
 </nav>
 
 <div class="modal-overlay" id="modal"><div class="modal" id="modalBody"></div></div>
+<div class="modal-overlay" id="toneModal"><div class="modal tone-modal"><div class="tone-head"><h2>Selecionar tom</h2><button class="modal-close" onclick="fecharTons()" aria-label="Fechar">✕</button></div><div class="tone-grid" id="toneGrid"></div></div></div>
 <div class="toast-container" id="toasts"></div>
 
 <script>
@@ -249,10 +277,31 @@ function tratarErro(e,padrao){
 }
 
 /* ---------- modal ---------- */
-function abrirModal(html){$('modalBody').innerHTML=html;$('modal').classList.add('open');}
+function abrirModal(html,centro){$('modalBody').innerHTML=html;$('modal').classList.toggle('centro',!!centro);$('modal').classList.add('open');}
 function fecharModal(){$('modal').classList.remove('open');}
 $('modal').addEventListener('click',e=>{if(e.target.id==='modal')fecharModal();});
-document.addEventListener('keydown',e=>{if(e.key==='Escape')fecharModal();});
+// seletor de tom, no mesmo padrão do Nexos (botão que abre uma grade de tons)
+let _tomCb=null;
+function abrirTons(atual,cb){
+  _tomCb=cb;
+  $('toneGrid').innerHTML=`<button class="tone-option tone-all${!atual?' selected':''}" onclick="escolherTom('')">Sem tom</button>`+
+    TONS.map(t=>`<button class="tone-option${atual===t?' selected':''}" onclick="escolherTom('${t}')">${t}</button>`).join('');
+  $('toneModal').classList.add('open');
+}
+function fecharTons(){$('toneModal').classList.remove('open');}
+function escolherTom(t){fecharTons();if(_tomCb)_tomCb(t);}
+$('toneModal').addEventListener('click',e=>{if(e.target.id==='toneModal')fecharTons();});
+function campoTom(id,atual){
+  return `<button class="form-input tone-field${atual?' filled':''}" id="${id}" type="button" data-tom="${esc(atual||'')}" onclick="abrirTons(this.dataset.tom,function(t){definirCampoTom('${id}',t)})">
+    <span class="${atual?'':'ph'}">${atual?'Tom '+esc(atual):'Selecione o tom'}</span>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>`;
+}
+function definirCampoTom(id,t){
+  const b=$(id);if(!b)return;
+  b.dataset.tom=t;b.classList.toggle('filled',!!t);
+  const s=b.querySelector('span');s.textContent=t?'Tom '+t:'Selecione o tom';s.className=t?'':'ph';
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if($('toneModal').classList.contains('open'))fecharTons();else fecharModal();}});
 function confirmar(titulo,texto,rotulo,fn){
   window._confirmFn=fn;
   abrirModal(`<h2>${esc(titulo)}</h2><p class="sub">${esc(texto)}</p>
@@ -314,6 +363,7 @@ async function render(){
     else if(nome==='admin')await viewAdmin(meuId);
     else ir('#cantores');
     $('connDot').classList.remove('offline');
+    agendarCorrigirNav();
   }catch(e){
     if(meuId!==renderId)return;
     $('connDot').classList.add('offline');
@@ -321,20 +371,38 @@ async function render(){
   }
 }
 const atual=id=>id===renderId;
+// No app instalado (iPhone), o menu de baixo às vezes nasce acima da posição certa até a tela ser refeita.
+// Refazemos o posicionamento depois do carregamento, ao voltar para o app e ao girar a tela.
+let _navTimer=null;
+function corrigirNav(){
+  const n=$('bottomNav');
+  if(!n||!n.classList.contains('visible'))return;
+  const f=document.activeElement;
+  if(f&&/^(INPUT|TEXTAREA|SELECT)$/.test(f.tagName))return;   // teclado aberto: não mexer
+  n.classList.remove('visible');void n.offsetHeight;n.classList.add('visible');
+  window.scrollTo(0,window.scrollY+1);window.scrollTo(0,window.scrollY-1);
+}
+function agendarCorrigirNav(){clearTimeout(_navTimer);_navTimer=setTimeout(corrigirNav,120);}
+window.addEventListener('load',()=>{setTimeout(corrigirNav,80);setTimeout(corrigirNav,700);});
+window.addEventListener('pageshow',agendarCorrigirNav);
+window.addEventListener('resize',agendarCorrigirNav);
+window.addEventListener('orientationchange',agendarCorrigirNav);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)agendarCorrigirNav();});
 
 /* =====================================================================
    1. CANTORES
    ===================================================================== */
+const porNome=(a,b)=>a.nome.localeCompare(b.nome,'pt-BR',{sensitivity:'base'});
+let jaMostrouSelecao=false;
 async function viewCantores(id){
   await carregarCantores();
   if(!atual(id))return;
-  const meu=cantores.find(c=>c.id===eu);
+  // quem se identificou fica sempre em primeiro; os outros em ordem alfabética
+  const ordenados=[...cantores].sort((a,b)=>((b.id===eu)-(a.id===eu))||porNome(a,b));
   $('view').innerHTML=`
     <div class="view-title">Cantores</div>
     <div class="view-sub">Toque no seu nome para cadastrar as músicas que você canta e escolher o que quer ensaiar.</div>
-    ${meu?`<button class="meu-atalho" onclick="ir('#cantor-${meu.id}')">${avatar(meu,true)}<span><b>${esc(meu.nome)}</b><small>Minha área · ${contagem[meu.id]||0} ${(contagem[meu.id]||0)===1?'música':'músicas'}</small></span></button>`
-      :(cantores.length?'<div class="dica">👋 Primeira vez aqui? Toque no seu nome abaixo. Este aparelho vai lembrar de você.</div>':'')}
-    ${cantores.length?`<div class="grade">${cantores.map(c=>`
+    ${ordenados.length?`<div class="grade">${ordenados.map(c=>`
       <button class="cantor-card${c.id===eu?' eu':''}" onclick="abrirCantor(${c.id})">
         ${avatar(c)}
         <div class="cantor-nome" title="${esc(c.nome)}">${esc(c.nome)}</div>
@@ -344,6 +412,14 @@ async function viewCantores(id){
       </button>`).join('')}</div>`
       :'<div class="vazio">Nenhum cantor cadastrado ainda.<br>A administração precisa cadastrar os cantores primeiro.</div>'}
     <button class="rodape-link" onclick="ir('#admin')">Administração</button>`;
+  if(!eu&&cantores.length&&!jaMostrouSelecao){jaMostrouSelecao=true;abrirSelecaoEu();}
+}
+function abrirSelecaoEu(){
+  const lista=[...cantores].sort(porNome);
+  abrirModal(`<h2>Selecione quem é você</h2><p class="sub">Toque no seu nome para continuar. Este aparelho vai lembrar.</p>
+    <div class="lista" style="margin-top:14px;max-height:48dvh;overflow-y:auto">${lista.map(c=>`
+      <div class="item clicavel" onclick="definirEu(${c.id})">${avatar(c)}<div class="item-main"><div class="item-titulo">${esc(c.nome)}</div></div></div>`).join('')}</div>
+    <div class="modal-acoes"><button class="btn btn-ghost" onclick="fecharModal()">Agora não</button></div>`,true);
 }
 function abrirCantor(cid){ir('#cantor-'+cid);}
 
@@ -381,7 +457,7 @@ function perguntarEu(c){
     <div class="modal-acoes"><button class="btn btn-ghost" onclick="fecharModal()">Só quero ver</button>
     <button class="btn btn-primary" onclick="definirEu(${c.id})">Sim, sou eu</button></div>`);
 }
-function definirEu(cid){eu=cid;lsSet(LS_EU,String(cid));fecharModal();toast('Pronto! Este aparelho lembrou de você.','ok');if(rota().nome==='cantor')render();}
+function definirEu(cid){eu=cid;lsSet(LS_EU,String(cid));fecharModal();toast('Pronto! Este aparelho lembrou de você.','ok');const n=rota().nome;if(n==='cantor'||n==='cantores')render();}
 function trocarEu(){eu=null;lsSet(LS_EU,null);jaPerguntouEu=false;render();}
 
 function renderBib(){
@@ -421,7 +497,7 @@ function abrirFormMusica(mid){
     <label class="campo">Artista <small>(opcional)</small></label>
     <input class="form-input" id="fmArtista" maxlength="200" placeholder="Quem canta / compôs" value="${esc(m?m.artista:'')}" autocomplete="off">
     <label class="campo">Tom <small>(opcional)</small></label>
-    <select class="form-input" id="fmTom"><option value="">Sem tom</option>${TONS.map(t=>`<option${m&&m.tom===t?' selected':''}>${t}</option>`).join('')}</select>
+    ${campoTom('fmTom',m?m.tom:'')}
     <label class="campo">Categoria</label>
     <div class="seg" id="fmCat"><button type="button" data-v="ja_canto" class="${!m||m.categoria==='ja_canto'?'on':''}" onclick="escolherCat('ja_canto')">Já canto</button>
       <button type="button" data-v="quero_ensaiar" class="${m&&m.categoria==='quero_ensaiar'?'on':''}" onclick="escolherCat('quero_ensaiar')">Quero ensaiar</button></div>
@@ -435,7 +511,7 @@ function escolherCat(v){document.querySelectorAll('#fmCat button').forEach(b=>b.
 async function salvarMusica(){
   const titulo=$('fmTitulo').value.trim();
   if(!titulo){toast('O título é obrigatório.','erro');$('fmTitulo').focus();return;}
-  const corpo={titulo,artista:$('fmArtista').value.trim()||null,tom:$('fmTom').value||null,letra:$('fmLetra').value.trim()||null,
+  const corpo={titulo,artista:$('fmArtista').value.trim()||null,tom:$('fmTom').dataset.tom||null,letra:$('fmLetra').value.trim()||null,
     categoria:document.querySelector('#fmCat button.on').dataset.v};
   const dup=bib.musicas.find(m=>m.id!==window._musicaEditando&&normaliza(m.titulo)===normaliza(titulo)&&normaliza(m.artista)===normaliza(corpo.artista));
   if(dup){toast('Você já tem essa música na sua biblioteca.','erro');return;}
@@ -478,7 +554,7 @@ async function viewEnsaios(id){
   };
   $('view').innerHTML=`
     <div class="view-title">Ensaios</div>
-    <div class="view-sub">Escolha a música que você quer ensaiar (1 por ensaio). A escolha fecha ${DIAS_LIMITE} dias antes de cada ensaio.</div>
+    <div class="view-sub">Toque em um ensaio para escolher a música que você quer ensaiar.</div>
     ${prox?card(prox,true):'<div class="vazio">Nenhum ensaio marcado por enquanto.<br>Quando a administração marcar um, ele aparece aqui sozinho.</div>'}
     ${outros.length?`<div class="secao"><h3>Outros ensaios</h3>${outros.map(e=>card(e,false)).join('')}</div>`:''}`;
 }
@@ -505,7 +581,7 @@ async function viewEnsaio(eid,id){
   ]);
   if(rm.error)throw rm.error;if(rs.error)throw rs.error;
   if(!atual(id))return;
-  ens={ensaio:e,minhas:rm.data||[],enviadas:rs.data||[],pendentes:[],aba:'lista',busca:''};
+  ens={ensaio:e,minhas:rm.data||[],enviadas:rs.data||[],pendentes:[],aba:'lista',busca:'',buscaAberta:false};
   renderEnsaio();
 }
 function escolherEuEEnsaio(cid,eid){eu=cid;lsSet(LS_EU,String(cid));render();}
@@ -518,10 +594,43 @@ function jaEscolhida(m){
 function renderEnsaio(){
   const e=ens.ensaio,s=situacao(e),eu_=cantores.find(c=>c.id===eu);
   const jaTem=ens.enviadas.length>0;              // cada cantor escolhe UMA música por ensaio
-  const disponiveis=ens.minhas;
   const q=normaliza(ens.busca);
-  const filtradas=disponiveis.filter(m=>!q||normaliza(m.titulo).includes(q)||normaliza(m.artista).includes(q));
+  const filtradas=ens.minhas.filter(m=>!q||normaliza(m.titulo).includes(q)||normaliza(m.artista).includes(q));
   const pend=ens.pendentes[0]||null;
+  const prazo=s.aberta?`Você pode trocar a música até ${fmtCurta(new Date(s.limite).toISOString())}.`
+    :(e.status==='cancelado'?'Este ensaio foi cancelado.':(s.txt==='Realizado'?'Este ensaio já aconteceu.':'A escolha deste ensaio já foi encerrada.'));
+  let miolo='';
+  if(jaTem){
+    miolo=`<div class="secao"><h3>Minha música neste ensaio</h3>
+      <div class="lista">${ens.enviadas.map(x=>`
+        <div class="item"><div class="item-main"><div class="item-titulo">${esc(x.titulo)}</div>
+          <div class="item-sub">${x.artista?`<span>${esc(x.artista)}</span>`:''}${x.tom?`<span class="tom-badge">${esc(x.tom)}</span>`:''}</div></div>
+          ${s.aberta?`<button class="btn btn-ghost btn-sm" onclick="removerEnviada(${x.id})">Trocar</button>`:''}</div>`).join('')}</div>
+      <div class="nota-prazo">${esc(prazo)}</div></div>`;
+  }else if(!s.aberta){
+    miolo=`<div class="vazio">${esc(prazo)}<br>Você não enviou nenhuma música.</div>`;
+  }else{
+    miolo=`<div class="secao" style="margin-top:8px">
+      <div class="secao-topo"><h3>Escolha a música que deseja ensaiar</h3>
+        ${ens.aba==='lista'&&ens.minhas.length?`<button class="icon-btn pequeno" aria-label="Pesquisar" title="Pesquisar" onclick="alternarBuscaEnsaio()">${ICON_BUSCA}</button>`:''}</div>
+      <div class="seg" style="margin-bottom:14px">
+        <button class="${ens.aba==='lista'?'on':''}" onclick="ens.aba='lista';renderEnsaio()">Da minha lista</button>
+        <button class="${ens.aba==='nova'?'on':''}" onclick="ens.aba='nova';renderEnsaio()">Nova música</button></div>
+      ${ens.aba==='lista'?`
+        ${ens.buscaAberta?`<input class="form-input" id="ensBusca" type="search" placeholder="Pesquisar..." autocomplete="off" style="margin-bottom:12px" value="${esc(ens.busca)}" oninput="ens.busca=this.value;renderEnsaioLista()">`:''}
+        <div class="lista" id="ensLista">${listaMarcavel(filtradas,ens.minhas.length)}</div>`
+      :`<div class="lista" style="padding:4px 16px 18px">
+          <label class="campo">Título *</label><input class="form-input" id="nvTitulo" maxlength="200" placeholder="Nome da música" autocomplete="off">
+          <label class="campo">Artista <small>(opcional)</small></label><input class="form-input" id="nvArtista" maxlength="200" placeholder="Quem canta / compôs" autocomplete="off">
+          <label class="campo">Tom <small>(opcional)</small></label>${campoTom('nvTom','')}
+          <button class="btn btn-ghost btn-block" style="margin-top:16px" onclick="adicionarNova()">Usar esta música</button></div>`}
+      ${pend?`<div class="confirma-barra"><div class="rotulo">Música escolhida</div>
+        <div class="item" style="padding:6px 0 12px;border:none"><div class="item-main"><div class="item-titulo">${esc(pend.titulo)}</div>
+          <div class="item-sub">${pend.artista?`<span>${esc(pend.artista)}</span>`:''}${pend.tom?`<span class="tom-badge">${esc(pend.tom)}</span>`:''}</div></div>
+          <button class="icon-btn perigo" aria-label="Tirar" title="Tirar" onclick="tirarPendente()">${ICON_DEL}</button></div>
+        <button class="btn btn-primary btn-block" id="ensConfirmar" onclick="confirmarEnvio()">✓ Confirmar envio</button></div>`:''}
+    </div>`;
+  }
   $('view').innerHTML=`
     <div class="ensaio-card proximo" style="cursor:default">
       <div class="ensaio-titulo">${esc(e.titulo)}</div>
@@ -529,42 +638,14 @@ function renderEnsaio(){
       ${e.descricao?`<div class="ensaio-desc">${esc(e.descricao)}</div>`:''}
       <span class="cat ${s.cls}">${s.txt}</span>
     </div>
-    ${s.aberta
-      ?`<div class="aviso ok">Cada cantor escolhe <b>1 música</b> por ensaio. Você pode escolher e trocar a sua até <b>${esc(fmtCurta(new Date(s.limite).toISOString()))}</b> (${DIAS_LIMITE} dias antes do ensaio), para dar tempo de se preparar.</div>`
-      :`<div class="aviso alerta">${e.status==='cancelado'?'Este ensaio foi cancelado.':(s.txt==='Realizado'?'Este ensaio já aconteceu.':`A escolha de música para este ensaio foi encerrada (${DIAS_LIMITE} dias antes). Abaixo está a música que você enviou.`)}</div>`}
-    <div class="perfil-sub" style="margin-bottom:8px">Escolhendo como <b>${esc(eu_?eu_.nome:'')}</b> · <a href="javascript:void 0" style="color:var(--accent2)" onclick="trocarEuEnsaio()">não sou eu</a></div>
-
-    <div class="secao"><h3>Minha música neste ensaio</h3>
-      <div class="lista">${jaTem?ens.enviadas.map(x=>`
-        <div class="item"><div class="item-main"><div class="item-titulo">${esc(x.titulo)}</div>
-          <div class="item-sub">${x.artista?`<span>${esc(x.artista)}</span>`:''}${x.tom?`<span class="tom-badge">${esc(x.tom)}</span>`:''}<span>enviada ${esc(fmtCurta(x.enviado_em))}</span></div></div>
-          ${s.aberta?`<button class="btn btn-ghost btn-sm" onclick="removerEnviada(${x.id})">Trocar</button>`:''}</div>`).join('')
-        :'<div class="vazio">Você ainda não escolheu a música deste ensaio.</div>'}</div></div>
-
-    ${s.aberta&&!jaTem?`
-    <div class="secao"><h3>Escolha a música que deseja ensaiar</h3>
-      <div class="seg" style="margin-bottom:14px">
-        <button class="${ens.aba==='lista'?'on':''}" onclick="ens.aba='lista';renderEnsaio()">Da minha lista</button>
-        <button class="${ens.aba==='nova'?'on':''}" onclick="ens.aba='nova';renderEnsaio()">Nova música</button></div>
-      ${ens.aba==='lista'?`
-        ${disponiveis.length?`<div class="busca" style="margin-bottom:12px">${ICON_BUSCA}<input class="form-input" id="ensBusca" type="search" placeholder="Buscar na minha lista..." autocomplete="off" value="${esc(ens.busca)}" oninput="ens.busca=this.value;renderEnsaioLista()"></div>`:''}
-        <div class="lista" id="ensLista">${listaMarcavel(filtradas,disponiveis.length)}</div>`
-      :`<div class="lista" style="padding:4px 16px 18px">
-          <label class="campo">Título *</label><input class="form-input" id="nvTitulo" maxlength="200" placeholder="Nome da música" autocomplete="off">
-          <label class="campo">Artista <small>(opcional)</small></label><input class="form-input" id="nvArtista" maxlength="200" placeholder="Quem canta / compôs" autocomplete="off">
-          <label class="campo">Tom <small>(opcional)</small></label>
-          <select class="form-input" id="nvTom"><option value="">Sem tom</option>${TONS.map(t=>`<option>${t}</option>`).join('')}</select>
-          <p class="perfil-sub" style="margin-top:10px">Ela também é salva na sua biblioteca, como "Quero ensaiar".</p>
-          <button class="btn btn-ghost btn-block" style="margin-top:14px" onclick="adicionarNova()">Usar esta música</button></div>`}
-    </div>
-
-    <div class="secao"><h3>Para confirmar</h3>
-      <div class="lista">${pend?`
-        <div class="item"><div class="item-main"><div class="item-titulo">${esc(pend.titulo)}</div>
-          <div class="item-sub">${pend.artista?`<span>${esc(pend.artista)}</span>`:''}${pend.tom?`<span class="tom-badge">${esc(pend.tom)}</span>`:''}${pend.nova?'<span class="cat quero">nova</span>':''}</div></div>
-          <button class="icon-btn perigo" aria-label="Tirar" title="Tirar" onclick="tirarPendente()">${ICON_DEL}</button></div>`
-        :'<div class="vazio">Escolha uma música acima para ela aparecer aqui.</div>'}</div>
-      <button class="btn btn-primary btn-block" style="margin-top:14px" id="ensConfirmar" ${pend?'':'disabled'} onclick="confirmarEnvio()">✓ Confirmar envio</button></div>`:''}`;
+    <div class="quem"><span>Escolhendo como <b>${esc(eu_?eu_.nome:'')}</b></span><button class="chip" onclick="trocarEuEnsaio()">Não sou eu</button></div>
+    ${miolo}`;
+}
+function alternarBuscaEnsaio(){
+  ens.buscaAberta=!ens.buscaAberta;
+  if(!ens.buscaAberta)ens.busca='';
+  renderEnsaio();
+  if(ens.buscaAberta)setTimeout(()=>{const i=$('ensBusca');if(i)i.focus();},60);
 }
 function listaMarcavel(filtradas,totalDisp){
   if(!totalDisp)return '<div class="vazio">Você ainda não tem músicas na sua biblioteca.<br>Use a aba "Nova música".</div>';
@@ -586,7 +667,7 @@ function tirarPendente(){ens.pendentes=[];const y=window.scrollY;renderEnsaio();
 async function adicionarNova(){
   const titulo=$('nvTitulo').value.trim();
   if(!titulo){toast('O título é obrigatório.','erro');$('nvTitulo').focus();return;}
-  const artista=$('nvArtista').value.trim()||null,tom=$('nvTom').value||null;
+  const artista=$('nvArtista').value.trim()||null,tom=$('nvTom').dataset.tom||null;
   const k=chaveMusica(titulo,artista);
   let m=ens.minhas.find(x=>chaveMusica(x.titulo,x.artista)===k);
   let nova=false;
