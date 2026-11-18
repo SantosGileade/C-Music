@@ -1806,7 +1806,7 @@ async function carregarPedidosCantores() {
     if (!currentPL || currentPL.title !== PL_DOMINGO) return false;
     if (!data || !data.length) { box.style.display = 'none'; box.innerHTML = ''; return true; }
     box.innerHTML = `<div class="pedidos-cantores-titulo">Cantores querendo cantar no domingo</div>
-      <div class="pedidos-cantores-sub">Pedidos feitos no Portal dos Cantores, de músicas que eles já ensaiaram. Não fazem parte da playlist acima.</div>
+      <div class="pedidos-cantores-sub">Músicas que os cantores querem cantar no próximo domingo.</div>
       <div class="pedidos-cantores-lista">${data.map(d => `
         <div class="pedido-cantor">
           <div class="pedido-cantor-info">
