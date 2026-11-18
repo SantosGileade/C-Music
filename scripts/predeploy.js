@@ -9,6 +9,7 @@ if (!html.includes("const APP_BUILD='__BUILD__'")) {
 }
 fs.writeFileSync('dist/index.html', html.replace("const APP_BUILD='__BUILD__'", "const APP_BUILD='" + build + "'"));
 
+fs.copyFileSync('portal.html', 'dist/portal.html');
 fs.copyFileSync('manifest.json', 'dist/manifest.json');
 fs.copyFileSync('sw.js', 'dist/sw.js');
 fs.readdirSync('img').forEach((f) => fs.copyFileSync('img/' + f, 'dist/img/' + f));

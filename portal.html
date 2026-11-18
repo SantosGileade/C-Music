@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Cantores" />
+  <meta name="theme-color" content="#0d1a2a" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Portal dos Cantores</title>
+  <link rel="icon" type="image/x-icon" href="img/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="32x32" href="img/icon-32.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="img/icon-180.png" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg:#0d1a2a; --bg2:#142030; --card:#20354d; --card2:#29425f; --border:#355371;
+      --accent:#6699D9; --accent2:#7aaade; --accent3:#BBD3F2; --violet:#8b5cf6;
+      --green:#4caf82; --red:#e05252; --yellow:#d4a84c;
+      --text:#e8f2fc; --text2:#BBD3F2; --text3:#7d8da0;
+      --radius:14px; --radius2:9px; --shadow:0 4px 24px rgba(0,0,0,.4);
+      --safe-top:env(safe-area-inset-top,0px); --safe-bot:env(safe-area-inset-bottom,0px);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+    html,body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+    input,textarea,select{-webkit-user-select:text;user-select:text}
+    img{-webkit-user-drag:none}
+    body{font-family:-apple-system,'SF Pro Display','Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;overflow-x:hidden}
+    button{cursor:pointer;border:none;outline:none;font-family:inherit;-webkit-appearance:none}
+    input,textarea,select{font-family:inherit;outline:none;border:none;-webkit-appearance:none;appearance:none}
+    @media(max-width:768px){input,textarea,select{font-size:16px!important}}
+    ::-webkit-scrollbar{width:4px;height:4px}
+    ::-webkit-scrollbar-thumb{background:var(--accent);border-radius:99px}
+
+    header{position:sticky;top:0;z-index:100;background:rgba(13,26,42,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border);display:flex;align-items:flex-end;gap:10px;padding:0 16px 10px;padding-top:calc(var(--safe-top) + 10px);min-height:calc(60px + var(--safe-top))}
+    .logo{display:flex;align-items:center;gap:9px;font-size:1.1rem;font-weight:700;letter-spacing:-.4px}
+    .logo-icon{width:34px;height:34px;border-radius:9px;overflow:hidden;flex-shrink:0}
+    .logo-icon img{width:100%;height:100%;object-fit:cover}
+    .logo-text span{color:var(--accent3)}
+    .header-right{margin-left:auto;display:flex;align-items:center}
+    .conn-badge{display:flex;align-items:center;padding:5px 9px;border-radius:99px;background:var(--card2);border:1px solid var(--border)}
+    .conn-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+    .conn-dot.offline{background:var(--yellow);animation:none}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+    .back-btn{width:38px;height:38px;border-radius:10px;background:var(--card2);border:1px solid var(--border);color:var(--text2);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+
+    main{padding:18px 14px;max-width:1000px;margin:0 auto;padding-bottom:calc(92px + var(--safe-bot))}
+    @media(min-width:640px){main{padding:26px 24px 110px}}
+    .view-title{font-size:1.5rem;font-weight:800;letter-spacing:-.5px;margin-bottom:4px}
+    .view-title span{color:var(--accent3)}
+    .view-sub{font-size:.82rem;color:var(--text3);margin-bottom:18px;line-height:1.45}
+    .spinner{width:26px;height:26px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:40px auto}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .vazio{text-align:center;padding:40px 20px;color:var(--text3);font-style:italic;font-size:.9rem;line-height:1.5}
+
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 17px;border-radius:var(--radius2);font-size:.88rem;font-weight:600;white-space:nowrap}
+    .btn-primary{background:linear-gradient(135deg,var(--accent),var(--violet));color:#fff}
+    .btn-primary:active{transform:scale(.97)}
+    .btn-ghost{background:var(--card2);color:var(--text2);border:1px solid var(--border)}
+    .btn-danger{background:rgba(224,82,82,.12);color:var(--red);border:1px solid rgba(224,82,82,.3)}
+    .btn-sm{padding:6px 12px;font-size:.78rem}
+    .btn-block{width:100%}
+    .btn:disabled{opacity:.5}
+    .btn-add{width:44px;height:42px;padding:0;font-size:1.3rem;font-weight:400;flex-shrink:0}
+    .icon-btn{width:36px;height:36px;border-radius:9px;background:rgba(22,42,67,.68);border:1px solid rgba(102,153,217,.25);color:#a9c1ef;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .icon-btn svg{width:17px;height:17px}
+    .icon-btn.perigo{color:var(--red);border-color:rgba(224,82,82,.3)}
+    .linha-acoes{display:flex;gap:10px;align-items:center;margin-bottom:14px}
+    .busca{flex:1;position:relative}
+    .busca svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:17px;height:17px;color:var(--text3)}
+    .form-input{width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--text);border-radius:var(--radius2);padding:11px 13px;font-size:1rem}
+    .form-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(102,153,217,.18)}
+    .form-input::placeholder{color:var(--text3)}
+    .busca .form-input{padding-left:38px}
+    textarea.form-input{min-height:110px;resize:vertical;line-height:1.45}
+    label.campo{display:block;font-size:.78rem;font-weight:700;color:var(--text2);margin:14px 0 6px}
+    label.campo small{font-weight:500;color:var(--text3)}
+
+    /* grade de cantores */
+    .grade{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    @media(min-width:640px){.grade{grid-template-columns:repeat(3,minmax(0,1fr))}}
+    @media(min-width:900px){.grade{grid-template-columns:repeat(4,minmax(0,1fr))}}
+    .cantor-card{background:linear-gradient(145deg,rgba(31,55,86,.9),rgba(22,42,67,.92));border:1px solid rgba(102,153,217,.22);border-radius:var(--radius);padding:18px 12px 14px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;color:var(--text);min-width:0}
+    .cantor-card:active{transform:scale(.97)}
+    .cantor-card.eu{border-color:var(--violet);box-shadow:0 0 0 1px rgba(139,92,246,.45)}
+    .avatar{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.35rem;font-weight:800;color:#fff;overflow:hidden;flex-shrink:0}
+    .avatar img{width:100%;height:100%;object-fit:cover}
+    .avatar.grande{width:56px;height:56px;font-size:1.2rem}
+    .cantor-nome{font-weight:700;font-size:.95rem;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .cantor-qtd{font-size:.76rem;color:var(--text3)}
+    .cantor-abrir{font-size:.75rem;font-weight:700;color:var(--accent2)}
+    .tag-eu{font-size:.64rem;font-weight:800;letter-spacing:.4px;text-transform:uppercase;background:rgba(139,92,246,.2);color:#c4b0ff;border:1px solid rgba(139,92,246,.4);border-radius:99px;padding:2px 8px}
+    .meu-atalho{display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,rgba(102,153,217,.2),rgba(139,92,246,.22));border:1px solid rgba(139,92,246,.4);border-radius:var(--radius);padding:12px 14px;margin-bottom:16px;width:100%;color:var(--text);text-align:left}
+    .meu-atalho b{display:block;font-size:.98rem}
+    .meu-atalho small{color:var(--text2);font-size:.76rem}
+    .dica{background:rgba(102,153,217,.1);border:1px solid rgba(102,153,217,.25);color:var(--text2);border-radius:var(--radius2);padding:10px 13px;font-size:.82rem;line-height:1.45;margin-bottom:16px}
+    .rodape-link{display:block;margin:30px auto 0;background:none;color:var(--text3);font-size:.75rem;text-decoration:underline;padding:8px}
+
+    /* perfil / lista de músicas */
+    .perfil-topo{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+    .perfil-nome{font-size:1.3rem;font-weight:800;letter-spacing:-.4px}
+    .perfil-sub{font-size:.8rem;color:var(--text3);margin-top:2px}
+    .chips{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+    .chip{padding:7px 13px;border-radius:99px;background:var(--card2);border:1px solid var(--border);color:var(--text2);font-size:.78rem;font-weight:600}
+    .chip.on{background:linear-gradient(135deg,var(--accent),var(--violet));color:#fff;border-color:transparent}
+    .lista{background:linear-gradient(145deg,rgba(31,55,86,.88),rgba(22,42,67,.9));border:1px solid rgba(102,153,217,.22);border-radius:var(--radius);overflow:hidden}
+    .item{display:flex;align-items:center;gap:11px;padding:12px 14px;border-bottom:1px solid rgba(102,153,217,.18)}
+    .item:last-child{border-bottom:none}
+    .item-main{flex:1;min-width:0}
+    .item-titulo{font-weight:600;font-size:.94rem;overflow-wrap:anywhere;line-height:1.3}
+    .item-sub{font-size:.76rem;color:var(--text3);margin-top:3px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+    .tom-badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:6px;font-size:.72rem;font-weight:700;background:rgba(124,58,237,.18);color:var(--accent3);border:1px solid rgba(124,58,237,.3)}
+    .cat{font-size:.68rem;font-weight:700;border-radius:99px;padding:2px 8px;white-space:nowrap}
+    .cat.ja{background:rgba(76,175,130,.15);color:#7fd6a9;border:1px solid rgba(76,175,130,.35)}
+    .cat.quero{background:rgba(139,92,246,.18);color:#c4b0ff;border:1px solid rgba(139,92,246,.4)}
+    .cat.cinza{background:rgba(125,141,160,.15);color:var(--text2);border:1px solid rgba(125,141,160,.35)}
+    .cat.amarelo{background:rgba(212,168,76,.15);color:var(--yellow);border:1px solid rgba(212,168,76,.4)}
+    .cat.vermelho{background:rgba(224,82,82,.14);color:var(--red);border:1px solid rgba(224,82,82,.35)}
+    .item.clicavel{cursor:pointer}
+    .seg{display:flex;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius2);padding:3px;gap:3px}
+    .seg button{flex:1;padding:9px 6px;border-radius:7px;background:transparent;color:var(--text2);font-size:.84rem;font-weight:600}
+    .seg button.on{background:linear-gradient(135deg,var(--accent),var(--violet));color:#fff}
+
+    /* ensaios */
+    .ensaio-card{background:linear-gradient(145deg,rgba(31,55,86,.9),rgba(22,42,67,.92));border:1px solid rgba(102,153,217,.22);border-radius:var(--radius);padding:16px;margin-bottom:12px;display:block;width:100%;text-align:left;color:var(--text)}
+    .ensaio-card.proximo{border-color:var(--violet);box-shadow:0 0 24px rgba(124,58,237,.2);background:radial-gradient(circle at 90% 20%,rgba(139,92,246,.22),transparent 40%),linear-gradient(145deg,rgba(79,70,229,.14),rgba(15,23,42,.76))}
+    .rotulo{font-size:.7rem;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:#a78bfa;margin-bottom:6px}
+    .ensaio-titulo{font-size:1.1rem;font-weight:800;line-height:1.3;margin-bottom:6px}
+    .ensaio-data{font-size:.88rem;color:var(--text2);margin-bottom:8px}
+    .ensaio-desc{font-size:.82rem;color:var(--text3);margin-bottom:10px;line-height:1.45}
+    .secao{margin-top:22px}
+    .secao h3{font-size:.8rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:10px}
+    .marca{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid rgba(102,153,217,.18);cursor:pointer}
+    .marca:last-child{border-bottom:none}
+    .marca input{width:22px;height:22px;accent-color:var(--violet);flex-shrink:0}
+    .aviso{border-radius:var(--radius2);padding:11px 13px;font-size:.83rem;line-height:1.45;margin-bottom:14px}
+    .aviso.ok{background:rgba(76,175,130,.1);border:1px solid rgba(76,175,130,.3);color:#9be0be}
+    .aviso.alerta{background:rgba(212,168,76,.1);border:1px solid rgba(212,168,76,.3);color:var(--yellow)}
+
+    /* admin */
+    .abas{display:flex;gap:6px;margin-bottom:16px;overflow-x:auto}
+    .filtros{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+    select.form-input{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' fill='none' stroke='%237aaade' stroke-width='2'/></svg>");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+    .rodape-item{font-size:.74rem;color:var(--text3);margin-top:4px;display:flex;gap:10px;flex-wrap:wrap}
+
+    /* navegação de baixo */
+    .bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(13,26,42,.96);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);display:none;padding-bottom:var(--safe-bot)}
+    .bottom-nav.visible{display:flex}
+    .bottom-nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 0;background:transparent;color:var(--text3);font-size:.68rem;font-weight:600}
+    .bottom-nav .bn-icon{font-size:1.35rem;line-height:1}
+    .bottom-nav button.active{color:var(--accent2)}
+
+    /* modal */
+    .modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:none;align-items:flex-end;justify-content:center}
+    @media(min-width:600px){.modal-overlay{align-items:center;padding:16px}}
+    .modal-overlay.open{display:flex}
+    .modal{background:#172a40;border:1px solid rgba(102,153,217,.28);width:100%;max-width:520px;max-height:92dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;border-radius:18px 18px 0 0;padding:20px 20px calc(22px + var(--safe-bot));box-shadow:var(--shadow);animation:sobe .25s ease}
+    @media(min-width:600px){.modal{border-radius:18px}}
+    @keyframes sobe{from{transform:translateY(30px);opacity:0}to{transform:none;opacity:1}}
+    .modal h2{font-size:1.15rem;font-weight:800;margin-bottom:4px}
+    .modal .sub{font-size:.8rem;color:var(--text3);margin-bottom:6px;line-height:1.45}
+    .modal-acoes{display:flex;gap:10px;margin-top:20px}
+    .modal-acoes .btn{flex:1}
+    .letra-texto{white-space:pre-wrap;line-height:1.6;font-size:1rem;margin-top:14px;max-height:60dvh;overflow-y:auto}
+    .toast-container{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(86px + var(--safe-bot));z-index:999;display:flex;flex-direction:column;gap:8px;pointer-events:none;width:calc(100vw - 28px);max-width:420px}
+    .toast{background:#1d3550;border:1px solid var(--border);border-radius:11px;padding:11px 14px;font-size:.85rem;box-shadow:var(--shadow);animation:sobe .25s ease}
+    .toast.erro{border-color:rgba(224,82,82,.5);color:#ffb3b3}
+    .toast.ok{border-color:rgba(76,175,130,.5)}
+  </style>
+</head>
+<body>
+
+<header>
+  <button class="back-btn" id="backBtn" onclick="voltar()" style="display:none" title="Voltar" aria-label="Voltar">←</button>
+  <div class="logo">
+    <div class="logo-icon"><img src="img/icon-192.png" alt=""></div>
+    <div class="logo-text">Portal dos <span>Cantores</span></div>
+  </div>
+  <div class="header-right"><div class="conn-badge" title="Conexão"><div class="conn-dot" id="connDot"></div></div></div>
+</header>
+
+<main id="view"></main>
+
+<nav class="bottom-nav" id="bottomNav" role="navigation" aria-label="Navegação">
+  <button id="bnCantores" onclick="ir('#cantores')"><span class="bn-icon">🎤</span><span>Cantores</span></button>
+  <button id="bnEnsaios" onclick="ir('#ensaios')"><span class="bn-icon">📅</span><span>Ensaios</span></button>
+</nav>
+
+<div class="modal-overlay" id="modal"><div class="modal" id="modalBody"></div></div>
+<div class="toast-container" id="toasts"></div>
+
+<script>
+/* =====================================================================
+   Portal dos Cantores — usa o mesmo Supabase do Nexos, só tabelas "portal_*"
+   ===================================================================== */
+const SB_URL='https://noyywxqgebkuwscfwagp.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5veXl3eHFnZWJrdXdzY2Z3YWdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3MjY4MzYsImV4cCI6MjA5MDMwMjgzNn0.zhw4ZxAx8K5B_6wgs0H3Jl8obOun5A1cgWm1504cib0';
+const sb=supabase.createClient(SB_URL,SB_KEY);
+const TONS=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B','Cm','Dm','Em','Fm','Gm','Am','Bm'];
+const DIAS_LIMITE=3;                       // a escolha das músicas fecha 3 dias antes do ensaio
+const LS_EU='portal_eu';
+const ICON_EDIT='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m4 16.8-.8 4 4-.8L18.7 8.5l-3.2-3.2L4 16.8Zm16.7-11.1a1 1 0 0 0 0-1.4l-1-1a1 1 0 0 0-1.4 0l-1.5 1.5L20 8l.7-.7Z"/></svg>';
+const ICON_DEL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7h14M9 7V4.5h6V7M7.5 7l.7 12h7.6l.7-12M10.5 10.5v5M13.5 10.5v5"/></svg>';
+const ICON_BUSCA='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>';
+
+const $=id=>document.getElementById(id);
+const esc=s=>s==null?'':String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function lsGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
+function lsSet(k,v){try{if(v==null)localStorage.removeItem(k);else localStorage.setItem(k,v);}catch(e){}}
+function ssGet(k){try{return sessionStorage.getItem(k);}catch(e){return null;}}
+function ssSet(k,v){try{if(v==null)sessionStorage.removeItem(k);else sessionStorage.setItem(k,v);}catch(e){}}
+
+let eu=Number(lsGet(LS_EU))||null;          // quem é "eu" neste aparelho (sem login)
+let cantores=[],contagem={},ensaios=[];
+let adminSenha=ssGet('portal_admin')||null;
+let renderId=0;
+let jaPerguntouEu=false;
+
+/* ---------- utilidades ---------- */
+function toast(msg,tipo){
+  const el=document.createElement('div');el.className='toast '+(tipo||'');el.textContent=msg;
+  $('toasts').appendChild(el);setTimeout(()=>el.remove(),3600);
+}
+function normaliza(s){return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim();}
+function iniciais(nome){const p=String(nome||'?').trim().split(/\s+/);return ((p[0]||'?')[0]+(p.length>1?p[p.length-1][0]:'')).toUpperCase();}
+function corAvatar(nome){
+  const pal=[['#4f7fd1','#8b5cf6'],['#3b9cf5','#6366f1'],['#8b5cf6','#c026d3'],['#2f6fb5','#14b8a6'],['#5b6ee1','#a855f7'],['#3b82c4','#7c3aed']];
+  let h=0;for(const c of String(nome))h=(h*31+c.charCodeAt(0))>>>0;
+  const [a,b]=pal[h%pal.length];return `linear-gradient(135deg,${a},${b})`;
+}
+function avatar(c,grande){
+  const foto=c.foto_url&&/^https?:\/\//i.test(c.foto_url)?`<img src="${esc(c.foto_url)}" alt="" onerror="this.remove()">`:'';
+  return `<div class="avatar${grande?' grande':''}" style="background:${corAvatar(c.nome)}">${foto||esc(iniciais(c.nome))}</div>`;
+}
+const fmtData=iso=>new Date(iso).toLocaleString('pt-BR',{weekday:'long',day:'2-digit',month:'long',hour:'2-digit',minute:'2-digit'});
+const fmtCurta=iso=>new Date(iso).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+function paraInput(iso){const d=new Date(iso),p=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;}
+function carregando(){return '<div class="spinner"></div>';}
+function erroTela(msg){return `<div class="vazio">${esc(msg||'Não foi possível carregar. Verifique a conexão.')}<br><br><button class="btn btn-ghost" onclick="render()">Tentar de novo</button></div>`;}
+function tratarErro(e,padrao){
+  const c=e&&e.code;
+  if(c==='23505')return 'Essa música já existe (mesmo título e artista).';
+  if(c==='42501')return 'A escolha de músicas para este ensaio já foi encerrada.';
+  if(c==='28000'||(e&&e.message==='senha_invalida')){sairAdmin(true);return 'Senha da administração incorreta.';}
+  return padrao||'Não foi possível salvar. Tente de novo.';
+}
+
+/* ---------- modal ---------- */
+function abrirModal(html){$('modalBody').innerHTML=html;$('modal').classList.add('open');}
+function fecharModal(){$('modal').classList.remove('open');}
+$('modal').addEventListener('click',e=>{if(e.target.id==='modal')fecharModal();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')fecharModal();});
+function confirmar(titulo,texto,rotulo,fn){
+  window._confirmFn=fn;
+  abrirModal(`<h2>${esc(titulo)}</h2><p class="sub">${esc(texto)}</p>
+    <div class="modal-acoes"><button class="btn btn-ghost" onclick="fecharModal()">Cancelar</button>
+    <button class="btn btn-danger" onclick="fecharModal();window._confirmFn()">${esc(rotulo||'Remover')}</button></div>`);
+}
+
+/* ---------- dados ---------- */
+async function carregarCantores(){
+  const {data,error}=await sb.from('portal_cantor').select('*').eq('ativo',true).order('nome');
+  if(error)throw error;
+  cantores=data||[];
+  const contagens=await Promise.all(cantores.map(c=>
+    sb.from('portal_musica').select('id',{count:'exact',head:true}).eq('cantor_id',c.id).then(r=>[c.id,r.count||0])));
+  contagem=Object.fromEntries(contagens);
+  if(eu&&!cantores.some(c=>c.id===eu)){eu=null;lsSet(LS_EU,null);}
+}
+async function carregarEnsaios(){
+  const {data,error}=await sb.from('portal_ensaio').select('*').order('data_hora');
+  if(error)throw error;
+  ensaios=data||[];
+}
+function situacao(e){
+  const t=new Date(e.data_hora).getTime(),agora=Date.now();
+  if(e.status==='cancelado')return {txt:'Cancelado',cls:'vermelho',aberta:false};
+  if(e.status==='realizado'||t<agora)return {txt:'Realizado',cls:'cinza',aberta:false};
+  const limite=t-DIAS_LIMITE*864e5;
+  if(agora<limite)return {txt:'Escolha de música aberta',cls:'ja',aberta:true,limite};
+  return {txt:'Escolha encerrada',cls:'amarelo',aberta:false,limite};
+}
+function proximoEnsaio(){
+  const agora=Date.now();
+  return ensaios.filter(e=>e.status==='agendado'&&new Date(e.data_hora).getTime()>=agora)[0]||null;
+}
+
+/* ---------- navegação ---------- */
+function rota(){const h=(location.hash||'#cantores').slice(1);const i=h.indexOf('-');return i<0?{nome:h,arg:null}:{nome:h.slice(0,i),arg:Number(h.slice(i+1))||null};}
+function ir(h){if(location.hash!==h)location.hash=h;else render();}
+let navegou=0;
+function voltar(){if(navegou>0)history.back();else ir(rota().nome==='ensaio'?'#ensaios':'#cantores');}
+window.addEventListener('hashchange',()=>{navegou++;render();});
+
+async function render(){
+  fecharModal();
+  const {nome,arg}=rota();
+  const meuId=++renderId;
+  const principal=nome==='cantores'||nome==='ensaios';
+  $('backBtn').style.display=principal?'none':'flex';
+  $('bottomNav').classList.toggle('visible',nome!=='admin');
+  $('bnCantores').classList.toggle('active',nome==='cantores'||nome==='cantor');
+  $('bnEnsaios').classList.toggle('active',nome==='ensaios'||nome==='ensaio');
+  window.scrollTo(0,0);
+  $('view').innerHTML=carregando();
+  try{
+    if(nome==='cantores')await viewCantores(meuId);
+    else if(nome==='cantor')await viewCantor(arg,meuId);
+    else if(nome==='ensaios')await viewEnsaios(meuId);
+    else if(nome==='ensaio')await viewEnsaio(arg,meuId);
+    else if(nome==='admin')await viewAdmin(meuId);
+    else ir('#cantores');
+    $('connDot').classList.remove('offline');
+  }catch(e){
+    if(meuId!==renderId)return;
+    $('connDot').classList.add('offline');
+    $('view').innerHTML=erroTela();
+  }
+}
+const atual=id=>id===renderId;
+
+/* =====================================================================
+   1. CANTORES
+   ===================================================================== */
+async function viewCantores(id){
+  await carregarCantores();
+  if(!atual(id))return;
+  const meu=cantores.find(c=>c.id===eu);
+  $('view').innerHTML=`
+    <div class="view-title">Cantores</div>
+    <div class="view-sub">Toque no seu nome para cadastrar as músicas que você canta e escolher o que quer ensaiar.</div>
+    ${meu?`<button class="meu-atalho" onclick="ir('#cantor-${meu.id}')">${avatar(meu,true)}<span><b>${esc(meu.nome)}</b><small>Minha área · ${contagem[meu.id]||0} ${(contagem[meu.id]||0)===1?'música':'músicas'}</small></span></button>`
+      :(cantores.length?'<div class="dica">👋 Primeira vez aqui? Toque no seu nome abaixo. Este aparelho vai lembrar de você.</div>':'')}
+    ${cantores.length?`<div class="grade">${cantores.map(c=>`
+      <button class="cantor-card${c.id===eu?' eu':''}" onclick="abrirCantor(${c.id})">
+        ${avatar(c)}
+        <div class="cantor-nome" title="${esc(c.nome)}">${esc(c.nome)}</div>
+        ${c.id===eu?'<span class="tag-eu">Você</span>':''}
+        <div class="cantor-qtd">${contagem[c.id]||0} ${(contagem[c.id]||0)===1?'música':'músicas'}</div>
+        <div class="cantor-abrir">Abrir ›</div>
+      </button>`).join('')}</div>`
+      :'<div class="vazio">Nenhum cantor cadastrado ainda.<br>A administração precisa cadastrar os cantores primeiro.</div>'}
+    <button class="rodape-link" onclick="ir('#admin')">Administração</button>`;
+}
+function abrirCantor(cid){ir('#cantor-'+cid);}
+
+/* =====================================================================
+   2. PERFIL DO CANTOR + BIBLIOTECA
+   ===================================================================== */
+let bib={cantor:null,musicas:[],filtro:'todas',busca:''};
+async function viewCantor(cid,id){
+  if(!cid){ir('#cantores');return;}
+  const [rc,rm]=await Promise.all([
+    sb.from('portal_cantor').select('*').eq('id',cid).maybeSingle(),
+    sb.from('portal_musica').select('*').eq('cantor_id',cid).order('titulo')
+  ]);
+  if(rc.error)throw rc.error;if(rm.error)throw rm.error;
+  if(!atual(id))return;
+  if(!rc.data){$('view').innerHTML='<div class="vazio">Cantor não encontrado.</div>';return;}
+  bib={cantor:rc.data,musicas:rm.data||[],filtro:'todas',busca:''};
+  const meu=bib.cantor.id===eu;
+  $('view').innerHTML=`
+    <div class="perfil-topo">${avatar(bib.cantor,true)}
+      <div><div class="perfil-nome">${esc(bib.cantor.nome)}${meu?' <span class="tag-eu">Você</span>':''}</div>
+      <div class="perfil-sub" id="bibContagem"></div></div></div>
+    ${meu?'':'<div class="aviso alerta">Você está vendo a biblioteca de outro cantor. Só ele pode alterar as próprias músicas.</div>'}
+    <div class="linha-acoes">
+      <div class="busca">${ICON_BUSCA}<input class="form-input" id="bibBusca" type="search" placeholder="Buscar música ou artista..." autocomplete="off" oninput="bib.busca=this.value;renderBib()"></div>
+      ${meu?'<button class="btn btn-primary btn-add" onclick="abrirFormMusica()" aria-label="Adicionar música" title="Adicionar música">+</button>':''}
+    </div>
+    <div class="chips" id="bibChips"></div>
+    <div class="lista" id="bibLista"></div>`;
+  renderBib();
+  if(!eu&&!jaPerguntouEu){jaPerguntouEu=true;perguntarEu(bib.cantor);}
+}
+function perguntarEu(c){
+  abrirModal(`<h2>Esse é você?</h2><p class="sub">Se você é <b>${esc(c.nome)}</b>, este aparelho vai lembrar e abrir direto a sua área nas próximas vezes. Você não precisa de senha.</p>
+    <div class="modal-acoes"><button class="btn btn-ghost" onclick="fecharModal()">Só quero ver</button>
+    <button class="btn btn-primary" onclick="definirEu(${c.id})">Sim, sou eu</button></div>`);
+}
+function definirEu(cid){eu=cid;lsSet(LS_EU,String(cid));fecharModal();toast('Pronto! Este aparelho lembrou de você.','ok');if(rota().nome==='cantor')render();}
+function trocarEu(){eu=null;lsSet(LS_EU,null);jaPerguntouEu=false;render();}
+
+function renderBib(){
+  const meu=bib.cantor.id===eu;
+  const q=normaliza(bib.busca);
+  const lista=bib.musicas.filter(m=>(bib.filtro==='todas'||m.categoria===bib.filtro)&&(!q||normaliza(m.titulo).includes(q)||normaliza(m.artista).includes(q)));
+  const ja=bib.musicas.filter(m=>m.categoria==='ja_canto').length,quero=bib.musicas.length-ja;
+  $('bibContagem').textContent=`${bib.musicas.length} ${bib.musicas.length===1?'música cadastrada':'músicas cadastradas'}`;
+  $('bibChips').innerHTML=[['todas','Todas ('+bib.musicas.length+')'],['ja_canto','Já canto ('+ja+')'],['quero_ensaiar','Quero ensaiar ('+quero+')']]
+    .map(([k,t])=>`<button class="chip${bib.filtro===k?' on':''}" onclick="bib.filtro='${k}';renderBib()">${t}</button>`).join('');
+  $('bibLista').innerHTML=lista.length?lista.map(m=>`
+    <div class="item${m.letra?' clicavel':''}" ${m.letra?`onclick="verLetra(${m.id})"`:''}>
+      <div class="item-main">
+        <div class="item-titulo">${esc(m.titulo)}</div>
+        <div class="item-sub">${m.artista?`<span>${esc(m.artista)}</span>`:''}${m.tom?`<span class="tom-badge">${esc(m.tom)}</span>`:''}
+          <span class="cat ${m.categoria==='ja_canto'?'ja':'quero'}">${m.categoria==='ja_canto'?'Já canto':'Quero ensaiar'}</span>${m.letra?'<span>📄 letra</span>':''}</div>
+      </div>
+      ${meu?`<button class="icon-btn" title="Editar" aria-label="Editar" onclick="event.stopPropagation();abrirFormMusica(${m.id})">${ICON_EDIT}</button>
+      <button class="icon-btn perigo" title="Remover" aria-label="Remover" onclick="event.stopPropagation();removerMusica(${m.id})">${ICON_DEL}</button>`:''}
+    </div>`).join('')
+    :`<div class="vazio">${bib.musicas.length?'Nenhuma música encontrada.':(meu?'Você ainda não cadastrou músicas.<br>Toque no + para adicionar a primeira.':'Este cantor ainda não cadastrou músicas.')}</div>`;
+}
+function verLetra(mid){
+  const m=bib.musicas.find(x=>x.id===mid);if(!m)return;
+  abrirModal(`<h2>${esc(m.titulo)}</h2><p class="sub">${esc([m.artista,m.tom?'Tom '+m.tom:''].filter(Boolean).join(' · '))}</p>
+    <div class="letra-texto">${esc(m.letra)}</div>
+    <div class="modal-acoes"><button class="btn btn-ghost" onclick="fecharModal()">Fechar</button></div>`);
+}
+
+/* ---------- cadastro / edição de música ---------- */
+function abrirFormMusica(mid){
+  const m=mid?bib.musicas.find(x=>x.id===mid):null;
+  window._musicaEditando=mid||null;
+  abrirModal(`<h2>${m?'Editar música':'Adicionar música'}</h2><p class="sub">Ela entra na sua biblioteca pessoal.</p>
+    <label class="campo">Título *</label>
+    <input class="form-input" id="fmTitulo" maxlength="200" placeholder="Nome da música" value="${esc(m?m.titulo:'')}" autocomplete="off">
+    <label class="campo">Artista <small>(opcional)</small></label>
+    <input class="form-input" id="fmArtista" maxlength="200" placeholder="Quem canta / compôs" value="${esc(m?m.artista:'')}" autocomplete="off">
+    <label class="campo">Tom <small>(opcional)</small></label>
+    <select class="form-input" id="fmTom"><option value="">Sem tom</option>${TONS.map(t=>`<option${m&&m.tom===t?' selected':''}>${t}</option>`).join('')}</select>
+    <label class="campo">Categoria</label>
+    <div class="seg" id="fmCat"><button type="button" data-v="ja_canto" class="${!m||m.categoria==='ja_canto'?'on':''}" onclick="escolherCat('ja_canto')">Já canto</button>
+      <button type="button" data-v="quero_ensaiar" class="${m&&m.categoria==='quero_ensaiar'?'on':''}" onclick="escolherCat('quero_ensaiar')">Quero ensaiar</button></div>
+    <label class="campo">Letra <small>(opcional)</small></label>
+    <textarea class="form-input" id="fmLetra" maxlength="30000" placeholder="Cole a letra aqui, se quiser">${esc(m?m.letra:'')}</textarea>
+    <div class="modal-acoes"><button class="btn btn-ghost" onclick="fecharModal()">Cancelar</button>
+    <button class="btn btn-primary" id="fmSalvar" onclick="salvarMusica()">Salvar</button></div>`);
+  setTimeout(()=>{if(!m)$('fmTitulo').focus();},150);
+}
+function escolherCat(v){document.querySelectorAll('#fmCat button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));}
+async function salvarMusica(){
+  const titulo=$('fmTitulo').value.trim();
+  if(!titulo){toast('O título é obrigatório.','erro');$('fmTitulo').focus();return;}
+  const corpo={titulo,artista:$('fmArtista').value.trim()||null,tom:$('fmTom').value||null,letra:$('fmLetra').value.trim()||null,
+    categoria:document.querySelector('#fmCat button.on').dataset.v};
+  const dup=bib.musicas.find(m=>m.id!==window._musicaEditando&&normaliza(m.titulo)===normaliza(titulo)&&normaliza(m.artista)===normaliza(corpo.artista));
+  if(dup){toast('Você já tem essa música na sua biblioteca.','erro');return;}
+  const btn=$('fmSalvar');btn.disabled=true;btn.textContent='Salvando…';
+  const r=window._musicaEditando
+    ?await sb.from('portal_musica').update(corpo).eq('id',window._musicaEditando).eq('cantor_id',eu).select().single()
+    :await sb.from('portal_musica').insert({...corpo,cantor_id:eu}).select().single();
+  if(r.error){btn.disabled=false;btn.textContent='Salvar';toast(tratarErro(r.error),'erro');return;}
+  if(window._musicaEditando)bib.musicas=bib.musicas.map(m=>m.id===r.data.id?r.data:m);else bib.musicas.push(r.data);
+  bib.musicas.sort((a,b)=>a.titulo.localeCompare(b.titulo,'pt-BR',{sensitivity:'base'}));
+  fecharModal();renderBib();toast(window._musicaEditando?'Música atualizada!':'Música adicionada!','ok');
+}
+function removerMusica(mid){
+  const m=bib.musicas.find(x=>x.id===mid);if(!m)return;
+  confirmar('Remover música?',`"${m.titulo}" sai da sua biblioteca. As escolhas já enviadas para ensaios continuam registradas.`,'Remover',async()=>{
+    const {error}=await sb.from('portal_musica').delete().eq('id',mid).eq('cantor_id',eu);
+    if(error){toast(tratarErro(error,'Não foi possível remover.'),'erro');return;}
+    bib.musicas=bib.musicas.filter(x=>x.id!==mid);renderBib();toast('Música removida.');
+  });
+}
+
+/* =====================================================================
+   3. ENSAIOS
+   ===================================================================== */
+async function viewEnsaios(id){
+  await carregarEnsaios();
+  if(!atual(id))return;
+  const prox=proximoEnsaio();
+  const outros=ensaios.filter(e=>!prox||e.id!==prox.id).sort((a,b)=>new Date(b.data_hora)-new Date(a.data_hora));
+  const card=(e,destaque)=>{
+    const s=situacao(e);
+    return `<button class="ensaio-card${destaque?' proximo':''}" onclick="ir('#ensaio-${e.id}')">
+      ${destaque?'<div class="rotulo">Próximo ensaio</div>':''}
+      <div class="ensaio-titulo">${esc(e.titulo)}</div>
+      <div class="ensaio-data">📅 ${esc(fmtData(e.data_hora))}</div>
+      ${e.descricao?`<div class="ensaio-desc">${esc(e.descricao)}</div>`:''}
+      <span class="cat ${s.cls}">${s.txt}</span>
+      ${s.aberta?`<div class="ensaio-desc" style="margin:8px 0 0">Você pode escolher até ${esc(fmtCurta(new Date(s.limite).toISOString()))}</div>`:''}
+    </button>`;
+  };
+  $('view').innerHTML=`
+    <div class="view-title">Ensaios</div>
+    <div class="view-sub">Escolha a música que você quer ensaiar (1 por ensaio). A escolha fecha ${DIAS_LIMITE} dias antes de cada ensaio.</div>
+    ${prox?card(prox,true):'<div class="vazio">Nenhum ensaio marcado por enquanto.<br>Quando a administração marcar um, ele aparece aqui sozinho.</div>'}
+    ${outros.length?`<div class="secao"><h3>Outros ensaios</h3>${outros.map(e=>card(e,false)).join('')}</div>`:''}`;
+}
+
+/* ---------- um ensaio: escolher músicas ---------- */
+let ens={ensaio:null,minhas:[],enviadas:[],pendentes:[],aba:'lista',busca:''};
+async function viewEnsaio(eid,id){
+  if(!eid){ir('#ensaios');return;}
+  const {data:e,error}=await sb.from('portal_ensaio').select('*').eq('id',eid).maybeSingle();
+  if(error)throw error;
+  if(!atual(id))return;
+  if(!e){$('view').innerHTML='<div class="vazio">Ensaio não encontrado.</div>';return;}
+  await carregarCantores();
+  if(!atual(id))return;
+  if(!eu){
+    $('view').innerHTML=`<div class="view-title">${esc(e.titulo)}</div>
+      <div class="view-sub">Antes de escolher, diga quem é você. Este aparelho vai lembrar.</div>
+      ${cantores.length?`<div class="lista">${cantores.map(c=>`<div class="item clicavel" onclick="escolherEuEEnsaio(${c.id},${e.id})">${avatar(c)}<div class="item-main"><div class="item-titulo">${esc(c.nome)}</div></div></div>`).join('')}</div>`:'<div class="vazio">Nenhum cantor cadastrado ainda.</div>'}`;
+    return;
+  }
+  const [rm,rs]=await Promise.all([
+    sb.from('portal_musica').select('*').eq('cantor_id',eu).order('titulo'),
+    sb.from('portal_selecao').select('*').eq('ensaio_id',eid).eq('cantor_id',eu).order('enviado_em')
+  ]);
+  if(rm.error)throw rm.error;if(rs.error)throw rs.error;
+  if(!atual(id))return;
+  ens={ensaio:e,minhas:rm.data||[],enviadas:rs.data||[],pendentes:[],aba:'lista',busca:''};
+  renderEnsaio();
+}
+function escolherEuEEnsaio(cid,eid){eu=cid;lsSet(LS_EU,String(cid));render();}
+
+function chaveMusica(titulo,artista){return normaliza(titulo)+'|'+normaliza(artista);}
+function jaEscolhida(m){
+  const k=chaveMusica(m.titulo,m.artista);
+  return ens.enviadas.some(s=>chaveMusica(s.titulo,s.artista)===k);
+}
+function renderEnsaio(){
+  const e=ens.ensaio,s=situacao(e),eu_=cantores.find(c=>c.id===eu);
+  const jaTem=ens.enviadas.length>0;              // cada cantor escolhe UMA música por ensaio
+  const disponiveis=ens.minhas;
+  const q=normaliza(ens.busca);
+  const filtradas=disponiveis.filter(m=>!q||normaliza(m.titulo).includes(q)||normaliza(m.artista).includes(q));
+  const pend=ens.pendentes[0]||null;
+  $('view').innerHTML=`
+    <div class="ensaio-card proximo" style="cursor:default">
+      <div class="ensaio-titulo">${esc(e.titulo)}</div>
+      <div class="ensaio-data">📅 ${esc(fmtData(e.data_hora))}</div>
+      ${e.descricao?`<div class="ensaio-desc">${esc(e.descricao)}</div>`:''}
+      <span class="cat ${s.cls}">${s.txt}</span>
+    </div>
+    ${s.aberta
+      ?`<div class="aviso ok">Cada cantor escolhe <b>1 música</b> por ensaio. Você pode escolher e trocar a sua até <b>${esc(fmtCurta(new Date(s.limite).toISOString()))}</b> (${DIAS_LIMITE} dias antes do ensaio), para dar tempo de se preparar.</div>`
+      :`<div class="aviso alerta">${e.status==='cancelado'?'Este ensaio foi cancelado.':(s.txt==='Realizado'?'Este ensaio já aconteceu.':`A escolha de música para este ensaio foi encerrada (${DIAS_LIMITE} dias antes). Abaixo está a música que você enviou.`)}</div>`}
+    <div class="perfil-sub" style="margin-bottom:8px">Escolhendo como <b>${esc(eu_?eu_.nome:'')}</b> · <a href="javascript:void 0" style="color:var(--accent2)" onclick="trocarEuEnsaio()">não sou eu</a></div>
+
+    <div class="secao"><h3>Minha música neste ensaio</h3>
+      <div class="lista">${jaTem?ens.enviadas.map(x=>`
+        <div class="item"><div class="item-main"><div class="item-titulo">${esc(x.titulo)}</div>
+          <div class="item-sub">${x.artista?`<span>${esc(x.artista)}</span>`:''}${x.tom?`<span class="tom-badge">${esc(x.tom)}</span>`:''}<span>enviada ${esc(fmtCurta(x.enviado_em))}</span></div></div>
+          ${s.aberta?`<button class="btn btn-ghost btn-sm" onclick="removerEnviada(${x.id})">Trocar</button>`:''}</div>`).join('')
+        :'<div class="vazio">Você ainda não escolheu a música deste ensaio.</div>'}</div></div>
+
+    ${s.aberta&&!jaTem?`
+    <div class="secao"><h3>Escolha a música que deseja ensaiar</h3>
+      <div class="seg" style="margin-bottom:14px">
+        <button class="${ens.aba==='lista'?'on':''}" onclick="ens.aba='lista';renderEnsaio()">Da minha lista</button>
+        <button class="${ens.aba==='nova'?'on':''}" onclick="ens.aba='nova';renderEnsaio()">Nova música</button></div>
+      ${ens.aba==='lista'?`
+        ${disponiveis.length?`<div class="busca" style="margin-bottom:12px">${ICON_BUSCA}<input class="form-input" id="ensBusca" type="search" placeholder="Buscar na minha lista..." autocomplete="off" value="${esc(ens.busca)}" oninput="ens.busca=this.value;renderEnsaioLista()"></div>`:''}
+        <div class="lista" id="ensLista">${listaMarcavel(filtradas,disponiveis.length)}</div>`
+      :`<div class="lista" style="padding:4px 16px 18px">
+          <label class="campo">Título *</label><input class="form-input" id="nvTitulo" maxlength="200" placeholder="Nome da música" autocomplete="off">
+          <label class="campo">Artista <small>(opcional)</small></label><input class="form-input" id="nvArtista" maxlength="200" placeholder="Quem canta / compôs" autocomplete="off">
+          <label class="campo">Tom <small>(opcional)</small></label>
+          <select class="form-input" id="nvTom"><option value="">Sem tom</option>${TONS.map(t=>`<option>${t}</option>`).join('')}</select>
+          <p class="perfil-sub" style="margin-top:10px">Ela também é salva na sua biblioteca, como "Quero ensaiar".</p>
+          <button class="btn btn-ghost btn-block" style="margin-top:14px" onclick="adicionarNova()">Usar esta música</button></div>`}
+    </div>
+
+    <div class="secao"><h3>Para confirmar</h3>
+      <div class="lista">${pend?`
+        <div class="item"><div class="item-main"><div class="item-titulo">${esc(pend.titulo)}</div>
+          <div class="item-sub">${pend.artista?`<span>${esc(pend.artista)}</span>`:''}${pend.tom?`<span class="tom-badge">${esc(pend.tom)}</span>`:''}${pend.nova?'<span class="cat quero">nova</span>':''}</div></div>
+          <button class="icon-btn perigo" aria-label="Tirar" title="Tirar" onclick="tirarPendente()">${ICON_DEL}</button></div>`
+        :'<div class="vazio">Escolha uma música acima para ela aparecer aqui.</div>'}</div>
+      <button class="btn btn-primary btn-block" style="margin-top:14px" id="ensConfirmar" ${pend?'':'disabled'} onclick="confirmarEnvio()">✓ Confirmar envio</button></div>`:''}`;
+}
+function listaMarcavel(filtradas,totalDisp){
+  if(!totalDisp)return '<div class="vazio">Você ainda não tem músicas na sua biblioteca.<br>Use a aba "Nova música".</div>';
+  if(!filtradas.length)return '<div class="vazio">Nenhuma música encontrada.</div>';
+  return filtradas.map(m=>`<label class="marca"><input type="radio" name="ensMusica" ${ens.pendentes.some(p=>p.musica_id===m.id)?'checked':''} onchange="marcarMusica(${m.id})">
+    <div class="item-main"><div class="item-titulo">${esc(m.titulo)}</div><div class="item-sub">${m.artista?`<span>${esc(m.artista)}</span>`:''}${m.tom?`<span class="tom-badge">${esc(m.tom)}</span>`:''}</div></div></label>`).join('');
+}
+function renderEnsaioLista(){
+  const q=normaliza(ens.busca);
+  $('ensLista').innerHTML=listaMarcavel(ens.minhas.filter(m=>!q||normaliza(m.titulo).includes(q)||normaliza(m.artista).includes(q)),ens.minhas.length);
+}
+// só pode haver UMA música para confirmar: escolher outra troca a anterior
+function marcarMusica(mid){
+  const m=ens.minhas.find(x=>x.id===mid);if(!m)return;
+  ens.pendentes=[{musica_id:m.id,titulo:m.titulo,artista:m.artista,tom:m.tom}];
+  const y=window.scrollY;renderEnsaio();window.scrollTo(0,y);
+}
+function tirarPendente(){ens.pendentes=[];const y=window.scrollY;renderEnsaio();window.scrollTo(0,y);}
+async function adicionarNova(){
+  const titulo=$('nvTitulo').value.trim();
+  if(!titulo){toast('O título é obrigatório.','erro');$('nvTitulo').focus();return;}
+  const artista=$('nvArtista').value.trim()||null,tom=$('nvTom').value||null;
+  const k=chaveMusica(titulo,artista);
+  let m=ens.minhas.find(x=>chaveMusica(x.titulo,x.artista)===k);
+  let nova=false;
+  if(!m){
+    const r=await sb.from('portal_musica').insert({cantor_id:eu,titulo,artista,tom,categoria:'quero_ensaiar'}).select().single();
+    if(r.error){toast(tratarErro(r.error),'erro');return;}
+    m=r.data;nova=true;ens.minhas.push(m);
+  }
+  ens.pendentes=[{musica_id:m.id,titulo:m.titulo,artista:m.artista,tom:m.tom,nova}];
+  ens.aba='lista';renderEnsaio();toast(nova?'Música criada. Confirme o envio abaixo.':'Essa música já estava na sua biblioteca. Confirme o envio abaixo.','ok');
+}
+async function confirmarEnvio(){
+  const p=ens.pendentes[0];
+  if(!p||ens.enviadas.length)return;
+  const btn=$('ensConfirmar');btn.disabled=true;btn.textContent='Enviando…';
+  const r=await sb.from('portal_selecao').insert({ensaio_id:ens.ensaio.id,cantor_id:eu,musica_id:p.musica_id,titulo:p.titulo,artista:p.artista,tom:p.tom}).select().single();
+  ens.pendentes=[];
+  const {data}=await sb.from('portal_selecao').select('*').eq('ensaio_id',ens.ensaio.id).eq('cantor_id',eu).order('enviado_em');
+  if(data)ens.enviadas=data;
+  renderEnsaio();
+  if(!r.error)toast('Música enviada para o ensaio!','ok');
+  else if(r.error.code==='42501')toast('A escolha para este ensaio acabou de ser encerrada.','erro');
+  else if(r.error.code==='23505')toast('Você já tem uma música neste ensaio. Para trocar, toque em "Trocar".','erro');
+  else toast(tratarErro(r.error),'erro');
+}
+function removerEnviada(sid){
+  const x=ens.enviadas.find(s=>s.id===sid);if(!x)return;
+  confirmar('Trocar a música?',`"${x.titulo}" sai deste ensaio e você poderá escolher outra.`,'Trocar',async()=>{
+    const {error}=await sb.from('portal_selecao').delete().eq('id',sid).eq('cantor_id',eu);
+    if(error){toast(tratarErro(error,'Não foi possível remover.'),'erro');return;}
+    ens.enviadas=ens.enviadas.filter(s=>s.id!==sid);renderEnsaio();toast('Música removida. Escolha outra.');
+  });
+}
+function trocarEuEnsaio(){eu=null;lsSet(LS_EU,null);render();}
+
+/* =====================================================================
+   4. ADMINISTRAÇÃO (senha conferida no servidor)
+   ===================================================================== */
+let adm={aba:'selecoes',selecoes:[],cantores:[],ensaios:[],filtroCantor:'',filtroEnsaio:'',canal:null,poll:null};
+function sairAdmin(silencioso){
+  adminSenha=null;ssSet('portal_admin',null);pararAdmin();
+  if(!silencioso)toast('Você saiu da administração.');
+  if(rota().nome==='admin')render();
+}
+function pararAdmin(){
+  if(adm.canal){sb.removeChannel(adm.canal);adm.canal=null;}
+  if(adm.poll){clearInterval(adm.poll);adm.poll=null;}
+}
+async function viewAdmin(id){
+  pararAdmin();
+  $('backBtn').style.display='flex';
+  if(!adminSenha){
+    $('view').innerHTML=`<div class="view-title">Administração</div>
+      <div class="view-sub">Área restrita. Digite a senha da administração.</div>
+      <input class="form-input" id="admSenha" type="password" placeholder="Senha" autocomplete="off" onkeydown="if(event.key==='Enter')entrarAdmin()">
+      <button class="btn btn-primary btn-block" style="margin-top:14px" id="admEntrar" onclick="entrarAdmin()">Entrar</button>`;
+    setTimeout(()=>{const i=$('admSenha');if(i)i.focus();},120);
+    return;
+  }
+  await carregarAdmin();
+  if(!atual(id))return;
+  renderAdmin();
+  adm.canal=sb.channel('portal-admin')
+    .on('postgres_changes',{event:'*',schema:'public',table:'portal_selecao'},()=>recarregarAdmin())
+    .on('postgres_changes',{event:'*',schema:'public',table:'portal_ensaio'},()=>recarregarAdmin())
+    .on('postgres_changes',{event:'*',schema:'public',table:'portal_cantor'},()=>recarregarAdmin())
+    .subscribe();
+  adm.poll=setInterval(()=>{if(!document.hidden)recarregarAdmin();},20000);
+}
+async function entrarAdmin(){
+  const senha=$('admSenha').value;if(!senha)return;
+  const btn=$('admEntrar');btn.disabled=true;btn.textContent='Verificando…';
+  const {data,error}=await sb.rpc('portal_admin_verificar',{p_senha:senha});
+  btn.disabled=false;btn.textContent='Entrar';
+  if(error){toast('Não foi possível verificar. Tente de novo.','erro');return;}
+  if(!data){toast('Senha incorreta.','erro');$('admSenha').value='';return;}
+  adminSenha=senha;ssSet('portal_admin',senha);adm.aba='selecoes';render();
+}
+async function carregarAdmin(){
+  const [a,b,c]=await Promise.all([
+    sb.from('portal_selecao').select('*, cantor:cantor_id(nome), ensaio:ensaio_id(titulo,data_hora)').order('enviado_em',{ascending:false}),
+    sb.from('portal_cantor').select('*').order('nome'),
+    sb.from('portal_ensaio').select('*').order('data_hora',{ascending:false})
+  ]);
+  if(a.error)throw a.error;if(b.error)throw b.error;if(c.error)throw c.error;
+  adm.selecoes=a.data||[];adm.cantores=b.data||[];adm.ensaios=c.data||[];
+  const cont=await Promise.all(adm.cantores.map(x=>sb.from('portal_musica').select('id',{count:'exact',head:true}).eq('cantor_id',x.id).then(r=>[x.id,r.count||0])));
+  adm.contagem=Object.fromEntries(cont);
+}
+let recarregando=false;
+async function recarregarAdmin(){
+  if(recarregando||rota().nome!=='admin'||!adminSenha||$('modal').classList.contains('open'))return;
+  recarregando=true;
+  try{await carregarAdmin();renderAdmin();}catch(e){}finally{recarregando=false;}
+}
+function renderAdmin(){
+  const abas=[['selecoes','Músicas dos cantores'],['ensaios','Ensaios'],['cantores','Cantores']];
+  let corpo='';
+  if(adm.aba==='selecoes')corpo=admSelecoes();else if(adm.aba==='ensaios')corpo=admEnsaios();else corpo=admCantores();
+  $('view').innerHTML=`
+    <div class="linha-acoes" style="margin-bottom:6px"><div class="view-title" style="margin:0;flex:1">Administração</div>
+      <button class="btn btn-ghost btn-sm" onclick="sairAdmin()">Sair</button></div>
+    <div class="abas">${abas.map(([k,t])=>`<button class="chip${adm.aba===k?' on':''}" onclick="adm.aba='${k}';renderAdmin()">${t}</button>`).join('')}</div>${corpo}`;
+}
+function admSelecoes(){
+  const lista=adm.selecoes.filter(s=>(!adm.filtroCantor||String(s.cantor_id)===adm.filtroCantor)&&(!adm.filtroEnsaio||String(s.ensaio_id)===adm.filtroEnsaio));
+  const musicasUnicas=new Set(lista.map(s=>chaveMusica(s.titulo,s.artista))).size;
+  return `<div class="view-sub">Músicas que os cantores escolheram para os ensaios. Atualiza sozinho quando alguém envia.</div>
+    <div class="filtros">
+      <select class="form-input" onchange="adm.filtroCantor=this.value;renderAdmin()"><option value="">Todos cantores</option>${adm.cantores.map(c=>`<option value="${c.id}"${adm.filtroCantor===String(c.id)?' selected':''}>${esc(c.nome)}</option>`).join('')}</select>
+      <select class="form-input" onchange="adm.filtroEnsaio=this.value;renderAdmin()"><option value="">Todos ensaios</option>${adm.ensaios.map(e=>`<option value="${e.id}"${adm.filtroEnsaio===String(e.id)?' selected':''}>${esc(e.titulo)} · ${esc(fmtCurta(e.data_hora))}</option>`).join('')}</select>
+    </div>
+    <div class="perfil-sub" style="margin-bottom:10px">${lista.length} ${lista.length===1?'envio':'envios'} · ${musicasUnicas} ${musicasUnicas===1?'música diferente':'músicas diferentes'}</div>
+    <div class="lista">${lista.length?lista.map(s=>`
+      <div class="item"><div class="item-main"><div class="item-titulo">${esc(s.titulo)}</div>
+        <div class="item-sub">${s.artista?`<span>${esc(s.artista)}</span>`:''}${s.tom?`<span class="tom-badge">${esc(s.tom)}</span>`:''}</div>
+        <div class="rodape-item"><span>🎤 <b style="color:var(--text2)">${esc(s.cantor?s.cantor.nome:'—')}</b></span><span>📅 ${esc(s.ensaio?s.ensaio.titulo+' · '+fmtCurta(s.ensaio.data_hora):'—')}</span><span>enviada ${esc(fmtCurta(s.enviado_em))}</span></div></div></div>`).join('')
+      :'<div class="vazio">Nenhuma música enviada ainda.</div>'}</div>`;
+}
+function admEnsaios(){
+  return `<div class="linha-acoes"><div class="view-sub" style="margin:0;flex:1">Crie os ensaios aqui. Eles aparecem para os cantores automaticamente.</div>
+      <button class="btn btn-primary btn-add" onclick="abrirFormEnsaio()" aria-label="Novo ensaio" title="Novo ensaio">+</button></div>
+    <div class="lista">${adm.ensaios.length?adm.ensaios.map(e=>{const s=situacao(e),n=adm.selecoes.filter(x=>x.ensaio_id===e.id).length;return `
+      <div class="item"><div class="item-main"><div class="item-titulo">${esc(e.titulo)}</div>
+        <div class="item-sub"><span>📅 ${esc(fmtCurta(e.data_hora))}</span><span class="cat ${s.cls}">${s.txt}</span><span>${n} ${n===1?'música':'músicas'}</span></div></div>
+        <button class="icon-btn" aria-label="Editar" onclick="abrirFormEnsaio(${e.id})">${ICON_EDIT}</button>
+        <button class="icon-btn perigo" aria-label="Excluir" onclick="excluirEnsaio(${e.id})">${ICON_DEL}</button></div>`;}).join('')
+      :'<div class="vazio">Nenhum ensaio cadastrado.<br>Toque no + para criar o primeiro.</div>'}</div>`;
+}
+function admCantores(){
+  return `<div class="linha-acoes"><div class="view-sub" style="margin:0;flex:1">Cadastre aqui quem vai usar o portal.</div>
+      <button class="btn btn-primary btn-add" onclick="abrirFormCantor()" aria-label="Novo cantor" title="Novo cantor">+</button></div>
+    <div class="lista">${adm.cantores.length?adm.cantores.map(c=>`
+      <div class="item">${avatar(c)}<div class="item-main"><div class="item-titulo">${esc(c.nome)}</div>
+        <div class="item-sub"><span>${(adm.contagem||{})[c.id]||0} músicas</span>${c.ativo?'':'<span class="cat cinza">Inativo</span>'}</div></div>
+        <button class="icon-btn" aria-label="Editar" onclick="abrirFormCantor(${c.id})">${ICON_EDIT}</button>
+        <button class="icon-btn perigo" aria-label="Excluir" onclick="excluirCantor(${c.id})">${ICON_DEL}</button></div>`).join('')
+      :'<div class="vazio">Nenhum cantor cadastrado.<br>Toque no + para cadastrar o primeiro.</div>'}</div>`;
+}
+/* ---------- cantores (admin) ---------- */
+function abrirFormCantor(cid){
+  const c=cid?adm.cantores.find(x=>x.id===cid):null;window._cantorEditando=cid||null;
+  abrirModal(`<h2>${c?'Editar cantor':'Novo cantor'}</h2>
+    <label class="campo">Nome *</label><input class="form-input" id="fcNome" maxlength="80" placeholder="Nome do cantor" value="${esc(c?c.nome:'')}" autocomplete="off">
+    <label class="campo">Foto <small>(opcional — endereço de uma imagem; sem foto, aparecem as iniciais)</small></label>
+    <input class="form-input" id="fcFoto" maxlength="500" placeholder="https://..." value="${esc(c?c.foto_url||'':'')}" autocomplete="off">
+    <label class="campo">Situação</label>
+    <div class="seg" id="fcAtivo"><button type="button" data-v="1" class="${!c||c.ativo?'on':''}" onclick="document.querySelectorAll('#fcAtivo button').forEach(b=>b.classList.toggle('on',b.dataset.v==='1'))">Ativo</button>
+      <button type="button" data-v="0" class="${c&&!c.ativo?'on':''}" onclick="document.querySelectorAll('#fcAtivo button').forEach(b=>b.classList.toggle('on',b.dataset.v==='0'))">Inativo (some da lista)</button></div>
+    <div class="modal-acoes"><button class="btn btn-ghost" onclick="fecharModal()">Cancelar</button><button class="btn btn-primary" id="fcSalvar" onclick="salvarCantor()">Salvar</button></div>`);
+  setTimeout(()=>{if(!c)$('fcNome').focus();},150);
+}
+async function salvarCantor(){
+  const nome=$('fcNome').value.trim();if(!nome){toast('O nome é obrigatório.','erro');return;}
+  const btn=$('fcSalvar');btn.disabled=true;btn.textContent='Salvando…';
+  const {error}=await sb.rpc('portal_admin_salvar_cantor',{p_senha:adminSenha,p_id:window._cantorEditando,p_nome:nome,p_foto:$('fcFoto').value.trim()||null,p_ativo:document.querySelector('#fcAtivo button.on').dataset.v==='1'});
+  if(error){btn.disabled=false;btn.textContent='Salvar';toast(error.code==='23505'?'Já existe um cantor com esse nome.':tratarErro(error),'erro');return;}
+  fecharModal();toast('Cantor salvo!','ok');await carregarAdmin();renderAdmin();
+}
+function excluirCantor(cid){
+  const c=adm.cantores.find(x=>x.id===cid);if(!c)return;
+  confirmar('Excluir cantor?',`"${c.nome}" será apagado junto com TODAS as músicas dele e as escolhas de ensaio. Para só esconder da lista, use "Inativo". Isso não pode ser desfeito.`,'Excluir',async()=>{
+    const {error}=await sb.rpc('portal_admin_excluir_cantor',{p_senha:adminSenha,p_id:cid});
+    if(error){toast(tratarErro(error,'Não foi possível excluir.'),'erro');return;}
+    toast('Cantor excluído.');await carregarAdmin();renderAdmin();
+  });
+}
+/* ---------- ensaios (admin) ---------- */
+function abrirFormEnsaio(eid){
+  const e=eid?adm.ensaios.find(x=>x.id===eid):null;window._ensaioEditando=eid||null;
+  abrirModal(`<h2>${e?'Editar ensaio':'Novo ensaio'}</h2>
+    <label class="campo">Nome do ensaio *</label><input class="form-input" id="feTitulo" maxlength="120" placeholder="Ex.: Ensaio geral de sábado" value="${esc(e?e.titulo:'')}" autocomplete="off">
+    <label class="campo">Data e horário *</label><input class="form-input" id="feData" type="datetime-local" value="${e?paraInput(e.data_hora):''}">
+    <label class="campo">Descrição <small>(opcional)</small></label><textarea class="form-input" id="feDesc" maxlength="1000" style="min-height:80px" placeholder="Local, observações...">${esc(e?e.descricao||'':'')}</textarea>
+    <label class="campo">Situação</label>
+    <select class="form-input" id="feStatus"><option value="agendado"${!e||e.status==='agendado'?' selected':''}>Agendado</option><option value="realizado"${e&&e.status==='realizado'?' selected':''}>Realizado</option><option value="cancelado"${e&&e.status==='cancelado'?' selected':''}>Cancelado</option></select>
+    <p class="perfil-sub" style="margin-top:10px">Os cantores escolhem as músicas até ${DIAS_LIMITE} dias antes do horário.</p>
+    <div class="modal-acoes"><button class="btn btn-ghost" onclick="fecharModal()">Cancelar</button><button class="btn btn-primary" id="feSalvar" onclick="salvarEnsaio()">Salvar</button></div>`);
+  setTimeout(()=>{if(!e)$('feTitulo').focus();},150);
+}
+async function salvarEnsaio(){
+  const titulo=$('feTitulo').value.trim(),data=$('feData').value;
+  if(!titulo){toast('O nome do ensaio é obrigatório.','erro');return;}
+  if(!data){toast('Informe a data e o horário.','erro');return;}
+  const btn=$('feSalvar');btn.disabled=true;btn.textContent='Salvando…';
+  const {error}=await sb.rpc('portal_admin_salvar_ensaio',{p_senha:adminSenha,p_id:window._ensaioEditando,p_titulo:titulo,p_descricao:$('feDesc').value.trim()||null,p_data_hora:new Date(data).toISOString(),p_status:$('feStatus').value});
+  if(error){btn.disabled=false;btn.textContent='Salvar';toast(tratarErro(error),'erro');return;}
+  fecharModal();toast('Ensaio salvo!','ok');await carregarAdmin();renderAdmin();
+}
+function excluirEnsaio(eid){
+  const e=adm.ensaios.find(x=>x.id===eid);if(!e)return;
+  confirmar('Excluir ensaio?',`"${e.titulo}" será apagado junto com as músicas que os cantores escolheram para ele. Isso não pode ser desfeito.`,'Excluir',async()=>{
+    const {error}=await sb.rpc('portal_admin_excluir_ensaio',{p_senha:adminSenha,p_id:eid});
+    if(error){toast(tratarErro(error,'Não foi possível excluir.'),'erro');return;}
+    toast('Ensaio excluído.');await carregarAdmin();renderAdmin();
+  });
+}
+
+/* =====================================================================
+   atualização automática (cantores e ensaios novos aparecem sozinhos)
+   ===================================================================== */
+async function atualizarListas(){
+  if(document.hidden||$('modal').classList.contains('open'))return;
+  const {nome}=rota();
+  if(nome==='cantores'||nome==='ensaios'){
+    try{
+      const id=renderId;
+      if(nome==='cantores'){await viewCantores(id);}else{await viewEnsaios(id);}
+    }catch(e){}
+  }
+}
+sb.channel('portal-listas')
+  .on('postgres_changes',{event:'*',schema:'public',table:'portal_ensaio'},()=>atualizarListas())
+  .on('postgres_changes',{event:'*',schema:'public',table:'portal_cantor'},()=>atualizarListas())
+  .subscribe();
+setInterval(atualizarListas,45000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)atualizarListas();});
+
+// primeiro acesso: quem já se identificou cai direto no portal (lista de cantores com o atalho "Minha área")
+if(!location.hash)history.replaceState(null,'','#cantores');
+render();
+</script>
+</body>
+</html>
