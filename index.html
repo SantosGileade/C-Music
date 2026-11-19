@@ -2461,12 +2461,15 @@ document.getElementById('confirmOkBtn').onclick=()=>{if(confirmCb)confirmCb();cl
    HOME — INDICADORES
    ===================================================================== */
 /* =====================================================================
-   COMEMORAÇÃO — 100 músicas no app (confetes, brilhos e uma piscada), uma vez por aparelho
+   COMEMORAÇÃO — 100 músicas no app (confetes, brilhos e uma piscada)
    ===================================================================== */
-const FESTA100_CHAVE='nexos_100_musicas_comemorado';
+// Aparece toda vez que o app é aberto (uma vez por abertura) enquanto houver 100+ músicas,
+// e deixa de aparecer a partir do domingo desta semana (22/11/2026).
+const FESTA100_ATE='2026-11-22';
 function verificarComemoracao100(total){
   if(Number(total)<100)return;
-  try{if(localStorage.getItem(FESTA100_CHAVE))return;localStorage.setItem(FESTA100_CHAVE,'1');}catch(e){if(window._festa100Feita)return;}
+  if(getLocalDateKey()>=FESTA100_ATE)return;
+  if(window._festa100Feita)return;
   window._festa100Feita=true;
   celebrar100();
 }
