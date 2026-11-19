@@ -1865,33 +1865,67 @@ async function pipCarregar(){
   pipCarregou=true;
   pipDesenhar();
 }
+/* O vídeo é preparado ANTES do toque (assim o toque só precisa pedir a janela, que é o que o iOS exige) */
+function pipPreparar(){
+  if(pipVideo)return pipVideo;
+  pipCanvas=document.createElement('canvas');pipCanvas.width=PIP_W;pipCanvas.height=PIP_H;pipCtx=pipCanvas.getContext('2d');
+  pipCarregou=false;pipDesenhar();
+  const v=document.createElement('video');
+  v.muted=true;v.defaultMuted=true;v.playsInline=true;v.autoplay=true;
+  v.setAttribute('muted','');v.setAttribute('playsinline','');v.setAttribute('webkit-playsinline','');
+  v.srcObject=pipCanvas.captureStream(5);
+  v.style.cssText='position:fixed;left:0;bottom:0;width:160px;height:90px;opacity:.01;pointer-events:none;z-index:-1';
+  v.addEventListener('leavepictureinpicture',pipSairModo);
+  v.addEventListener('webkitpresentationmodechanged',()=>{if(v.webkitPresentationMode&&v.webkitPresentationMode!=='picture-in-picture')pipSairModo();});
+  document.body.appendChild(v);
+  pipVideo=v;
+  const p=v.play();if(p&&p.catch)p.catch(()=>{});
+  pipTimer=setInterval(pipDesenhar,1000);
+  pipCarregar();
+  return v;
+}
+function pipAtivo(){
+  const v=pipVideo;
+  return !!v&&(document.pictureInPictureElement===v||v.webkitPresentationMode==='picture-in-picture');
+}
+function pipErroTexto(e,etapa){
+  return 'Janela flutuante ('+etapa+'): '+((e&&e.name)||'erro')+(e&&e.message?' - '+e.message:'');
+}
 async function pipAbrir(){
-  if(pipVideo){pipFechar();return;}
+  let etapa='preparar';
   try{
-    pipCanvas=document.createElement('canvas');pipCanvas.width=PIP_W;pipCanvas.height=PIP_H;pipCtx=pipCanvas.getContext('2d');
-    pipCarregou=false;pipDesenhar();
-    const v=document.createElement('video');
-    v.muted=true;v.defaultMuted=true;v.playsInline=true;
-    v.setAttribute('playsinline','');v.setAttribute('webkit-playsinline','');
-    v.srcObject=pipCanvas.captureStream(5);
-    v.style.cssText='position:fixed;left:0;bottom:0;width:160px;height:90px;opacity:.01;pointer-events:none;z-index:-1';
-    document.body.appendChild(v);
-    pipVideo=v;
-    await v.play();
-    // o pedido da janela precisa acontecer logo após o toque, antes de carregar os dados
-    if(v.requestPictureInPicture)await v.requestPictureInPicture();
-    else v.webkitSetPresentationMode('picture-in-picture');
-    v.addEventListener('leavepictureinpicture',pipFechar);
-    v.addEventListener('webkitpresentationmodechanged',()=>{if(v.webkitPresentationMode&&v.webkitPresentationMode!=='picture-in-picture')pipFechar();});
-    pipTimer=setInterval(pipDesenhar,1000);
-    pipPoll=setInterval(pipCarregar,15000);
-    if(!DEMO&&sb){pipCh=sb.channel('pip-domingo').on('postgres_changes',{event:'*',schema:'public',table:'musica_playlist'},()=>pipCarregar()).subscribe();}
+    if(pipAtivo()){pipSairModo();return;}
+    const v=pipPreparar();
+    etapa='pedir janela';
+    // nada de "await" antes deste pedido: ele tem que acontecer dentro do toque
+    let pedido;
+    if(typeof v.webkitSetPresentationMode==='function'&&(!v.webkitSupportsPresentationMode||v.webkitSupportsPresentationMode('picture-in-picture'))){
+      v.webkitSetPresentationMode('picture-in-picture');
+    }else if(v.requestPictureInPicture){
+      pedido=v.requestPictureInPicture();
+    }else{
+      throw new Error('este navegador não tem janela flutuante');
+    }
+    if(pedido)await pedido;
+    etapa='iniciar';
+    clearInterval(pipPoll);pipPoll=setInterval(pipCarregar,15000);
+    if(!pipCh&&!DEMO&&sb){pipCh=sb.channel('pip-domingo').on('postgres_changes',{event:'*',schema:'public',table:'musica_playlist'},()=>pipCarregar()).subscribe();}
     pipCarregar();
   }catch(e){
-    pipFechar();
-    toast('Este aparelho não permitiu abrir a janela flutuante.','error');
+    pipSairModo();
+    toast(pipErroTexto(e,etapa),'error');
   }
 }
+// sai da janela flutuante (mantém o vídeo pronto se ainda estiver na playlist Domingo)
+function pipSairModo(){
+  clearInterval(pipPoll);pipPoll=null;
+  if(pipCh){try{sb.removeChannel(pipCh);}catch(e){}pipCh=null;}
+  const v=pipVideo;
+  if(v){try{if(document.pictureInPictureElement===v)document.exitPictureInPicture();else if(v.webkitPresentationMode==='picture-in-picture')v.webkitSetPresentationMode('inline');}catch(e){}}
+  const naDomingo=currentPL&&currentPL.title===PL_DOMINGO&&document.getElementById('playlistDetailView').style.display!=='none';
+  if(!naDomingo)pipFechar();
+}
+// desmonta tudo
 function pipFechar(){
   clearInterval(pipTimer);clearInterval(pipPoll);pipTimer=pipPoll=null;
   if(pipCh){try{sb.removeChannel(pipCh);}catch(e){}pipCh=null;}
@@ -4495,6 +4529,7 @@ async function openPlaylistDetail(id,title,publico){
   // botão secreto: tocar no título "Domingo" abre a janela flutuante (sem nenhum sinal visual na tela)
   const tituloEl=document.getElementById('detailTitle');
   tituloEl.onclick=(isToday&&pipSuportado())?pipAbrir:null;
+  if(isToday&&pipSuportado()){try{pipPreparar();}catch(e){}}
   tituloEl.style.userSelect=isToday?'none':'';
   tituloEl.style.webkitUserSelect=isToday?'none':'';
   tituloEl.style.webkitTouchCallout=isToday?'none':'';
@@ -4624,6 +4659,7 @@ async function atualizarPlaylistAberta(){
 function showPlaylistList(refresh=true){
   stopDetailRefresh();
   currentPL=null;
+  if(pipVideo&&!pipAtivo())pipFechar();
   currentPLItems=[];
   document.getElementById('playlistDetailView').style.display='none';
   document.getElementById('playlistListView').style.display='block';
@@ -5632,7 +5668,7 @@ if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
 
 /* Atualização automática: o iPhone/Android mantêm o app aberto em segundo plano sem recarregar.
    Ao abrir/voltar, compara a versão em uso com a publicada e recarrega sozinho se for diferente. */
-const APP_BUILD='1795086575896';
+const APP_BUILD='1795087036409';
 async function verificarNovaVersao(){
   if(APP_BUILD.startsWith('__')||!/^https?:$/.test(location.protocol)||location.hash==='#telao')return;
   if(document.querySelector('.modal-overlay.open'))return;
