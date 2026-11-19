@@ -1791,6 +1791,119 @@ function stopDetailRefresh() {
   pararPedidosCantores();
 }
 
+/* =====================================================================
+   JANELA FLUTUANTE (Picture-in-Picture) da playlist Domingo
+   O Nexos desenha a lista (próximas músicas + tons) num canvas, transforma em vídeo e pede ao
+   sistema uma janelinha flutuante. Assim ela fica por cima de outro app (ex.: o app do piano).
+   ===================================================================== */
+const PIP_W=720, PIP_H=405;
+let pipVideo=null, pipCanvas=null, pipCtx=null, pipTimer=null, pipPoll=null, pipCh=null, pipItens=[], pipErro=false, pipTick=0, pipCarregou=false;
+function pipSuportado(){
+  try{
+    const v=document.createElement('video');
+    return !!(HTMLCanvasElement.prototype.captureStream&&(document.pictureInPictureEnabled||typeof v.webkitSetPresentationMode==='function'));
+  }catch(e){return false;}
+}
+function pipCortar(ctx,txt,max){
+  txt=String(txt||'');
+  if(ctx.measureText(txt).width<=max)return txt;
+  while(txt.length>1&&ctx.measureText(txt+'…').width>max)txt=txt.slice(0,-1);
+  return txt.trim()+'…';
+}
+function pipRect(ctx,x,y,w,h,r){
+  ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();
+}
+function pipDesenhar(){
+  const c=pipCtx;if(!c)return;
+  c.fillStyle='#0b1220';c.fillRect(0,0,PIP_W,PIP_H);
+  c.textBaseline='middle';
+  // cabeçalho
+  c.fillStyle='#8aa0bd';c.font='700 20px -apple-system,Segoe UI,Roboto,sans-serif';c.textAlign='left';
+  c.fillText('DOMINGO · PRÓXIMAS',22,24);
+  const hora=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  c.textAlign='right';c.font='500 17px -apple-system,Segoe UI,Roboto,sans-serif';c.fillStyle='#5b7090';
+  c.fillText(pipErro?'sem conexão · '+hora:hora,PIP_W-22,24);
+  // pontinho que alterna, só para o vídeo continuar recebendo quadros
+  pipTick^=1;c.fillStyle=pipTick?'#0b1220':'#0b1221';c.fillRect(PIP_W-4,PIP_H-4,4,4);
+  c.textAlign='left';
+  if(!pipCarregou){c.fillStyle='#8aa0bd';c.font='600 26px -apple-system,Segoe UI,Roboto,sans-serif';c.fillText('Carregando…',22,PIP_H/2);return;}
+  const idx=pipItens.findIndex(mp=>mp.tocando);
+  const lista=idx>=0?pipItens.slice(idx):pipItens;
+  if(!lista.length){c.fillStyle='#8aa0bd';c.font='600 26px -apple-system,Segoe UI,Roboto,sans-serif';c.fillText('Nenhuma música na playlist.',22,PIP_H/2);return;}
+  const MAX=5,RH=60,Y0=48;
+  lista.slice(0,MAX).forEach((mp,i)=>{
+    const y=Y0+i*RH, m=mp.musica||{}, prox=(i===0&&idx>=0);
+    if(prox){c.fillStyle='rgba(20,184,166,.16)';pipRect(c,12,y+2,PIP_W-24,RH-6,12);c.fill();c.strokeStyle='rgba(20,184,166,.55)';c.lineWidth=2;c.stroke();}
+    const num=pipItens.indexOf(mp)+1, cy=y+RH/2-1;
+    c.fillStyle=prox?'#2dd4bf':'#5b7090';c.font='800 24px -apple-system,Segoe UI,Roboto,sans-serif';c.textAlign='center';c.fillText(String(num),44,cy);
+    c.textAlign='left';
+    const tom=m.tom||'';
+    c.font='800 38px -apple-system,Segoe UI,Roboto,sans-serif';
+    const wTom=tom?Math.max(64,c.measureText(tom).width+28):0;
+    const xTom=PIP_W-26-wTom;
+    c.font=(prox?'700':'600')+' 27px -apple-system,Segoe UI,Roboto,sans-serif';c.fillStyle=prox?'#ffffff':'#d5e0f0';
+    c.fillText(pipCortar(c,m.titulo||'',xTom-90-16),76,cy);
+    if(tom){
+      c.fillStyle=prox?'#14b8a6':'rgba(124,58,237,.3)';pipRect(c,xTom,cy-23,wTom,46,10);c.fill();
+      c.fillStyle=prox?'#04201d':'#c9b8ff';c.font='800 34px -apple-system,Segoe UI,Roboto,sans-serif';c.textAlign='center';c.fillText(tom,xTom+wTom/2,cy+1);c.textAlign='left';
+    }
+  });
+  if(lista.length>MAX){c.fillStyle='#5b7090';c.font='600 18px -apple-system,Segoe UI,Roboto,sans-serif';c.textAlign='center';c.fillText('+ '+(lista.length-MAX)+((lista.length-MAX)===1?' música depois':' músicas depois'),PIP_W/2,PIP_H-18);}
+}
+async function pipCarregar(){
+  try{
+    if(DEMO){
+      pipItens=[...(DDATA.mp[currentPL?currentPL.id:0]||[])].sort((a,b)=>a.ordem-b.ordem);
+    }else{
+      // leitura simples: não cria nada no banco
+      const {data:pl,error}=await sb.from('playlist').select('id').eq('title',PL_DOMINGO).maybeSingle();
+      if(error)throw error;
+      pipItens=pl?(await dbGetPlaylistMusicas(pl.id)).filter(mp=>mp.musica&&!musicaDeOutroDomingo(mp)).sort((a,b)=>a.ordem-b.ordem):[];
+    }
+    pipErro=false;
+  }catch(e){pipErro=true;}
+  pipCarregou=true;
+  pipDesenhar();
+}
+async function pipAbrir(){
+  if(pipVideo){pipFechar();return;}
+  try{
+    pipCanvas=document.createElement('canvas');pipCanvas.width=PIP_W;pipCanvas.height=PIP_H;pipCtx=pipCanvas.getContext('2d');
+    pipCarregou=false;pipDesenhar();
+    const v=document.createElement('video');
+    v.muted=true;v.defaultMuted=true;v.playsInline=true;
+    v.setAttribute('playsinline','');v.setAttribute('webkit-playsinline','');
+    v.srcObject=pipCanvas.captureStream(5);
+    v.style.cssText='position:fixed;left:0;bottom:0;width:160px;height:90px;opacity:.01;pointer-events:none;z-index:-1';
+    document.body.appendChild(v);
+    pipVideo=v;
+    await v.play();
+    // o pedido da janela precisa acontecer logo após o toque, antes de carregar os dados
+    if(v.requestPictureInPicture)await v.requestPictureInPicture();
+    else v.webkitSetPresentationMode('picture-in-picture');
+    v.addEventListener('leavepictureinpicture',pipFechar);
+    v.addEventListener('webkitpresentationmodechanged',()=>{if(v.webkitPresentationMode&&v.webkitPresentationMode!=='picture-in-picture')pipFechar();});
+    pipTimer=setInterval(pipDesenhar,1000);
+    pipPoll=setInterval(pipCarregar,15000);
+    if(!DEMO&&sb){pipCh=sb.channel('pip-domingo').on('postgres_changes',{event:'*',schema:'public',table:'musica_playlist'},()=>pipCarregar()).subscribe();}
+    pipCarregar();
+  }catch(e){
+    pipFechar();
+    toast('Este aparelho não permitiu abrir a janela flutuante.','error');
+  }
+}
+function pipFechar(){
+  clearInterval(pipTimer);clearInterval(pipPoll);pipTimer=pipPoll=null;
+  if(pipCh){try{sb.removeChannel(pipCh);}catch(e){}pipCh=null;}
+  const v=pipVideo;pipVideo=null;
+  if(v){
+    try{if(document.pictureInPictureElement===v)document.exitPictureInPicture();else if(v.webkitPresentationMode==='picture-in-picture')v.webkitSetPresentationMode('inline');}catch(e){}
+    try{v.pause();(v.srcObject?v.srcObject.getTracks():[]).forEach(t=>t.stop());v.srcObject=null;}catch(e){}
+    v.remove();
+  }
+  pipCanvas=pipCtx=null;
+}
+
 /* Pedidos dos cantores ("Quero cantar no próximo domingo", feitos no Portal dos Cantores).
    Aparecem só na playlist Domingo, numa seção separada abaixo das músicas. */
 let pedidosCantoresCh = null, pedidosCantoresTimer = null;
@@ -4379,6 +4492,13 @@ async function openPlaylistDetail(id,title,publico){
   const isToday=title===PL_DOMINGO;
   document.getElementById('detailMeta').textContent=isToday?'📅 Repertório de domingo':(publico?'🌐 Pública':'🔒 Privada');
   document.getElementById('clearTodayPlaylistBtn').style.display=isToday?'inline-flex':'none';
+  // botão secreto: tocar no título "Domingo" abre a janela flutuante (sem nenhum sinal visual na tela)
+  const tituloEl=document.getElementById('detailTitle');
+  tituloEl.onclick=(isToday&&pipSuportado())?pipAbrir:null;
+  tituloEl.style.userSelect=isToday?'none':'';
+  tituloEl.style.webkitUserSelect=isToday?'none':'';
+  tituloEl.style.webkitTouchCallout=isToday?'none':'';
+  tituloEl.style.webkitTapHighlightColor=isToday?'transparent':'';
   setPlaylistTomFilter('',false);
   document.getElementById('playlistMusicaTbody').innerHTML='<tr class="loading-row"><td colspan="5"><div class="spinner" style="margin:auto"></div></td></tr>';
   let items;
