@@ -1994,7 +1994,7 @@ async function pedidoComoProxima(i){
     } catch (e) {}
     let letraAdicionada = false;
     if (criada) {
-      musica = await dbCreateMusica({ titulo: String(d.titulo).trim(), autor: (d.artista || '').trim(), tom: d.tom || null, letra: letraPortal });
+      musica = await dbCreateMusica({ titulo: String(d.titulo).trim(), autor: (d.artista || '').trim(), tom: d.tom || null, letra: letraPortal, visto_em: new Date().toISOString() });
     } else if (letraPortal) {
       const { data: atual } = await sb.from('musica').select('letra').eq('id', musica.id).single();
       if (!((atual && atual.letra) || '').trim()) {
@@ -2527,8 +2527,16 @@ async function dbListRecentMusicas(limit=30){
   if(error)throw error;
   return data||[];
 }
+// mesma música (título + artista, sem ligar para acento/maiúscula)
+function chaveMusica(titulo,autor){return normTitulo(titulo)+'|'+normTitulo(autor);}
+// Uma música do Nexos que veio de um pedido do cantor (⭐) já aparece como "Inserida no Portal":
+// não repete a mesma música nas atualizações nem na contagem.
+function semRepetidasDoPortal(nexos,portal){
+  const chaves=new Set(portal.map(p=>chaveMusica(p.titulo,p.autor)));
+  return nexos.filter(m=>!chaves.has(chaveMusica(m.titulo,m.autor)));
+}
 // músicas que os cantores guardaram no Portal dos Cantores (com a letra que eles colocaram)
-async function dbListRecentPortal(limit=30){
+async function dbListRecentPortal(limit=200){
   try{
     const {data,error}=await sb.from('portal_musica').select('*, cantor:cantor_id(nome)').order('created_at',{ascending:false}).limit(limit);
     if(error)throw error;
@@ -2539,14 +2547,10 @@ async function dbListRecentPortal(limit=30){
   }catch(e){return [];}   // portal ainda não instalado no banco: só não mostra
 }
 async function dbCountPendentesRevisao(){
-  const {count,error}=await sb.from('musica').select('id',{count:'exact',head:true}).is('visto_em',null);
+  const {data,error}=await sb.from('musica').select('id,titulo,autor').is('visto_em',null).limit(500);
   if(error)throw error;
-  let extra=0;
-  try{
-    const r=await sb.from('portal_musica').select('id',{count:'exact',head:true}).is('visto_em',null);
-    if(!r.error)extra=r.count||0;
-  }catch(e){}
-  return (count||0)+extra;
+  const portal=await dbListRecentPortal();
+  return semRepetidasDoPortal(data||[],portal).length+portal.filter(p=>!p.visto_em).length;
 }
 async function dbMarcarMusicaVista(id,origem){
   const tabela=origem==='portal'?'portal_musica':'musica';
@@ -2562,8 +2566,8 @@ async function fetchRecentMusicas(){
   if(DEMO){
     return DDATA.musicas.map(m=>({...m,criado_em:demoMusicUpdatedAt||m.criado_em,visto_em:demoVistoIds.has(m.id)?new Date().toISOString():null}));
   }
-  const [nexos,portal]=await Promise.all([dbListRecentMusicas(30),dbListRecentPortal(30)]);
-  return [...nexos,...portal]
+  const [nexos,portal]=await Promise.all([dbListRecentMusicas(60),dbListRecentPortal()]);
+  return [...semRepetidasDoPortal(nexos,portal),...portal.slice(0,30)]
     .sort((a,b)=>new Date(recentTimestampOf(b))-new Date(recentTimestampOf(a)))
     .slice(0,40);
 }
