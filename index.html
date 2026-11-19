@@ -1797,7 +1797,7 @@ function stopDetailRefresh() {
    sistema uma janelinha flutuante. Assim ela fica por cima de outro app (ex.: o app do piano).
    ===================================================================== */
 const PIP_W=720, PIP_H=405;
-let pipVideo=null, pipCanvas=null, pipCtx=null, pipTimer=null, pipPoll=null, pipCh=null, pipItens=[], pipErro=false, pipTick=0, pipCarregou=false;
+let pipAudio=null, pipVideo=null, pipCanvas=null, pipCtx=null, pipTimer=null, pipPoll=null, pipCh=null, pipItens=[], pipErro=false, pipTick=0, pipCarregou=false;
 function pipSuportado(){
   try{
     const v=document.createElement('video');
@@ -1873,7 +1873,18 @@ function pipPreparar(){
   const v=document.createElement('video');
   v.muted=true;v.defaultMuted=true;v.playsInline=true;v.autoplay=true;
   v.setAttribute('muted','');v.setAttribute('playsinline','');v.setAttribute('webkit-playsinline','');
-  v.srcObject=pipCanvas.captureStream(5);
+  const stream=pipCanvas.captureStream(5);
+  // faixa de áudio silenciosa: o iOS costuma só aceitar janela flutuante de vídeo que tenha áudio
+  try{
+    const AC=window.AudioContext||window.webkitAudioContext;
+    if(AC){
+      pipAudio=new AC();
+      const dest=pipAudio.createMediaStreamDestination(),osc=pipAudio.createOscillator(),g=pipAudio.createGain();
+      g.gain.value=0;osc.connect(g);g.connect(dest);osc.start();
+      dest.stream.getAudioTracks().forEach(t=>stream.addTrack(t));
+    }
+  }catch(e){}
+  v.srcObject=stream;
   v.style.cssText='position:fixed;left:0;bottom:0;width:160px;height:90px;opacity:.01;pointer-events:none;z-index:-1';
   v.addEventListener('leavepictureinpicture',pipSairModo);
   v.addEventListener('webkitpresentationmodechanged',()=>{if(v.webkitPresentationMode&&v.webkitPresentationMode!=='picture-in-picture')pipSairModo();});
@@ -1899,9 +1910,12 @@ async function pipAbrir(){
     etapa='pedir janela';
     // nada de "await" antes deste pedido: ele tem que acontecer dentro do toque
     let pedido;
+    if(pipAudio&&pipAudio.state==='suspended'){try{pipAudio.resume();}catch(e){}}
     if(typeof v.webkitSetPresentationMode==='function'&&(!v.webkitSupportsPresentationMode||v.webkitSupportsPresentationMode('picture-in-picture'))){
+      etapa='pedir janela, via webkit';
       v.webkitSetPresentationMode('picture-in-picture');
     }else if(v.requestPictureInPicture){
+      etapa='pedir janela, via padrão'+(typeof v.webkitSetPresentationMode==='function'?' (webkit recusou)':'')+', áudio '+(v.srcObject&&v.srcObject.getAudioTracks().length?'sim':'não');
       pedido=v.requestPictureInPicture();
     }else{
       throw new Error('este navegador não tem janela flutuante');
@@ -1935,6 +1949,7 @@ function pipFechar(){
     try{v.pause();(v.srcObject?v.srcObject.getTracks():[]).forEach(t=>t.stop());v.srcObject=null;}catch(e){}
     v.remove();
   }
+  if(pipAudio){try{pipAudio.close();}catch(e){}pipAudio=null;}
   pipCanvas=pipCtx=null;
 }
 
@@ -5668,7 +5683,7 @@ if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
 
 /* Atualização automática: o iPhone/Android mantêm o app aberto em segundo plano sem recarregar.
    Ao abrir/voltar, compara a versão em uso com a publicada e recarrega sozinho se for diferente. */
-const APP_BUILD='1795087036409';
+const APP_BUILD='1795087344072';
 async function verificarNovaVersao(){
   if(APP_BUILD.startsWith('__')||!/^https?:$/.test(location.protocol)||location.hash==='#telao')return;
   if(document.querySelector('.modal-overlay.open'))return;
