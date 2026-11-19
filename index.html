@@ -708,6 +708,7 @@
     .pedido-cantor-titulo{font-weight:600;font-size:.9rem;overflow-wrap:anywhere;line-height:1.3}
     .pedido-cantor-sub{font-size:.74rem;color:var(--text3);margin-top:3px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
     .pedido-cantor-acao{flex-shrink:0}
+    .recent-portal{margin-top:5px;font-size:.72rem;font-weight:700;color:#c4b0ff}
     .pedido-cantor-quem{flex-shrink:0;max-width:42%;font-size:.74rem;font-weight:700;color:#c4b0ff;background:rgba(139,92,246,.16);border:1px solid rgba(139,92,246,.4);border-radius:99px;padding:4px 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .ap-song-num{width:24px;height:24px;border-radius:6px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:.72rem;color:var(--text3);font-weight:700;flex-shrink:0}
     .ap-song-info-wrap{flex:1;min-width:0}
@@ -1054,13 +1055,6 @@
           <div class="ap-song-list" id="apSongList">
             <div style="padding:28px;text-align:center;color:var(--text3);font-size:.84rem">Carregando…</div>
           </div>
-        </div>
-        <div class="ap-card" id="apHistoryCard" style="display:none">
-          <div class="ap-card-header">
-            Músicas de outro dia
-            <button class="btn btn-danger ap-history-clear" onclick="clearTodayHistory()">Limpar playlist</button>
-          </div>
-          <div class="ap-history-list" id="apHistoryList"></div>
         </div>
       </div>
 
@@ -1989,15 +1983,34 @@ async function pedidoComoProxima(i){
     let musica = iguais.find(m => normTitulo(m.autor) === autorAlvo) || iguais[0] || null;
     let criada = false;
     if (!musica) {
-      musica = await dbCreateMusica({ titulo: String(d.titulo).trim(), autor: (d.artista || '').trim(), tom: d.tom || null, letra: '' });
       criada = true;
+    }
+    // a letra que o cantor guardou no Portal vai junto, para o operador do datashow já ter o texto
+    let letraPortal = '';
+    try {
+      const { data: pm } = await sb.from('portal_musica').select('id,titulo,letra').eq('cantor_id', d.cantor_id);
+      const dele = (pm || []).find(x => x.id === d.musica_id) || (pm || []).find(x => normTitulo(x.titulo) === alvo);
+      letraPortal = ((dele && dele.letra) || '').trim();
+    } catch (e) {}
+    let letraAdicionada = false;
+    if (criada) {
+      musica = await dbCreateMusica({ titulo: String(d.titulo).trim(), autor: (d.artista || '').trim(), tom: d.tom || null, letra: letraPortal });
+    } else if (letraPortal) {
+      const { data: atual } = await sb.from('musica').select('letra').eq('id', musica.id).single();
+      if (!((atual && atual.letra) || '').trim()) {
+        const { error: eLetra } = await sb.from('musica').update({ letra: letraPortal }).eq('id', musica.id);
+        if (!eLetra) letraAdicionada = true;
+      }
     }
     let item = (currentPLItems || []).find(mp => mp.musica_id === musica.id && !musicaDeOutroDomingo(mp));
     if (!item) ({ item } = await dbAddOrRefreshTodaySong(musica.id));
     await dbSetTocando(item.id);
     let aviso = '';
-    if (criada) aviso = ' Hino novo: ainda sem letra, adicione na biblioteca.';
-    else if (d.tom && musica.tom && normTitulo(d.tom) !== normTitulo(musica.tom)) aviso = ` O cantor pediu o tom ${d.tom}; no Nexos está ${musica.tom}.`;
+    if (criada) aviso = letraPortal ? ' Hino novo, já com a letra do cantor.' : ' Hino novo: o cantor não colocou letra, adicione na biblioteca.';
+    else {
+      if (letraAdicionada) aviso += ' A letra do cantor foi adicionada.';
+      if (d.tom && musica.tom && normTitulo(d.tom) !== normTitulo(musica.tom)) aviso += ` O cantor pediu o tom ${d.tom}; no Nexos está ${musica.tom}.`;
+    }
     toast('Hino de ' + (d.cantor ? d.cantor.nome : 'cantor') + ' definido como próxima! ⭐' + aviso, criada || aviso ? 'info' : 'success');
     if (currentPL) await openPlaylistDetail(currentPL.id, currentPL.title, currentPL.publico);
   } catch (e) {
@@ -2514,13 +2527,30 @@ async function dbListRecentMusicas(limit=30){
   if(error)throw error;
   return data||[];
 }
+// músicas que os cantores guardaram no Portal dos Cantores (com a letra que eles colocaram)
+async function dbListRecentPortal(limit=30){
+  try{
+    const {data,error}=await sb.from('portal_musica').select('*, cantor:cantor_id(nome)').order('created_at',{ascending:false}).limit(limit);
+    if(error)throw error;
+    return (data||[]).map(p=>({
+      id:p.id,origem:'portal',titulo:p.titulo,autor:p.artista,tom:p.tom,letra:p.letra,
+      criado_em:p.created_at,visto_em:p.visto_em||null,cantorNome:p.cantor?p.cantor.nome:''
+    }));
+  }catch(e){return [];}   // portal ainda não instalado no banco: só não mostra
+}
 async function dbCountPendentesRevisao(){
   const {count,error}=await sb.from('musica').select('id',{count:'exact',head:true}).is('visto_em',null);
   if(error)throw error;
-  return count||0;
+  let extra=0;
+  try{
+    const r=await sb.from('portal_musica').select('id',{count:'exact',head:true}).is('visto_em',null);
+    if(!r.error)extra=r.count||0;
+  }catch(e){}
+  return (count||0)+extra;
 }
-async function dbMarcarMusicaVista(id){
-  const {error}=await sb.from('musica').update({visto_em:new Date().toISOString()}).eq('id',id);
+async function dbMarcarMusicaVista(id,origem){
+  const tabela=origem==='portal'?'portal_musica':'musica';
+  const {error}=await sb.from(tabela).update({visto_em:new Date().toISOString()}).eq('id',id);
   if(error)throw error;
 }
 
@@ -2532,7 +2562,10 @@ async function fetchRecentMusicas(){
   if(DEMO){
     return DDATA.musicas.map(m=>({...m,criado_em:demoMusicUpdatedAt||m.criado_em,visto_em:demoVistoIds.has(m.id)?new Date().toISOString():null}));
   }
-  return dbListRecentMusicas(30);
+  const [nexos,portal]=await Promise.all([dbListRecentMusicas(30),dbListRecentPortal(30)]);
+  return [...nexos,...portal]
+    .sort((a,b)=>new Date(recentTimestampOf(b))-new Date(recentTimestampOf(a)))
+    .slice(0,40);
 }
 
 async function refreshUpdateBadge(){
@@ -2558,7 +2591,7 @@ function renderRecentUpdatesList(){
     return;
   }
   listEl.innerHTML=recentUpdatesCache.map(m=>`
-    <div class="recent-item${m.visto_em?' recent-item-done':''}" id="recentItem${m.id}">
+    <div class="recent-item${m.visto_em?' recent-item-done':''}" id="recentItem${m.origem==='portal'?'P':''}${m.id}">
       <div class="recent-item-top">
         <div class="song-card-body">
           <div class="song-card-title" title="${esc(m.titulo)}">${esc(m.titulo)}</div>
@@ -2566,14 +2599,15 @@ function renderRecentUpdatesList(){
             ${m.autor?`<span>${esc(m.autor)}</span>`:''}
             <span class="recent-time">${relativeTimeFrom(recentTimestampOf(m))}</span>
           </div>
+          ${m.origem==='portal'?`<div class="recent-portal">🎤 Inserida no Portal dos Cantores${m.cantorNome?` · ${esc(m.cantorNome)}`:''}</div>`:''}
         </div>
         ${m.tom?`<span class="tom-badge song-card-tone">${esc(m.tom)}</span>`:''}
       </div>
       <div class="recent-item-actions">
-        <button class="btn btn-ghost btn-sm" onclick="copyLetraToClipboard(${m.id})">📋 Copiar letra</button>
+        <button class="btn btn-ghost btn-sm" onclick="copyLetraToClipboard(${m.id},'${m.origem||''}')">📋 Copiar letra</button>
         ${m.visto_em
           ?'<span class="already-added-tag">✔️ Já adicionada</span>'
-          :`<button class="btn btn-teal btn-sm" onclick="marcarComoVista(${m.id})">✅ Já adicionada</button>`}
+          :`<button class="btn btn-teal btn-sm" onclick="marcarComoVista(${m.id},'${m.origem||''}')">✅ Já adicionada</button>`}
       </div>
     </div>`).join('');
 }
@@ -2593,14 +2627,14 @@ async function openRecentUpdatesScreen(){
   if(location.hash!=='#atualizacoes')history.pushState({overlay:'atualizacoes'},'','#atualizacoes');
 }
 
-async function marcarComoVista(id){
+async function marcarComoVista(id,origem){
   try{
     if(DEMO){
       demoVistoIds.add(id);
     }else{
-      await dbMarcarMusicaVista(id);
+      await dbMarcarMusicaVista(id,origem);
     }
-    const item=recentUpdatesCache.find(m=>m.id===id);
+    const item=recentUpdatesCache.find(m=>m.id===id&&(m.origem||'')===(origem||''));
     if(item)item.visto_em=new Date().toISOString();
     renderRecentUpdatesList();
     refreshUpdateBadge();
@@ -2618,8 +2652,8 @@ function closeRecentUpdatesScreen(){
   if(location.hash==='#atualizacoes')history.back();
 }
 
-async function copyLetraToClipboard(id){
-  let m=recentUpdatesCache.find(x=>x.id===id)||cachedMusicas.find(x=>x.id===id);
+async function copyLetraToClipboard(id,origem){
+  let m=recentUpdatesCache.find(x=>x.id===id&&(x.origem||'')===(origem||''))||(origem?null:cachedMusicas.find(x=>x.id===id));
   if(!m){
     try{m=DEMO?DDATA.musicas.find(x=>x.id===id):await dbGetMusica(id);}
     catch(e){toast('Erro ao buscar a letra','error');return;}
@@ -4902,22 +4936,7 @@ async function apLoadSongs() {
 
 function apRenderSongList() {
   const listEl = document.getElementById('apSongList');
-  const historyCard=document.getElementById('apHistoryCard');
-  const historyList=document.getElementById('apHistoryList');
-  const history=apSongs.filter(musicaDeOutroDomingo);
   apVisibleSongs=apSongs.filter(mp=>!musicaDeOutroDomingo(mp));
-
-  historyCard.style.display=history.length?'block':'none';
-  historyList.innerHTML=history.map((mp,i)=>{
-    const m=mp.musica||{};
-    return `<div class="ap-history-item">
-      <div class="ap-song-num">${i+1}</div>
-      <div>
-        <div class="ap-history-title">${esc(m.titulo||'—')}</div>
-        <div class="ap-history-meta">De outro dia${m.tom?` · Tom ${esc(m.tom)}`:''}</div>
-      </div>
-    </div>`;
-  }).join('');
 
   if (!apVisibleSongs.length) {
     listEl.innerHTML = '<div style="padding:28px;text-align:center;color:var(--text3);font-style:italic;font-size:.84rem">Nenhuma música na playlist de Domingo ainda</div>';
@@ -4994,25 +5013,6 @@ function apMoveSong(index,delta){
   if(sourceIndex<0||targetIndex<0)return;
   [reordered[sourceIndex],reordered[targetIndex]]=[reordered[targetIndex],reordered[sourceIndex]];
   apPersistOrder(reordered);
-}
-
-function clearTodayHistory(){
-  const playlistId=apPlaylistId;
-  if(!playlistId)return;
-  openConfirm(
-    'Limpar as músicas de outro dia? As músicas deste domingo continuarão na playlist.',
-    async()=>{
-      try{
-        if(DEMO){
-          DDATA.mp[playlistId]=(DDATA.mp[playlistId]||[]).filter(mp=>!musicaDeOutroDomingo(mp));
-        }else{
-          await dbClearOldTodaySongs(playlistId);
-        }
-        await apLoadSongs();
-        toast('Músicas de outro dia removidas','success');
-      }catch(e){toast('Erro ao limpar playlist: '+e.message,'error');}
-    }
-  );
 }
 
 async function apPersistOrder(items){
@@ -5737,7 +5737,7 @@ if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
 
 /* Atualização automática: o iPhone/Android mantêm o app aberto em segundo plano sem recarregar.
    Ao abrir/voltar, compara a versão em uso com a publicada e recarrega sozinho se for diferente. */
-const APP_BUILD='1795124619135';
+const APP_BUILD='1795125418481';
 async function verificarNovaVersao(){
   if(APP_BUILD.startsWith('__')||!/^https?:$/.test(location.protocol)||location.hash==='#telao')return;
   if(document.querySelector('.modal-overlay.open'))return;
