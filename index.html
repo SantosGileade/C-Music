@@ -1827,28 +1827,33 @@ function pipDesenhar(){
   pipTick^=1;c.fillStyle=pipTick?'#0b1220':'#0b1221';c.fillRect(PIP_W-4,PIP_H-4,4,4);
   c.textAlign='left';
   if(!pipCarregou){c.fillStyle='#8aa0bd';c.font='600 26px -apple-system,Segoe UI,Roboto,sans-serif';c.fillText('Carregando…',22,PIP_H/2);return;}
-  const idx=pipItens.findIndex(mp=>mp.tocando);
-  const lista=idx>=0?pipItens.slice(idx):pipItens;
-  if(!lista.length){c.fillStyle='#8aa0bd';c.font='600 26px -apple-system,Segoe UI,Roboto,sans-serif';c.fillText('Nenhuma música na playlist.',22,PIP_H/2);return;}
-  const MAX=5,RH=60,Y0=48;
-  lista.slice(0,MAX).forEach((mp,i)=>{
-    const y=Y0+i*RH, m=mp.musica||{}, prox=(i===0&&idx>=0);
-    if(prox){c.fillStyle='rgba(20,184,166,.16)';pipRect(c,12,y+2,PIP_W-24,RH-6,12);c.fill();c.strokeStyle='rgba(20,184,166,.55)';c.lineWidth=2;c.stroke();}
-    const num=pipItens.indexOf(mp)+1, cy=y+RH/2-1;
-    c.fillStyle=prox?'#2dd4bf':'#5b7090';c.font='800 24px -apple-system,Segoe UI,Roboto,sans-serif';c.textAlign='center';c.fillText(String(num),44,cy);
+  if(!pipItens.length){c.fillStyle='#8aa0bd';c.font='600 26px -apple-system,Segoe UI,Roboto,sans-serif';c.fillText('Nenhuma música na playlist.',22,PIP_H/2);return;}
+  // a "próxima" vai para o topo, em verde e um pouco maior; as outras continuam na ordem da playlist
+  const prox=pipItens.find(mp=>mp.tocando)||null;
+  const demais=pipItens.filter(mp=>mp!==prox);
+  const F='-apple-system,Segoe UI,Roboto,sans-serif';
+  const linha=(mp,y,rh,grande)=>{
+    const m=mp.musica||{}, num=pipItens.indexOf(mp)+1, cy=y+rh/2-1, tom=m.tom||'';
+    if(grande){c.fillStyle='rgba(20,184,166,.2)';pipRect(c,12,y+2,PIP_W-24,rh-6,14);c.fill();c.strokeStyle='rgba(20,184,166,.7)';c.lineWidth=3;c.stroke();}
+    c.textAlign='center';c.fillStyle=grande?'#2dd4bf':'#5b7090';c.font='800 '+(grande?30:24)+'px '+F;c.fillText(String(num),44,cy);
     c.textAlign='left';
-    const tom=m.tom||'';
-    c.font='800 38px -apple-system,Segoe UI,Roboto,sans-serif';
-    const wTom=tom?Math.max(64,c.measureText(tom).width+28):0;
-    const xTom=PIP_W-26-wTom;
-    c.font=(prox?'700':'600')+' 27px -apple-system,Segoe UI,Roboto,sans-serif';c.fillStyle=prox?'#ffffff':'#d5e0f0';
-    c.fillText(pipCortar(c,m.titulo||'',xTom-90-16),76,cy);
+    c.font='800 '+(grande?46:38)+'px '+F;
+    const wTom=tom?Math.max(grande?78:64,c.measureText(tom).width+28):0, xTom=PIP_W-26-wTom, ph=grande?60:46;
+    c.font=(grande?'800 35':'600 27')+'px '+F;c.fillStyle=grande?'#ffffff':'#d5e0f0';
+    c.fillText(pipCortar(c,m.titulo||'',xTom-76-16),76,cy);
     if(tom){
-      c.fillStyle=prox?'#14b8a6':'rgba(124,58,237,.3)';pipRect(c,xTom,cy-23,wTom,46,10);c.fill();
-      c.fillStyle=prox?'#04201d':'#c9b8ff';c.font='800 34px -apple-system,Segoe UI,Roboto,sans-serif';c.textAlign='center';c.fillText(tom,xTom+wTom/2,cy+1);c.textAlign='left';
+      c.fillStyle=grande?'#14b8a6':'rgba(124,58,237,.3)';pipRect(c,xTom,cy-ph/2,wTom,ph,12);c.fill();
+      c.fillStyle=grande?'#04201d':'#c9b8ff';c.font='800 '+(grande?44:34)+'px '+F;c.textAlign='center';c.fillText(tom,xTom+wTom/2,cy+1);c.textAlign='left';
     }
-  });
-  if(lista.length>MAX){c.fillStyle='#5b7090';c.font='600 18px -apple-system,Segoe UI,Roboto,sans-serif';c.textAlign='center';c.fillText('+ '+(lista.length-MAX)+((lista.length-MAX)===1?' música depois':' músicas depois'),PIP_W/2,PIP_H-18);}
+  };
+  let y=48;
+  if(prox){linha(prox,y,90,true);y+=94;}
+  const rh=prox?52:60;
+  let cap=Math.floor((PIP_H-y-6)/rh), mostrar=demais;
+  if(demais.length>cap){cap=Math.floor((PIP_H-y-30)/rh);mostrar=demais.slice(0,cap);}
+  mostrar.forEach((mp,i)=>linha(mp,y+i*rh,rh,false));
+  const resto=demais.length-mostrar.length;
+  if(resto>0){c.fillStyle='#5b7090';c.font='600 18px '+F;c.textAlign='center';c.fillText('+ '+resto+(resto===1?' música':' músicas'),PIP_W/2,PIP_H-16);}
 }
 async function pipCarregar(){
   try{
@@ -5683,7 +5688,7 @@ if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
 
 /* Atualização automática: o iPhone/Android mantêm o app aberto em segundo plano sem recarregar.
    Ao abrir/voltar, compara a versão em uso com a publicada e recarrega sozinho se for diferente. */
-const APP_BUILD='1795087344072';
+const APP_BUILD='1795088824160';
 async function verificarNovaVersao(){
   if(APP_BUILD.startsWith('__')||!/^https?:$/.test(location.protocol)||location.hash==='#telao')return;
   if(document.querySelector('.modal-overlay.open'))return;
