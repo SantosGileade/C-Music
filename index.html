@@ -2465,10 +2465,11 @@ document.getElementById('confirmOkBtn').onclick=()=>{if(confirmCb)confirmCb();cl
    ===================================================================== */
 // Cada aparelho vê a comemoração uma única vez (na primeira abertura com o acervo em 100 ou 101 músicas).
 // Quando o acervo passar de 101, ela deixa de aparecer para quem ainda não viu.
-const FESTA100_CHAVE='nexos_100_musicas_comemorado_v2';
+const FESTA100_CHAVE='nexos_100_musicas_comemorado_v3';
 const FESTA100_MAX=101;
-let _festa100Total=null;
-// só gasta a "única vez" quando a animação realmente começou a aparecer na tela
+let _festa100Total=null,_festa100Timer=null;
+// só gasta a "única vez" depois que a animação ficou na tela por um tempo (festa100Marcar é chamado pela animação),
+// assim uma recarga automática do app logo na abertura não faz o aparelho perder a comemoração
 function festa100Marcar(){
   window._festa100Feita=true;   // vale mesmo se o aparelho não guardar dados: não repete na mesma abertura
   try{localStorage.setItem(FESTA100_CHAVE,'1');}catch(e){}
@@ -2478,8 +2479,12 @@ function verificarComemoracao100(total){
   if(total<100||total>FESTA100_MAX)return;
   _festa100Total=total;
   if(window._festa100Feita)return;
-  if(document.hidden)return;    // app em segundo plano (ex.: abrindo no iPhone): espera aparecer
   try{if(localStorage.getItem(FESTA100_CHAVE))return;}catch(e){}
+  const homeAtiva=document.getElementById('panel-home')?.classList.contains('active');
+  if(document.hidden||!homeAtiva)return;   // só na tela inicial e com o app visível; tenta de novo quando voltar
+  // espera a abertura "assentar" (checagem de versão nova do app, que pode recarregar a página)
+  const falta=3600-performance.now();
+  if(falta>0){clearTimeout(_festa100Timer);_festa100Timer=setTimeout(()=>verificarComemoracao100(_festa100Total),falta);return;}
   celebrar100(festa100Marcar);
 }
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&_festa100Total!==null)verificarComemoracao100(_festa100Total);});
@@ -2505,8 +2510,9 @@ function celebrar100(aoIniciar){
   let raf=0;
   const fim=()=>{cancelAnimationFrame(raf);wrap.remove();};
   const quadro=(agora)=>{
-    if(T0===null){T0=agora;if(aoIniciar)aoIniciar();}   // o relógio só começa no primeiro quadro desenhado
+    if(T0===null)T0=agora;   // o relógio só começa no primeiro quadro desenhado
     const t=agora-T0;
+    if(aoIniciar&&t>1500){aoIniciar();aoIniciar=null;}
     if(t>=TOTAL){fim();return;}
     ctx.clearRect(0,0,W,H);
     const fade=t>TOTAL-800?Math.max(0,(TOTAL-t)/800):1;
