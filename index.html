@@ -2467,18 +2467,23 @@ document.getElementById('confirmOkBtn').onclick=()=>{if(confirmCb)confirmCb();cl
 // Quando o acervo passar de 101, ela deixa de aparecer para quem ainda não viu.
 const FESTA100_CHAVE='nexos_100_musicas_comemorado_v2';
 const FESTA100_MAX=101;
+let _festa100Total=null;
+// só gasta a "única vez" quando a animação realmente começou a aparecer na tela
+function festa100Marcar(){
+  window._festa100Feita=true;   // vale mesmo se o aparelho não guardar dados: não repete na mesma abertura
+  try{localStorage.setItem(FESTA100_CHAVE,'1');}catch(e){}
+}
 function verificarComemoracao100(total){
   total=Number(total);
   if(total<100||total>FESTA100_MAX)return;
+  _festa100Total=total;
   if(window._festa100Feita)return;
-  window._festa100Feita=true;   // vale mesmo se o aparelho não guardar dados: não repete na mesma abertura
-  try{
-    if(localStorage.getItem(FESTA100_CHAVE))return;
-    localStorage.setItem(FESTA100_CHAVE,'1');
-  }catch(e){}
-  celebrar100();
+  if(document.hidden)return;    // app em segundo plano (ex.: abrindo no iPhone): espera aparecer
+  try{if(localStorage.getItem(FESTA100_CHAVE))return;}catch(e){}
+  celebrar100(festa100Marcar);
 }
-function celebrar100(){
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&_festa100Total!==null)verificarComemoracao100(_festa100Total);});
+function celebrar100(aoIniciar){
   if(document.getElementById('festa100'))return;
   const reduz=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
   const wrap=document.createElement('div');wrap.id='festa100';
@@ -2496,10 +2501,11 @@ function celebrar100(){
     ctx.save();ctx.globalAlpha=a;ctx.fillStyle=cor;ctx.shadowColor=cor;ctx.shadowBlur=r;
     ctx.beginPath();ctx.moveTo(x,y-r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.quadraticCurveTo(x,y,x,y+r);ctx.quadraticCurveTo(x,y,x-r,y);ctx.quadraticCurveTo(x,y,x,y-r);ctx.fill();ctx.restore();
   };
-  const T0=performance.now(),TOTAL=6200;
+  let T0=null;const TOTAL=6200;
   let raf=0;
   const fim=()=>{cancelAnimationFrame(raf);wrap.remove();};
   const quadro=(agora)=>{
+    if(T0===null){T0=agora;if(aoIniciar)aoIniciar();}   // o relógio só começa no primeiro quadro desenhado
     const t=agora-T0;
     if(t>=TOTAL){fim();return;}
     ctx.clearRect(0,0,W,H);
@@ -5815,7 +5821,7 @@ if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
 
 /* Atualização automática: o iPhone/Android mantêm o app aberto em segundo plano sem recarregar.
    Ao abrir/voltar, compara a versão em uso com a publicada e recarrega sozinho se for diferente. */
-const APP_BUILD='1795442901086';
+const APP_BUILD='1795445726480';
 async function verificarNovaVersao(){
   if(APP_BUILD.startsWith('__')||!/^https?:$/.test(location.protocol)||location.hash==='#telao')return;
   if(document.querySelector('.modal-overlay.open'))return;
@@ -5829,6 +5835,12 @@ async function verificarNovaVersao(){
     location.reload();
   }catch(e){}
 }
+(function(){
+  const el=document.getElementById('homeMusicCount'),caixa=el&&el.closest('.home-stat');
+  if(!caixa)return;
+  let n=0,ultimo=0;
+  caixa.addEventListener('click',()=>{const a=Date.now();n=a-ultimo>2500?1:n+1;ultimo=a;if(n>=5){n=0;celebrar100();}});
+})();
 setTimeout(verificarNovaVersao,2500);
 setInterval(()=>{if(!document.hidden)verificarNovaVersao();},5*60000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)verificarNovaVersao();});
