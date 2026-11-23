@@ -474,6 +474,7 @@
     /* ===== LETRA FULLSCREEN ===== */
     #letraScreen{display:none;position:fixed;inset:0;z-index:300;background:#000;flex-direction:column;transition:transform .18s ease}
     #letraScreen.open{display:flex}
+    #musicaModal.sobre-letra{z-index:400}   /* edição aberta de dentro da tela da letra */
     #mensagemScreen{display:none;position:fixed;inset:0;z-index:300;background:#000;flex-direction:column}
     #mensagemScreen.open{display:flex}
     #letraScreen.edge-swiping{transition:none}
@@ -799,6 +800,14 @@
     .recent-item-top{display:flex;align-items:center;gap:11px}
     .recent-item-actions{display:flex;gap:8px;margin-top:10px}
     .recent-item-actions .btn{flex:1;justify-content:center}
+    .recent-tabs{display:flex;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);flex-shrink:0}
+    .recent-tab{flex:1;padding:9px 12px;border-radius:var(--radius2);font-weight:700;font-size:.84rem;background:var(--card);color:var(--text3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;gap:6px}
+    .recent-tab.active{background:rgba(124,58,237,.22);color:#fff;border-color:rgba(167,139,250,.7)}
+    .edicao-campos{margin-top:9px;display:flex;flex-direction:column;gap:6px}
+    .edicao-campo{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:.82rem}
+    .edicao-rotulo{font-weight:800;font-size:.68rem;text-transform:uppercase;letter-spacing:.4px;color:#a78bfa;min-width:54px}
+    .edicao-de{color:var(--text2);opacity:.8;text-decoration:line-through;overflow-wrap:anywhere}
+    .edicao-para{color:var(--teal);font-weight:700;overflow-wrap:anywhere}
     .already-added-tag{display:inline-flex;align-items:center;justify-content:center;flex:1;padding:5px 11px;font-size:.78rem;font-weight:600;color:var(--green);background:rgba(76,175,130,.12);border:1px solid rgba(76,175,130,.3);border-radius:var(--radius2)}
 
     /* ===== OPERADOR DE SOM ===== */
@@ -1604,6 +1613,7 @@
       </div>
     </div>
     <div class="letra-controls">
+      <button class="letra-font-btn" onclick="editarDaLetra()" title="Editar música" aria-label="Editar música">✏️</button>
       <button class="letra-font-btn" onclick="changeFont(-2)">A−</button>
       <button class="letra-font-btn" onclick="changeFont(2)">A+</button>
     </div>
@@ -1669,8 +1679,13 @@
       <div class="letra-header-meta">Músicas adicionadas ou editadas recentemente</div>
     </div>
   </div>
+  <div class="recent-tabs">
+    <button class="recent-tab active" id="recentTabNovas" onclick="mostrarAbaAtualizacoes('novas')">🎵 Novas</button>
+    <button class="recent-tab" id="recentTabEdicoes" onclick="mostrarAbaAtualizacoes('edicoes')">✏️ Edições</button>
+  </div>
   <div class="recent-body">
     <div id="recentUpdatesList"></div>
+    <div id="recentEdicoesList" style="display:none"></div>
   </div>
 </div>
 
@@ -2463,23 +2478,28 @@ document.getElementById('confirmOkBtn').onclick=()=>{if(confirmCb)confirmCb();cl
 /* =====================================================================
    COMEMORAÇÃO — 100 músicas no app (confetes, brilhos e uma piscada)
    ===================================================================== */
-// Cada aparelho vê a comemoração uma única vez (na primeira abertura com o acervo em 100 ou 101 músicas).
-// Quando o acervo passar de 101, ela deixa de aparecer para quem ainda não viu.
-const FESTA100_CHAVE='nexos_100_musicas_comemorado_v3';
+// Cada aparelho vê a comemoração e só vê de novo depois de 1 hora (com o acervo em 100 ou 101 músicas).
+// Quando o acervo passar de 101, ela deixa de aparecer.
+const FESTA100_CHAVE='nexos_100_musicas_comemorado_em';   // guarda a hora em que a animação foi vista
+const FESTA100_INTERVALO=60*60*1000;                      // só volta a aparecer depois de 1 hora
 const FESTA100_MAX=101;
 let _festa100Total=null,_festa100Timer=null;
 // só gasta a "única vez" depois que a animação ficou na tela por um tempo (festa100Marcar é chamado pela animação),
 // assim uma recarga automática do app logo na abertura não faz o aparelho perder a comemoração
 function festa100Marcar(){
-  window._festa100Feita=true;   // vale mesmo se o aparelho não guardar dados: não repete na mesma abertura
-  try{localStorage.setItem(FESTA100_CHAVE,'1');}catch(e){}
+  window._festa100Ultima=Date.now();   // vale mesmo se o aparelho não guardar dados
+  try{localStorage.setItem(FESTA100_CHAVE,String(Date.now()));}catch(e){}
+}
+function festa100VistaHaPouco(){
+  let ultima=Number(window._festa100Ultima)||0;
+  try{ultima=Math.max(ultima,Number(localStorage.getItem(FESTA100_CHAVE))||0);}catch(e){}
+  return ultima>0&&Date.now()-ultima<FESTA100_INTERVALO;
 }
 function verificarComemoracao100(total){
   total=Number(total);
   if(total<100||total>FESTA100_MAX)return;
   _festa100Total=total;
-  if(window._festa100Feita)return;
-  try{if(localStorage.getItem(FESTA100_CHAVE))return;}catch(e){}
+  if(festa100VistaHaPouco())return;
   const homeAtiva=document.getElementById('panel-home')?.classList.contains('active');
   if(document.hidden||!homeAtiva)return;   // só na tela inicial e com o app visível; tenta de novo quando voltar
   // espera a abertura "assentar" (checagem de versão nova do app, que pode recarregar a página)
@@ -2632,6 +2652,11 @@ async function dbListRecentPortal(limit=200){
     }));
   }catch(e){return [];}   // portal ainda não instalado no banco: só não mostra
 }
+async function dbListPendentesMusicas(){
+  const {data,error}=await sb.from('musica').select('*').is('visto_em',null).order('criado_em',{ascending:false}).limit(200);
+  if(error)throw error;
+  return data||[];
+}
 async function dbCountPendentesRevisao(){
   const {data,error}=await sb.from('musica').select('id,titulo,autor').is('visto_em',null).limit(500);
   if(error)throw error;
@@ -2644,6 +2669,90 @@ async function dbMarcarMusicaVista(id,origem){
   if(error)throw error;
 }
 
+/* ----- Edições: o que mudou em cada música (título, autor, tom, letra) ----- */
+let demoEdicoes=[];
+function linhasDaLetra(t){return String(t||'').split('\n').map(l=>l.trim()).filter(Boolean);}
+function compararEdicao(antes,depois){
+  const campos={};
+  const norm=v=>String(v==null?'':v).trim();
+  [['titulo','titulo'],['autor','autor'],['tom','tom']].forEach(([k,c])=>{
+    if(norm(antes[c])!==norm(depois[c]))campos[k]={de:norm(antes[c]),para:norm(depois[c])};
+  });
+  if(norm(antes.letra)!==norm(depois.letra)){
+    const velhas=linhasDaLetra(antes.letra),novas=linhasDaLetra(depois.letra);
+    const conta=(lista)=>{const m=new Map();lista.forEach(l=>m.set(l,(m.get(l)||0)+1));return m;};
+    const mv=conta(velhas),mn=conta(novas);
+    let add=0,rem=0;
+    mn.forEach((q,l)=>{add+=Math.max(0,q-(mv.get(l)||0));});
+    mv.forEach((q,l)=>{rem+=Math.max(0,q-(mn.get(l)||0));});
+    campos.letra={adicionadas:add,removidas:rem};
+  }
+  return campos;
+}
+async function registrarEdicao(id,antes,depois){
+  try{
+    if(!antes)return;
+    const campos=compararEdicao(antes,depois);
+    if(!Object.keys(campos).length)return;
+    const linha={musica_id:Number(id),titulo:depois.titulo,campos};
+    if(DEMO){demoEdicoes.unshift({id:Date.now(),created_at:new Date().toISOString(),...linha});return;}
+    await sb.from('musica_edicao').insert(linha);   // se a tabela ainda não existe, a edição da música não é afetada
+  }catch(e){}
+}
+function mostrarAbaAtualizacoes(aba){
+  const edicoes=aba==='edicoes';
+  document.getElementById('recentTabNovas').classList.toggle('active',!edicoes);
+  document.getElementById('recentTabEdicoes').classList.toggle('active',edicoes);
+  document.getElementById('recentUpdatesList').style.display=edicoes?'none':'';
+  document.getElementById('recentEdicoesList').style.display=edicoes?'':'none';
+  document.querySelector('#recentUpdatesScreen .recent-body').scrollTop=0;
+  if(edicoes)carregarEdicoes();
+}
+let edicoesCache=[];
+async function carregarEdicoes(){
+  const el=document.getElementById('recentEdicoesList');
+  el.innerHTML='<div style="text-align:center;padding:40px"><div class="spinner" style="margin:auto"></div></div>';
+  try{
+    if(DEMO)edicoesCache=demoEdicoes;
+    else{
+      const {data,error}=await sb.from('musica_edicao').select('*').order('created_at',{ascending:false}).limit(60);
+      if(error)throw error;
+      edicoesCache=data||[];
+    }
+    renderEdicoes();
+  }catch(e){
+    el.innerHTML='<div class="letra-empty"><div class="letra-empty-icon">✏️</div><div>O registro de edições ainda não foi ativado no banco</div></div>';
+  }
+}
+function renderEdicoes(){
+  const el=document.getElementById('recentEdicoesList');
+  if(!edicoesCache.length){
+    el.innerHTML='<div class="letra-empty"><div class="letra-empty-icon">✏️</div><div>Nenhuma edição registrada ainda</div></div>';
+    return;
+  }
+  const nomes={titulo:'Título',autor:'Autor',tom:'Tom'};
+  el.innerHTML=edicoesCache.map(ed=>{
+    const c=ed.campos||{};
+    const linhas=['titulo','autor','tom'].filter(k=>c[k]).map(k=>`
+      <div class="edicao-campo"><span class="edicao-rotulo">${nomes[k]}</span>
+        <span class="edicao-de">${esc(c[k].de||'—')}</span><span>→</span><span class="edicao-para">${esc(c[k].para||'—')}</span></div>`);
+    if(c.letra){
+      const partes=[];
+      if(c.letra.adicionadas)partes.push(`+${c.letra.adicionadas} ${c.letra.adicionadas===1?'linha':'linhas'}`);
+      if(c.letra.removidas)partes.push(`−${c.letra.removidas} ${c.letra.removidas===1?'linha':'linhas'}`);
+      linhas.push(`<div class="edicao-campo"><span class="edicao-rotulo">Letra</span><span class="edicao-para">${partes.length?partes.join(' · '):'alterada'}</span></div>`);
+    }
+    return `<div class="recent-item">
+      <div class="recent-item-top"><div class="song-card-body">
+        <div class="song-card-title" title="${esc(ed.titulo)}">${esc(ed.titulo)}</div>
+        <div class="song-card-sub"><span class="recent-time">${relativeTimeFrom(ed.created_at)}</span></div>
+      </div></div>
+      <div class="edicao-campos">${linhas.join('')}</div>
+      ${c.letra&&ed.musica_id?`<div class="recent-item-actions"><button class="btn btn-ghost btn-sm" onclick="copyLetraToClipboard(${Number(ed.musica_id)},'edicao')">📋 Copiar letra atual</button></div>`:''}
+    </div>`;
+  }).join('');
+}
+
 function recentTimestampOf(m){
   return m.criado_em||m.created_at;
 }
@@ -2652,10 +2761,14 @@ async function fetchRecentMusicas(){
   if(DEMO){
     return DDATA.musicas.map(m=>({...m,criado_em:demoMusicUpdatedAt||m.criado_em,visto_em:demoVistoIds.has(m.id)?new Date().toISOString():null}));
   }
-  const [nexos,portal]=await Promise.all([dbListRecentMusicas(60),dbListRecentPortal()]);
-  return [...semRepetidasDoPortal(nexos,portal),...portal.slice(0,30)]
+  const [recentes,pendentes,portal]=await Promise.all([dbListRecentMusicas(60),dbListPendentesMusicas(),dbListRecentPortal()]);
+  // as pendentes entram mesmo sendo antigas, para a lista bater com o número da bolinha
+  const ids=new Set(recentes.map(m=>m.id));
+  const nexos=[...recentes,...pendentes.filter(m=>!ids.has(m.id))];
+  const pendPortal=portal.filter(p=>!p.visto_em),outrosPortal=portal.filter(p=>p.visto_em).slice(0,30);
+  return [...semRepetidasDoPortal(nexos,portal),...pendPortal,...outrosPortal]
     .sort((a,b)=>new Date(recentTimestampOf(b))-new Date(recentTimestampOf(a)))
-    .slice(0,40);
+    .slice(0,120);
 }
 
 async function refreshUpdateBadge(){
@@ -2703,6 +2816,7 @@ function renderRecentUpdatesList(){
 }
 
 async function openRecentUpdatesScreen(){
+  mostrarAbaAtualizacoes('novas');
   const listEl=document.getElementById('recentUpdatesList');
   listEl.innerHTML='<div style="text-align:center;padding:40px"><div class="spinner" style="margin:auto"></div></div>';
   document.getElementById('recentUpdatesScreen').classList.add('open');
@@ -2743,7 +2857,7 @@ function closeRecentUpdatesScreen(){
 }
 
 async function copyLetraToClipboard(id,origem){
-  let m=recentUpdatesCache.find(x=>x.id===id&&(x.origem||'')===(origem||''))||(origem?null:cachedMusicas.find(x=>x.id===id));
+  let m=origem==='edicao'?null:(recentUpdatesCache.find(x=>x.id===id&&(x.origem||'')===(origem||''))||(origem?null:cachedMusicas.find(x=>x.id===id)));
   if(!m){
     try{m=DEMO?DDATA.musicas.find(x=>x.id===id):await dbGetMusica(id);}
     catch(e){toast('Erro ao buscar a letra','error');return;}
@@ -4433,7 +4547,7 @@ async function editMusica(id) {
     document.getElementById('musicaLetra').value=m.letra||'';
   }
 }
-function closeMusicaModal(){document.getElementById('musicaModal').classList.remove('open');}
+function closeMusicaModal(){const mm=document.getElementById('musicaModal');mm.classList.remove('open');mm.classList.remove('sobre-letra');}
 
 async function saveMusica() {
   const id=document.getElementById('musicaId').value;
@@ -4443,6 +4557,8 @@ async function saveMusica() {
   const btn=document.getElementById('musicaSaveBtn');
   btn.disabled=true;btn.textContent='Salvando…';
   try{
+    let antes=null;
+    if(id){try{antes=DEMO?{...DDATA.musicas.find(m=>m.id==id)}:await dbGetMusica(id);}catch(e){}}
     if(DEMO){
       await delay(350);
       if(id){const i=DDATA.musicas.findIndex(m=>m.id==id);if(i>=0)DDATA.musicas[i]={...DDATA.musicas[i],...body};}
@@ -4453,6 +4569,7 @@ async function saveMusica() {
     }
     toast(id?'Música atualizada!':'Música cadastrada! ✨','success');
     closeMusicaModal();loadMusicas();
+    if(id){aposSalvarMusica(id,body);registrarEdicao(id,antes,body);}
   }catch(e){toast('Erro: '+e.message,'error');}
   finally{btn.disabled=false;btn.textContent=id?'✓ Salvar alterações':'✓ Salvar música';}
 }
@@ -4528,12 +4645,8 @@ function resetarScrollLeitura(screenId){
   requestAnimationFrame(()=>{corpo.scrollTop=0;});
 }
 
-async function openLetra(id) {
-  let m=cachedMusicas.find(x=>x.id===id);
-  if(!m){
-    try{m=DEMO?DDATA.musicas.find(x=>x.id===id):await dbGetMusica(id);}
-    catch(e){toast('Erro ao abrir letra','error');return;}
-  }
+let letraIdAtual=null;
+function preencherLetra(m){
   document.getElementById('letraTitulo').textContent=m.titulo||'—';
   document.getElementById('letraAutor').textContent=m.autor||'';
   document.getElementById('letraTom').textContent=m.tom?`🎵 Tom: ${m.tom}`:'';
@@ -4542,6 +4655,29 @@ async function openLetra(id) {
   if(m.letra&&m.letra.trim()){lt.textContent=m.letra;lt.style.display='block';le.style.display='none';}
   else{lt.style.display='none';le.style.display='flex';}
   lt.style.fontSize=letraFontSize+'px';
+}
+// ✏️ na tela da letra: abre o mesmo editor da música (título, autor, tom e letra)
+function editarDaLetra(){
+  if(letraIdAtual==null)return;
+  document.getElementById('musicaModal').classList.add('sobre-letra');
+  editMusica(letraIdAtual);
+}
+// depois de salvar uma música: atualiza a letra aberta, a playlist aberta e o datashow
+async function aposSalvarMusica(id,body){
+  const i=cachedMusicas.findIndex(x=>x.id==id);
+  if(i>=0)cachedMusicas[i]={...cachedMusicas[i],...body};
+  if(letraIdAtual==id&&document.getElementById('letraScreen').classList.contains('open'))preencherLetra({...(i>=0?cachedMusicas[i]:{}),...body});
+  if(currentPL)atualizarPlaylistAberta();
+  if(document.getElementById('panel-apresentacao')?.classList.contains('active')){apLoadSongs();apRefreshProximaGlobal();}
+}
+async function openLetra(id) {
+  let m=cachedMusicas.find(x=>x.id===id);
+  if(!m){
+    try{m=DEMO?DDATA.musicas.find(x=>x.id===id):await dbGetMusica(id);}
+    catch(e){toast('Erro ao abrir letra','error');return;}
+  }
+  letraIdAtual=id;
+  preencherLetra(m);
   document.getElementById('letraScreen').classList.add('open');
   resetarScrollLeitura('letraScreen');
   document.body.style.overflow='hidden';
