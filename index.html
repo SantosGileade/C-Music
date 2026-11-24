@@ -2767,7 +2767,8 @@ async function fetchRecentMusicas(){
   const nexos=[...recentes,...pendentes.filter(m=>!ids.has(m.id))];
   const pendPortal=portal.filter(p=>!p.visto_em),outrosPortal=portal.filter(p=>p.visto_em).slice(0,30);
   return [...semRepetidasDoPortal(nexos,portal),...pendPortal,...outrosPortal]
-    .sort((a,b)=>new Date(recentTimestampOf(b))-new Date(recentTimestampOf(a)))
+    // as que ainda esperam o operador ficam no topo (igual ao número da bolinha); depois as já vistas, da mais nova para a mais antiga
+    .sort((a,b)=>(!!a.visto_em-!!b.visto_em)||(new Date(recentTimestampOf(b))-new Date(recentTimestampOf(a))))
     .slice(0,120);
 }
 
@@ -5963,7 +5964,7 @@ if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
 
 /* Atualização automática: o iPhone/Android mantêm o app aberto em segundo plano sem recarregar.
    Ao abrir/voltar, compara a versão em uso com a publicada e recarrega sozinho se for diferente. */
-const APP_BUILD='1795462087075';
+const APP_BUILD='1795532597323';
 async function verificarNovaVersao(){
   if(APP_BUILD.startsWith('__')||!/^https?:$/.test(location.protocol)||location.hash==='#telao')return;
   if(document.querySelector('.modal-overlay.open'))return;
