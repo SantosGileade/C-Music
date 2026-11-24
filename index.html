@@ -2767,7 +2767,8 @@ async function fetchRecentMusicas(){
   const nexos=[...recentes,...pendentes.filter(m=>!ids.has(m.id))];
   const pendPortal=portal.filter(p=>!p.visto_em),outrosPortal=portal.filter(p=>p.visto_em).slice(0,30);
   return [...semRepetidasDoPortal(nexos,portal),...pendPortal,...outrosPortal]
-    .sort((a,b)=>new Date(recentTimestampOf(b))-new Date(recentTimestampOf(a)))
+    // as que ainda esperam o operador ficam no topo (igual ao número da bolinha); depois as já vistas, da mais nova para a mais antiga
+    .sort((a,b)=>(!!a.visto_em-!!b.visto_em)||(new Date(recentTimestampOf(b))-new Date(recentTimestampOf(a))))
     .slice(0,120);
 }
 
